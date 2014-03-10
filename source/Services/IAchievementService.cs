@@ -2,7 +2,7 @@
 
 namespace FitBot.Services
 {
-    public interface IUserSyncService
+    public interface IAchievementService
     {
         Task Execute();
     }

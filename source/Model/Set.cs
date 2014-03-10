@@ -14,6 +14,6 @@
         public double? HeartRate { get; set; }
         public double? Incline { get; set; }
         public string Difficulty { get; set; }
-        public bool IsPb { get; set; }
+        public bool IsPr { get; set; }
     }
 }

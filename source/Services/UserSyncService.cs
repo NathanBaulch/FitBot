@@ -15,7 +15,7 @@ namespace FitBot.Services
             _fitocracy = fitocracy;
         }
 
-        public async Task Run()
+        public async Task Execute()
         {
             var staleUsers = (await _database.GetUsers()).ToDictionary(user => user.Id);
             var pageNum = 0;

@@ -23,27 +23,21 @@ namespace FitBot.Properties {
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("TODO")]
         public string Username {
             get {
                 return ((string)(this["Username"]));
             }
-            set {
-                this["Username"] = value;
-            }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("TODO")]
         public string Password {
             get {
                 return ((string)(this["Password"]));
-            }
-            set {
-                this["Password"] = value;
             }
         }
     }

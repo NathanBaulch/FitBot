@@ -10,5 +10,6 @@ namespace FitBot.Services
         Task<IList<Workout>> GetWorkouts(long userId, int offset = 0);
         Task PostComment(long workoutId, string text);
         Task DeleteComment(long commentId);
+        Task GiveProp(long workoutId);
     }
 }

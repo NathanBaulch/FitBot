@@ -11,6 +11,7 @@ using DapperExtensions;
 using DapperExtensions.Mapper;
 using FitBot.Model;
 
+//TODO: possible connectivity problems
 //TODO: consider batch insertion
 //TODO: consider async crud
 
@@ -48,7 +49,7 @@ namespace FitBot.Services
         {
             using (var con = OpenConnection())
             {
-                return (await con.QueryAsync<T>(sql, parameters)).Single();
+                return (await con.QueryAsync<T>(sql, parameters)).SingleOrDefault();
             }
         }
 
@@ -60,6 +61,50 @@ namespace FitBot.Services
                 "order by [Id]");
         }
 
+        public Task<IEnumerable<User>> GetUsersWithDirtyDate()
+        {
+            return Query<User>(
+                "select * " +
+                "from [User] " +
+                "where [DirtyDate] is not null " +
+                "order by [Id]");
+        }
+
+        public void Insert(User user)
+        {
+            Debug.WriteLine("Inserting user " + user.Id);
+            using (var con = OpenConnection())
+            {
+                con.Insert(user);
+            }
+        }
+
+        public void Update(User user)
+        {
+            Debug.WriteLine("Updating user " + user.Id);
+            using (var con = OpenConnection())
+            {
+                con.Update(user);
+            }
+        }
+
+        public void Delete(User user)
+        {
+            Debug.WriteLine("Deleting user " + user.Id);
+            using (var con = OpenConnection())
+            {
+                con.Delete(user);
+            }
+        }
+
+        public Task<int> GetWorkoutCount(long userId)
+        {
+            return Single<int>(
+                "select count(*) " +
+                "from [Workout] " +
+                "where [UserId] = @userId", new {userId});
+        }
+
         public Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime fromDate, DateTime toDate)
         {
             return Query<Workout>(
@@ -67,21 +112,24 @@ namespace FitBot.Services
                 "from [Workout] " +
                 "where [UserId] = @userId " +
                 "and [Date] >= @fromDate " +
-                "and [Date] < @toDate", new {userId, fromDate, toDate});
+                "and [Date] < @toDate " +
+                "order by [Date]", new {userId, fromDate, toDate});
         }
 
-        public void Insert(User user)
+        public void DeleteWorkoutsBefore(DateTime date)
         {
-            Debug.WriteLine("Inserting user: " + user.Id);
+            Debug.WriteLine("Deleting workouts before " + date);
             using (var con = OpenConnection())
             {
-                con.Insert(user);
+                con.Execute(
+                    "delete from [Workout] " +
+                    "where [Date] < @date", new {date});
             }
         }
 
         public void Insert(Workout workout)
         {
-            Debug.WriteLine("Inserting workout: " + workout.Id);
+            Debug.WriteLine("Inserting workout " + workout.Id);
             using (var con = OpenConnection())
             using (var trans = con.BeginTransaction())
             {
@@ -91,45 +139,63 @@ namespace FitBot.Services
             }
         }
 
-        public void Update(User user)
+        public void Update(Workout workout, bool deep)
         {
-            Debug.WriteLine("Updating user: " + user.Id);
+            Debug.WriteLine("Updating workout " + workout.Id + (deep ? " deep" : " shallow"));
             using (var con = OpenConnection())
             {
-                con.Update(user);
-            }
-        }
-
-        public void Update(Workout workout)
-        {
-            Debug.WriteLine("Updating workout: " + workout.Id);
-            using (var con = OpenConnection())
-            using (var trans = con.BeginTransaction())
-            {
-                con.Update(workout, trans);
-                con.Execute(
-                    "delete from [Activity] " +
-                    "where [WorkoutId] = @Id", new {workout.Id}, trans);
-                InsertWorkoutActivities(workout, con, trans);
-                trans.Commit();
-            }
-        }
-
-        public void Delete(User user)
-        {
-            Debug.WriteLine("Deleting user: " + user.Id);
-            using (var con = OpenConnection())
-            {
-                con.Delete(user);
+                if (deep)
+                {
+                    using (var trans = con.BeginTransaction())
+                    {
+                        con.Update(workout, trans);
+                        con.Execute(
+                            "delete from [Activity] " +
+                            "where [WorkoutId] = @Id", new {workout.Id}, trans);
+                        InsertWorkoutActivities(workout, con, trans);
+                        trans.Commit();
+                    }
+                }
+                else
+                {
+                    con.Update(workout);
+                }
             }
         }
 
         public void Delete(Workout workout)
         {
-            Debug.WriteLine("Deleting workout: " + workout.Id);
+            Debug.WriteLine("Deleting workout " + workout.Id);
             using (var con = OpenConnection())
             {
                 con.Delete(workout);
+            }
+        }
+
+        public void Insert(Achievement achievement)
+        {
+            Debug.WriteLine("Inserting achievement " + achievement.Type + " for group " + achievement.Group);
+            using (var con = OpenConnection())
+            {
+                con.Insert(achievement);
+            }
+        }
+
+        public void Update(Achievement achievement)
+        {
+            Debug.WriteLine("Updating achievement " + achievement.Type + " for group " + achievement.Group);
+            using (var con = OpenConnection())
+            {
+                con.Update(achievement);
+            }
+        }
+
+        public void Delete(Achievement achievement)
+        {
+            Debug.WriteLine("Deleting achievement " + achievement.Type + " for group " + achievement.Group);
+            using (var con = OpenConnection())
+            {
+                con.Delete(achievement);
             }
         }
 

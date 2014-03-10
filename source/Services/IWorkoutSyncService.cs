@@ -4,6 +4,6 @@ namespace FitBot.Services
 {
     public interface IWorkoutSyncService
     {
-        Task Run();
+        Task Execute();
     }
 }

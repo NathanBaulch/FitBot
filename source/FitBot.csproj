@@ -56,14 +56,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Services\CachedFitocracyService.cs" />
-    <Compile Include="Services\DatabaseService.cs" />
-    <Compile Include="Services\FitocracyService.cs" />
-    <Compile Include="Services\IDatabaseService.cs" />
-    <Compile Include="Services\IFitocracyService.cs" />
-    <Compile Include="Services\IScrapingService.cs" />
-    <Compile Include="Model\Set.cs" />
+    <Compile Include="Achievements\IAchievementProvider.cs" />
+    <Compile Include="Achievements\LifetimeDistance.cs" />
+    <Compile Include="Achievements\LifetimeDuration.cs" />
+    <Compile Include="Achievements\LifetimeRepetitions.cs" />
+    <Compile Include="Achievements\TopPercentilePoints.cs" />
+    <Compile Include="Model\Achievement.cs" />
     <Compile Include="Model\Activity.cs" />
+    <Compile Include="Model\Set.cs" />
     <Compile Include="Model\User.cs" />
     <Compile Include="Model\Workout.cs" />
     <Compile Include="Program.cs" />
@@ -73,6 +73,14 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Services\AchievementService.cs" />
+    <Compile Include="Services\DatabaseService.cs" />
+    <Compile Include="Services\DevFitocracyService.cs" />
+    <Compile Include="Services\FitocracyService.cs" />
+    <Compile Include="Services\IAchievementService.cs" />
+    <Compile Include="Services\IDatabaseService.cs" />
+    <Compile Include="Services\IFitocracyService.cs" />
+    <Compile Include="Services\IScrapingService.cs" />
     <Compile Include="Services\IUserSyncService.cs" />
     <Compile Include="Services\IWorkoutSyncService.cs" />
     <Compile Include="Services\ScrapingService.cs" />

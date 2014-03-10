@@ -21,24 +21,24 @@ namespace FitBot.Services
         private const double MetersPerMile = 1609.344;
         private const double KilogramsPerPound = 0.453592;
 
-        public IList<Workout> ExtractWorkouts(Stream content)
+        public IList<Workout> ExtractWorkouts(Stream content, User selfUser)
         {
             var doc = new HtmlDocument();
             doc.Load(content);
             return doc.DocumentNode
                       .Descendants("div")
                       .Where(div => div.GetAttributeValue("data-ag-type", null) == "workout")
-                      .Select(ExtractWorkout)
+                      .Select(node => ExtractWorkout(node, selfUser))
                       .ToList();
         }
 
-        private static Workout ExtractWorkout(HtmlNode node)
+        private static Workout ExtractWorkout(HtmlNode node, User selfUser)
         {
             var value = node.Descendants("a")
                             .Select(a => a.GetAttributeValue("data-item-id", null))
                             .FirstOrDefault(item => item != null);
-            int workoutId;
-            if (!int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out workoutId))
+            long workoutId;
+            if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out workoutId))
             {
                 throw new InvalidDataException("TODO: unable to find workout ID");
             }
@@ -64,11 +64,31 @@ namespace FitBot.Services
                 points = 0;
             }
 
+            long? commentId;
+            if (selfUser.Id != 0)
+            {
+                value = node.Descendants("li")
+                            .Where(li => li.GetAttributeValue("data-user-id", null) == selfUser.Id.ToString(CultureInfo.InvariantCulture))
+                            .Select(li => li.GetAttributeValue("data-comment-id", null))
+                            .FirstOrDefault();
+                long id;
+                commentId = long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out id) ? id : (long?) null;
+            }
+            else
+            {
+                commentId = null;
+            }
+
             return new Workout
                 {
                     Id = workoutId,
                     Date = date,
                     Points = points,
+                    CommentId = commentId,
+                    IsPropped = node.Descendants("span")
+                                    .Where(span => span.GetAttributeValue("class", null) == "individual_prop_" + workoutId)
+                                    .SelectMany(span => span.Elements("a"))
+                                    .Any(a => a.InnerText == selfUser.Username),
                     Activities = node.Descendants("ul")
                                      .Where(div => div.GetAttributeValue("class", null) == "action_detail")
                                      .SelectMany(ul => ul.Descendants("li"))
@@ -128,7 +148,7 @@ namespace FitBot.Services
             var text = node.FirstChild.InnerText.Trim();
             if (text.EndsWith("(PR)"))
             {
-                action.IsPb = true;
+                action.IsPr = true;
                 text = text.Substring(0, text.Length - 4).Trim();
             }
 

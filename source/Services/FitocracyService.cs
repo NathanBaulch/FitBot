@@ -12,6 +12,8 @@ using FitBot.Model;
 using FitBot.Properties;
 using ServiceStack.Text;
 
+//TODO: possible connectivity problems
+
 namespace FitBot.Services
 {
     public class FitocracyService : IFitocracyService
@@ -31,12 +33,13 @@ namespace FitBot.Services
         }
 
         protected CookieContainer Cookies { get; set; }
+        protected User SelfUser { get; set; }
 
         public async Task<IList<User>> GetFollowers(int pageNum)
         {
-            Debug.WriteLine("Getting followers, page " + pageNum);
+            Debug.WriteLine("Getting followers page " + pageNum);
             await EnsureAuthenticated();
-            using (var stream = await Get("get-user-friends", new {followers = true, user = _username, page = pageNum}))
+            using (var stream = await Get("get-user-friends", new {followers = true, user = _username, page = pageNum}, "application/json"))
             {
                 return JsonSerializer.DeserializeFromStream<IList<User>>(stream);
             }
@@ -44,15 +47,13 @@ namespace FitBot.Services
 
         public async Task<IList<Workout>> GetWorkouts(long userId, int offset)
         {
-            Debug.WriteLine("Getting workouts for user: {0}, offset {1}", userId, offset);
+            Debug.WriteLine("Getting workouts for user {0} at offset {1}", userId, offset);
             await EnsureAuthenticated();
-            using (var stream = await Get(string.Format("activity_stream/{0}", offset), new {user_id = userId, types = "WORKOUT"}))
+            using (var stream = await Get(string.Format("activity_stream/{0}", offset), new {user_id = userId, types = "WORKOUT"}, "text/html"))
             {
-                var workouts = _scraper.ExtractWorkouts(stream);
-                var importDate = DateTime.UtcNow;
+                var workouts = _scraper.ExtractWorkouts(stream, SelfUser);
                 foreach (var workout in workouts)
                 {
-                    workout.ImportDate = importDate;
                     workout.UserId = userId;
                 }
                 return workouts;
@@ -61,16 +62,23 @@ namespace FitBot.Services
 
         public async Task PostComment(long workoutId, string text)
         {
-            Debug.WriteLine("Posting comment on workout: " + workoutId);
+            Debug.WriteLine("Posting comment on workout " + workoutId);
             await EnsureAuthenticated();
             await Post("add_comment", new {ag = workoutId, comment_text = text});
         }
 
         public async Task DeleteComment(long commentId)
         {
-            Debug.WriteLine("Deleting comment: " + commentId);
+            Debug.WriteLine("Deleting comment " + commentId);
             await EnsureAuthenticated();
             await Post("delete_comment", new {id = commentId});
+        }
+
+        public async Task GiveProp(long workoutId)
+        {
+            Debug.WriteLine("Giving prop on workout " + workoutId);
+            await EnsureAuthenticated();
+            await Post("give_prop", new {id = workoutId});
         }
 
         private async Task EnsureAuthenticated()
@@ -83,12 +91,15 @@ namespace FitBot.Services
             Cookies = new CookieContainer();
             await Get("accounts/login");
             var tokenCookie = Cookies.GetCookies(new Uri(RootUri))["csrftoken"];
-            Debug.Assert(tokenCookie != null);
+            if (tokenCookie == null)
+            {
+                throw new Exception("TODO: CSRF token not found");
+            }
             _csrfToken = tokenCookie.Value;
-            await Post("accounts/login", new {username = _username, password = _password});
+            await Post("accounts/login", new {username = _username, password = _password, json = 1, is_username = 1});
         }
 
-        protected virtual async Task<Stream> Get(string endpoint, object queryArgs = null)
+        protected virtual async Task<Stream> Get(string endpoint, object queryArgs = null, string expectedContentType = null)
         {
             //TODO: find a more permanent throttling solution
             Thread.Sleep(3000);
@@ -100,7 +111,12 @@ namespace FitBot.Services
             }
             var request = (HttpWebRequest) WebRequest.Create(uri);
             request.CookieContainer = Cookies;
-            return (await request.GetResponseAsync()).GetResponseStream();
+            var response = await request.GetResponseAsync();
+            if (expectedContentType != null && expectedContentType != response.ContentType)
+            {
+                throw new Exception("TODO: unexpected content type");
+            }
+            return response.GetResponseStream();
         }
 
         protected virtual async Task Post(string endpoint, object formData = null)
@@ -123,8 +139,37 @@ namespace FitBot.Services
                     }
                 }
             }
-            using (await request.GetResponseAsync())
+            using (var response = await request.GetResponseAsync())
             {
+                if (endpoint == "accounts/login")
+                {
+                    if (response.ContentType != "application/json")
+                    {
+                        throw new Exception("TODO: unexpected content type");
+                    }
+
+                    JsonObject json;
+                    using (var stream = response.GetResponseStream())
+                    {
+                        json = JsonSerializer.DeserializeFromStream<JsonObject>(stream);
+                    }
+
+                    if (json != null && json["success"] != "true")
+                    {
+                        throw new Exception("TODO: " + json["error"]);
+                    }
+
+                    long id;
+                    if (!long.TryParse(response.Headers["X-Fitocracy-User"], out id))
+                    {
+                        throw new Exception("TODO: Self user ID cannot be found");
+                    }
+                    SelfUser = new User
+                        {
+                            Id = id,
+                            Username = _username
+                        };
+                }
             }
         }
 

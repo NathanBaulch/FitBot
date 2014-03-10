@@ -1,49 +1,56 @@
+USE [master]
+GO
+
+DROP DATABASE [FitBot]
+GO
+
 CREATE DATABASE [FitBot]
 GO
 
 USE [FitBot]
 GO
 
-CREATE TABLE [dbo].[User](
+CREATE TABLE [User] (
 	[Id] [bigint] PRIMARY KEY NOT NULL,
-	[Username] [nvarchar](50) NOT NULL
+	[Username] [nvarchar] (100) NOT NULL,
+	[DirtyDate] [datetime2] NULL,
+	UNIQUE([Username])
 )
 GO
 
-CREATE TABLE [dbo].[Workout](
+CREATE TABLE [Workout] (
 	[Id] [bigint] PRIMARY KEY NOT NULL,
 	[UserId] [bigint] NOT NULL,
 	[Date] [datetime2] NULL,
 	[Points] [int] NULL,
-	[ImportDate] [datetime2] NOT NULL,
-	[Hash] [int] NOT NULL
+	[CommentId] [bigint] NULL,
+	[CommentHash] [int] NULL,
+	[IsPropped] [bit] NOT NULL,
+	[SyncDate] [datetime2] NOT NULL,
+	[ActivitiesHash] [int] NOT NULL,
+	UNIQUE([UserId], [Date]),
+	FOREIGN KEY ([UserId]) REFERENCES [User] ([Id]) ON DELETE CASCADE
 )
 GO
 
-CREATE INDEX [IX_Workout_UserId] ON [dbo].[Workout]([UserId])
+CREATE INDEX [IX_Workout_UserId] ON [Workout] ([UserId])
 GO
 
-ALTER TABLE [dbo].[Workout] ADD CONSTRAINT [FK_User_Workout]
-FOREIGN KEY ([UserId]) REFERENCES [dbo].[User]([Id]) ON DELETE CASCADE
-GO
-
-CREATE TABLE [dbo].[Activity](
+CREATE TABLE [Activity] (
 	[Id] [bigint] PRIMARY KEY IDENTITY NOT NULL,
 	[WorkoutId] [bigint] NOT NULL,
 	[Sequence] [int] NOT NULL,
-	[Name] [nvarchar](100) NOT NULL,
-	[Note] [text] NULL
+	[Name] [nvarchar] (100) NOT NULL,
+	[Note] [text] NULL,
+	UNIQUE ([WorkoutId], [Sequence]),
+	FOREIGN KEY ([WorkoutId]) REFERENCES [Workout] ([Id]) ON DELETE CASCADE
 )
 GO
 
-CREATE INDEX [IX_Activity_WorkoutId] ON [dbo].[Activity]([WorkoutId])
+CREATE INDEX [IX_Activity_WorkoutId] ON [Activity] ([WorkoutId])
 GO
 
-ALTER TABLE [dbo].[Activity] ADD CONSTRAINT [FK_Workout_Activity]
-FOREIGN KEY ([WorkoutId]) REFERENCES [dbo].[Workout]([Id]) ON DELETE CASCADE
-GO
-
-CREATE TABLE [dbo].[Set](
+CREATE TABLE [Set] (
 	[Id] [bigint] PRIMARY KEY IDENTITY NOT NULL,
 	[ActivityId] [bigint] NOT NULL,
 	[Sequence] [int] NOT NULL,
@@ -55,14 +62,27 @@ CREATE TABLE [dbo].[Set](
 	[Weight] [float] NULL,
 	[HeartRate] [float] NULL,
 	[Incline] [float] NULL,
-	[Difficulty] [nvarchar](50) NULL,
-	[IsPb] [bit] NOT NULL
+	[Difficulty] [nvarchar] (100) NULL,
+	[IsPr] [bit] NOT NULL,
+	UNIQUE ([ActivityId], [Sequence]),
+	FOREIGN KEY ([ActivityId]) REFERENCES [Activity] ([Id]) ON DELETE CASCADE
 )
 GO
 
-CREATE INDEX [IX_Set_ActivityId] ON [dbo].[Set]([ActivityId])
+CREATE INDEX [IX_Set_ActivityId] ON [Set] ([ActivityId])
 GO
 
-ALTER TABLE [dbo].[Set] ADD CONSTRAINT [FK_Activity_Set]
-FOREIGN KEY ([ActivityId]) REFERENCES [dbo].[Activity]([Id]) ON DELETE CASCADE
+CREATE TABLE [Achievement] (
+	[Id] [bigint] PRIMARY KEY IDENTITY NOT NULL,
+	[WorkoutId] [bigint] NOT NULL,
+	[Type] [nvarchar] (100) NOT NULL,
+	[Group] [nvarchar] (100) NOT NULL,
+	[Quantity1] [float] NULL,
+	[Quantity2] [float] NULL,
+	UNIQUE ([WorkoutId], [Type], [Group]),
+	FOREIGN KEY ([WorkoutId]) REFERENCES [Workout] ([Id]) ON DELETE CASCADE
+)
+GO
+
+CREATE INDEX [IX_Achievement_WorkoutId] ON [Achievement] ([WorkoutId])
 GO
