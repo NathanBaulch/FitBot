@@ -17,9 +17,9 @@ namespace FitBot.Services
         void Delete(User user);
 
         Task<int> GetWorkoutCount(long userId);
-        Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime fromDate, DateTime toDate);
+        Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime fromDate, DateTime toDate, bool deep = false);
         void DeleteWorkoutsBefore(DateTime date);
-        void Insert(Workout workout);
+        void Insert(Workout workout, bool deep = false);
         void Update(Workout workout, bool deep = false);
         void Delete(Workout workout);
 

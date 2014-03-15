@@ -6,14 +6,14 @@ using FitBot.Services;
 
 namespace FitBot.Achievements
 {
-    internal class TopPercentilePoints : IAchievementProvider
+    internal class TopPercentilePointsProvider : IAchievementProvider
     {
-        private const double Percentile = 0.05;
+        private const decimal Percentile = 0.05M;
 
         private readonly IDatabaseService _database;
         private readonly IFitocracyService _fitocracy;
 
-        public TopPercentilePoints(IDatabaseService database, IFitocracyService fitocracy)
+        public TopPercentilePointsProvider(IDatabaseService database, IFitocracyService fitocracy)
         {
             _database = database;
             _fitocracy = fitocracy;

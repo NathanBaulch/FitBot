@@ -25,6 +25,7 @@ namespace FitBot.Services
                 var offset = 0;
                 var toDate = DateTime.MaxValue;
                 DateTime? dirtyDate = null;
+                var processedIds = new HashSet<long>();
                 while (true)
                 {
                     var freshWorkouts = _fitocracy.GetWorkouts(user.Id, offset).Result;
@@ -37,13 +38,25 @@ namespace FitBot.Services
                         break;
                     }
 
+                    offset += freshWorkouts.Count;
+
+                    freshWorkouts = freshWorkouts.Where(workout => !processedIds.Contains(workout.Id)).ToList();
+                    if (freshWorkouts.Count == 0)
+                    {
+                        continue;
+                    }
+                    foreach (var freshWorkout in freshWorkouts)
+                    {
+                        processedIds.Add(freshWorkout.Id);
+                    }
+
                     if (isNewUser)
                     {
                         foreach (var freshWorkout in freshWorkouts)
                         {
                             freshWorkout.SyncDate = DateTime.UtcNow;
                             freshWorkout.ActivitiesHash = ComputeActivitiesHashCode(freshWorkout.Activities);
-                            _database.Insert(freshWorkout);
+                            _database.Insert(freshWorkout, true);
                         }
                     }
                     else
@@ -59,7 +72,7 @@ namespace FitBot.Services
                             Workout staleWorkout;
                             if (!staleWorkouts.TryGetValue(freshWorkout.Id, out staleWorkout))
                             {
-                                _database.Insert(freshWorkout);
+                                _database.Insert(freshWorkout, true);
                                 dirtyDate = freshWorkout.Date;
                             }
                             else
@@ -97,8 +110,6 @@ namespace FitBot.Services
 
                         toDate = fromDate;
                     }
-
-                    offset += freshWorkouts.Count;
                 }
 
                 if (user.DirtyDate != dirtyDate)

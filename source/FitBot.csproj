@@ -33,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dapper">
-      <HintPath>..\packages\Dapper-Async.1.03\lib\net45\Dapper.dll</HintPath>
+      <HintPath>..\packages\Dapper.1.13\lib\net45\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="DapperExtensions">
       <HintPath>..\packages\DapperExtensions.1.4.3\lib\net40\DapperExtensions.dll</HintPath>
@@ -56,11 +56,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Achievements\DailyRecordProvider.cs" />
     <Compile Include="Achievements\IAchievementProvider.cs" />
-    <Compile Include="Achievements\LifetimeDistance.cs" />
-    <Compile Include="Achievements\LifetimeDuration.cs" />
-    <Compile Include="Achievements\LifetimeRepetitions.cs" />
-    <Compile Include="Achievements\TopPercentilePoints.cs" />
+    <Compile Include="Achievements\LifetimeMilestoneProvider.cs" />
+    <Compile Include="Achievements\TopPercentilePointsProvider.cs" />
     <Compile Include="Model\Achievement.cs" />
     <Compile Include="Model\Activity.cs" />
     <Compile Include="Model\Set.cs" />
@@ -74,10 +73,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Services\AchievementService.cs" />
+    <Compile Include="Services\ActivityGroupingService.cs" />
     <Compile Include="Services\DatabaseService.cs" />
     <Compile Include="Services\DevFitocracyService.cs" />
     <Compile Include="Services\FitocracyService.cs" />
     <Compile Include="Services\IAchievementService.cs" />
+    <Compile Include="Services\IActivityGroupingService.cs" />
     <Compile Include="Services\IDatabaseService.cs" />
     <Compile Include="Services\IFitocracyService.cs" />
     <Compile Include="Services\IScrapingService.cs" />

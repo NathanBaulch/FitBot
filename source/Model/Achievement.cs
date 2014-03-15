@@ -6,7 +6,10 @@
         public long WorkoutId { get; set; }
         public string Type { get; set; }
         public string Group { get; set; }
-        public double? Quantity1 { get; set; }
-        public double? Quantity2 { get; set; }
+        public decimal? Distance { get; set; }
+        public decimal? Duration { get; set; }
+        public decimal? Speed { get; set; }
+        public decimal? Repetitions { get; set; }
+        public decimal? Weight { get; set; }
     }
 }

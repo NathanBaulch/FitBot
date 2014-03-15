@@ -28,7 +28,6 @@ CREATE TABLE [Workout] (
 	[IsPropped] [bit] NOT NULL,
 	[SyncDate] [datetime2] NOT NULL,
 	[ActivitiesHash] [int] NOT NULL,
-	UNIQUE([UserId], [Date]),
 	FOREIGN KEY ([UserId]) REFERENCES [User] ([Id]) ON DELETE CASCADE
 )
 GO
@@ -55,13 +54,13 @@ CREATE TABLE [Set] (
 	[ActivityId] [bigint] NOT NULL,
 	[Sequence] [int] NOT NULL,
 	[Points] [int] NULL,
-	[Distance] [float] NULL,
-	[Duration] [int] NULL,
-	[Speed] [float] NULL,
-	[Repetitions] [int] NULL,
-	[Weight] [float] NULL,
-	[HeartRate] [float] NULL,
-	[Incline] [float] NULL,
+	[Distance] [decimal](9, 2) NULL,
+	[Duration] [decimal](9, 2) NULL,
+	[Speed] [decimal](9, 2) NULL,
+	[Repetitions] [decimal](9, 2) NULL,
+	[Weight] [decimal](9, 2) NULL,
+	[HeartRate] [decimal](9, 2) NULL,
+	[Incline] [decimal](9, 2) NULL,
 	[Difficulty] [nvarchar] (100) NULL,
 	[IsPr] [bit] NOT NULL,
 	UNIQUE ([ActivityId], [Sequence]),
@@ -77,8 +76,11 @@ CREATE TABLE [Achievement] (
 	[WorkoutId] [bigint] NOT NULL,
 	[Type] [nvarchar] (100) NOT NULL,
 	[Group] [nvarchar] (100) NOT NULL,
-	[Quantity1] [float] NULL,
-	[Quantity2] [float] NULL,
+	[Distance] [decimal](9, 2) NULL,
+	[Duration] [decimal](9, 2) NULL,
+	[Speed] [decimal](9, 2) NULL,
+	[Repetitions] [decimal](9, 2) NULL,
+	[Weight] [decimal](9, 2) NULL,
 	UNIQUE ([WorkoutId], [Type], [Group]),
 	FOREIGN KEY ([WorkoutId]) REFERENCES [Workout] ([Id]) ON DELETE CASCADE
 )

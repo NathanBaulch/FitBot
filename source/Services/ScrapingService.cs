@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using FitBot.Model;
 using HtmlAgilityPack;
 
@@ -14,12 +13,12 @@ namespace FitBot.Services
 {
     public class ScrapingService : IScrapingService
     {
-        private const double MetersPerInch = 0.0254;
-        private const double MetersPerFoot = 0.3048;
-        private const double MetersPerYard = 0.9144;
-        private const double MetersPerFathom = 1.8288;
-        private const double MetersPerMile = 1609.344;
-        private const double KilogramsPerPound = 0.453592;
+        private const decimal MetersPerInch = 0.0254M;
+        private const decimal MetersPerFoot = 0.3048M;
+        private const decimal MetersPerYard = 0.9144M;
+        private const decimal MetersPerFathom = 1.8288M;
+        private const decimal MetersPerMile = 1609.344M;
+        private const decimal KilogramsPerPound = 0.453592M;
 
         public IList<Workout> ExtractWorkouts(Stream content, User selfUser)
         {
@@ -104,7 +103,7 @@ namespace FitBot.Services
         {
             var name = node.Descendants("div")
                            .Where(div => div.GetAttributeValue("class", null) == "action_prompt")
-                           .Select(div => HtmlEntity.DeEntitize(div.InnerText))
+                           .Select(div => HtmlEntity.DeEntitize(div.InnerText).Replace("  ", " "))
                            .FirstOrDefault();
             if (name == null)
             {
@@ -170,8 +169,8 @@ namespace FitBot.Services
                     }
                     else
                     {
-                        double num;
-                        if (double.TryParse(value.Substring(0, pos), NumberStyles.Any, CultureInfo.InvariantCulture, out num))
+                        decimal num;
+                        if (decimal.TryParse(value.Substring(0, pos), NumberStyles.Any, CultureInfo.InvariantCulture, out num))
                         {
                             var metric = value.Substring(pos + 1);
                             switch (metric.ToLowerInvariant())
@@ -181,6 +180,7 @@ namespace FitBot.Services
                                 case "holes":
                                 case "slams":
                                 case "floors":
+                                case "throws":
                                 case "jumping jacks":
                                     action.Repetitions = (int) num;
                                     break;
@@ -196,7 +196,7 @@ namespace FitBot.Services
                                     action.Distance = num;
                                     break;
                                 case "cm":
-                                    action.Distance = num*0.01;
+                                    action.Distance = num*0.01M;
                                     break;
                                 case "laps (25m)":
                                     action.Distance = num*25;
@@ -227,13 +227,19 @@ namespace FitBot.Services
                                     action.Speed = num;
                                     break;
                                 case "m/s":
-                                    action.Speed = num*3.6;
+                                    action.Speed = num*3.6M;
+                                    break;
+                                case "fps":
+                                    action.Speed = num*3.6M*MetersPerFoot;
                                     break;
                                 case "mph":
-                                    action.Speed = num*MetersPerMile/1000;
+                                    action.Speed = num*0.001M*MetersPerMile;
                                     break;
                                 case "min/100m":
                                     action.Speed = 6/num;
+                                    break;
+                                case "split":
+                                    action.Speed = 30/num;
                                     break;
                                 case "min/km":
                                     action.Speed = 60/num;
@@ -245,10 +251,7 @@ namespace FitBot.Services
                                     action.Speed = 180/num;
                                     break;
                                 case "min/mi":
-                                    action.Speed = 0.06*MetersPerMile/num;
-                                    break;
-                                case "fps":
-                                    //TODO: what is this swimming speed metric?
+                                    action.Speed = 0.06M*MetersPerMile/num;
                                     break;
 
                                 case "bpm":
@@ -259,6 +262,11 @@ namespace FitBot.Services
                                     action.Incline = num;
                                     break;
 
+                                    //TODO: workaround
+                                case "and 3/4-inch band":
+                                    action.Difficulty = value;
+                                    break;
+
                                 default:
                                     Debug.Fail("TODO: unrecognized action metric: " + metric);
                                     break;
@@ -267,15 +275,7 @@ namespace FitBot.Services
                         }
                     }
 
-                    //TODO: remove this when confortable with level of testing
-                    if (Regex.IsMatch(value, @"^[A-Za-z \-\!\/]+$"))
-                    {
-                        action.Difficulty = value;
-                    }
-                    else
-                    {
-                        Debug.Fail("TODO: unrecognized action component: " + value);
-                    }
+                    action.Difficulty = value;
                 }
             }
 

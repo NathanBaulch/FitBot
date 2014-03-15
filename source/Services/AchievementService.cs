@@ -35,7 +35,7 @@ namespace FitBot.Services
         {
             foreach (var user in await _database.GetUsersWithDirtyDate())
             {
-                foreach (var workout in await _database.GetWorkouts(user.Id, user.DirtyDate.Value, DateTime.MaxValue))
+                foreach (var workout in await _database.GetWorkouts(user.Id, user.DirtyDate.Value, DateTime.MaxValue, true))
                 {
                     if (user.DirtyDate != workout.Date)
                     {
