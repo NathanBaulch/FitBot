@@ -79,15 +79,15 @@ namespace FitBot.Achievements
                     if (sum >= threshold.Value)
                     {
                         sum = Math.Floor(sum.Value/threshold.Value)*threshold.Value;
-                        if (await _database.Single<int>(
-                            "select count(*) " +
+                        if (await _database.Single<long?>(
+                            "select top 1 a.[Id] " +
                             "from [Workout] w, [Achievement] a " +
                             "where w.[Id] = a.[WorkoutId] " +
                             "and w.[UserId] = @UserId " +
                             "and w.[Date] < @Date " +
                             "and a.[Type] = 'LifetimeMilestone' " +
                             "and a.[Group] = @Name " +
-                            "and a.[" + column + "] = @sum", new {workout.UserId, workout.Date, group.Name, sum}) == 0)
+                            "and a.[" + column + "] = @sum", new {workout.UserId, workout.Date, group.Name, sum}) == null)
                         {
                             freshAchievement = new Achievement
                                 {

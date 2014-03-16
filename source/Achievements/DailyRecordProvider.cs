@@ -50,7 +50,6 @@ namespace FitBot.Achievements
                         "and w.[Date] < @Date " +
                         "and a.[Type] = 'DailyRecord' " +
                         "and a.[Group] = @Name", new {workout.UserId, workout.Date, group.Name});
-                    var filter = group.BuildSqlFilter("a.[Name]");
                     if (previousMax == null)
                     {
                         previousMax = await _database.Single<decimal?>(
@@ -62,7 +61,7 @@ namespace FitBot.Achievements
                             "  and a.[Id] = s.[ActivityId] " +
                             "  and w.[UserId] = @UserId " +
                             "  and w.[Date] < @Date " +
-                            "  and " + filter + " " +
+                            "  and " + group.BuildSqlFilter("a.[Name]") + " " +
                             "  group by w.[Id] " +
                             ") [x]", new {workout.UserId, workout.Date});
                     }
@@ -79,7 +78,7 @@ namespace FitBot.Achievements
                                                         return set.Repetitions;
                                                 }
                                             });
-                    if (previousMax == null || sum > previousMax)
+                    if (sum > previousMax)
                     {
                         freshAchievement = new Achievement
                             {

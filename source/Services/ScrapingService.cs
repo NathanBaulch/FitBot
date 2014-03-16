@@ -163,7 +163,10 @@ namespace FitBot.Services
                         TimeSpan duration;
                         if (TimeSpan.TryParse(value, out duration))
                         {
-                            action.Duration = (int) duration.TotalSeconds;
+                            if (duration > TimeSpan.Zero)
+                            {
+                                action.Duration = (decimal) duration.TotalSeconds;
+                            }
                             continue;
                         }
                     }
@@ -172,6 +175,11 @@ namespace FitBot.Services
                         decimal num;
                         if (decimal.TryParse(value.Substring(0, pos), NumberStyles.Any, CultureInfo.InvariantCulture, out num))
                         {
+                            if (num == 0)
+                            {
+                                continue;
+                            }
+
                             var metric = value.Substring(pos + 1);
                             switch (metric.ToLowerInvariant())
                             {
@@ -223,35 +231,35 @@ namespace FitBot.Services
                                     action.Distance = num*MetersPerMile;
                                     break;
 
-                                case "km/hr":
+                                case "m/s":
                                     action.Speed = num;
                                     break;
-                                case "m/s":
-                                    action.Speed = num*3.6M;
+                                case "km/hr":
+                                    action.Speed = num/3.6M;
                                     break;
                                 case "fps":
-                                    action.Speed = num*3.6M*MetersPerFoot;
+                                    action.Speed = num*MetersPerFoot;
                                     break;
                                 case "mph":
-                                    action.Speed = num*0.001M*MetersPerMile;
+                                    action.Speed = num*MetersPerMile/3600;
                                     break;
                                 case "min/100m":
-                                    action.Speed = 6/num;
+                                    action.Speed = 5/(3*num);
                                     break;
                                 case "split":
-                                    action.Speed = 30/num;
+                                    action.Speed = 25/(3*num);
                                     break;
                                 case "min/km":
-                                    action.Speed = 60/num;
+                                    action.Speed = 50/(3*num);
                                     break;
                                 case "sec/lap (25m)":
-                                    action.Speed = 90/num;
+                                    action.Speed = 25/num;
                                     break;
                                 case "sec/lap (50m)":
-                                    action.Speed = 180/num;
+                                    action.Speed = 50/num;
                                     break;
                                 case "min/mi":
-                                    action.Speed = 0.06M*MetersPerMile/num;
+                                    action.Speed = MetersPerMile/(60*num);
                                     break;
 
                                 case "bpm":
