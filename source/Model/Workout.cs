@@ -11,7 +11,6 @@ namespace FitBot.Model
         public int? Points { get; set; }
         public long? CommentId { get; set; }
         public int? CommentHash { get; set; }
-        public bool IsPropped { get; set; }
         public DateTime SyncDate { get; set; }
         public int ActivitiesHash { get; set; }
         public IList<Activity> Activities { get; set; }

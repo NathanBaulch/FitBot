@@ -213,9 +213,18 @@ namespace FitBot.Services
             }
         }
 
+        public async Task<IEnumerable<Achievement>> GetAchievements(long workoutId)
+        {
+            return await Query<Achievement>(
+                "select * " +
+                "from [Achievement] " +
+                "where [WorkoutId] = @workoutId " +
+                "order by [Type], [Group]", new {workoutId});
+        }
+
         public void Insert(Achievement achievement)
         {
-            Debug.WriteLine("Inserting achievement " + achievement.Type + " for group " + achievement.Group);
+            Debug.WriteLine("Inserting achievement {0} for group {1}", achievement.Type, achievement.Group);
             using (var con = OpenConnection())
             {
                 con.Insert(achievement);
@@ -224,7 +233,7 @@ namespace FitBot.Services
 
         public void Update(Achievement achievement)
         {
-            Debug.WriteLine("Updating achievement " + achievement.Type + " for group " + achievement.Group);
+            Debug.WriteLine("Updating achievement {0} for group {1}", achievement.Type, achievement.Group);
             using (var con = OpenConnection())
             {
                 con.Update(achievement);
@@ -233,7 +242,7 @@ namespace FitBot.Services
 
         public void Delete(Achievement achievement)
         {
-            Debug.WriteLine("Deleting achievement " + achievement.Type + " for group " + achievement.Group);
+            Debug.WriteLine("Deleting achievement {0} for group {1}", achievement.Type, achievement.Group);
             using (var con = OpenConnection())
             {
                 con.Delete(achievement);

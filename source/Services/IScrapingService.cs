@@ -6,6 +6,6 @@ namespace FitBot.Services
 {
     public interface IScrapingService
     {
-        IList<Workout> ExtractWorkouts(Stream content, User selfUser);
+        IList<Workout> ExtractWorkouts(Stream content, long selfUserId);
     }
 }

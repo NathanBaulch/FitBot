@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using FitBot.Model;
 
@@ -19,9 +20,16 @@ namespace FitBot.Services
         {
             var staleUsers = (await _database.GetUsers()).ToDictionary(user => user.Id);
             var pageNum = 0;
+            var processedIds = new HashSet<long>();
             while (true)
             {
                 var freshUsers = await _fitocracy.GetFollowers(pageNum);
+                if (freshUsers.Count == 0)
+                {
+                    break;
+                }
+
+                freshUsers = freshUsers.Where(user => processedIds.Add(user.Id)).ToList();
                 foreach (var freshUser in freshUsers)
                 {
                     User staleUser;
@@ -38,12 +46,10 @@ namespace FitBot.Services
                         staleUsers.Remove(freshUser.Id);
                     }
                 }
-                if (freshUsers.Count < 5)
-                {
-                    break;
-                }
+
                 pageNum++;
             }
+
             foreach (var staleUser in staleUsers.Values)
             {
                 _database.Delete(staleUser);

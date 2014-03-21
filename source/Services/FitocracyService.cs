@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using FitBot.Model;
@@ -33,7 +32,7 @@ namespace FitBot.Services
         }
 
         protected CookieContainer Cookies { get; set; }
-        protected User SelfUser { get; set; }
+        protected long SelfUserId { get; set; }
 
         public async Task<IList<User>> GetFollowers(int pageNum)
         {
@@ -49,9 +48,9 @@ namespace FitBot.Services
         {
             Debug.WriteLine("Getting workouts for user {0} at offset {1}", userId, offset);
             await EnsureAuthenticated();
-            using (var stream = await Get(string.Format("activity_stream/{0}", offset), new {user_id = userId, types = "WORKOUT"}, "text/html"))
+            using (var stream = await Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html"))
             {
-                var workouts = _scraper.ExtractWorkouts(stream, SelfUser);
+                var workouts = _scraper.ExtractWorkouts(stream, SelfUserId);
                 foreach (var workout in workouts)
                 {
                     workout.UserId = userId;
@@ -60,9 +59,9 @@ namespace FitBot.Services
             }
         }
 
-        public async Task PostComment(long workoutId, string text)
+        public async Task AddComment(long workoutId, string text)
         {
-            Debug.WriteLine("Posting comment on workout " + workoutId);
+            Debug.WriteLine("Adding comment on workout " + workoutId);
             await EnsureAuthenticated();
             await Post("add_comment", new {ag = workoutId, comment_text = text});
         }
@@ -102,7 +101,7 @@ namespace FitBot.Services
         protected virtual async Task<Stream> Get(string endpoint, object queryArgs = null, string expectedContentType = null)
         {
             //TODO: find a more permanent throttling solution
-            Thread.Sleep(3000);
+            await Task.Delay(3000);
 
             var uri = RootUri + endpoint + "/";
             if (queryArgs != null)
@@ -121,6 +120,9 @@ namespace FitBot.Services
 
         protected virtual async Task Post(string endpoint, object formData = null)
         {
+            //TODO: find a more permanent throttling solution
+            await Task.Delay(3000);
+
             var uri = RootUri + endpoint + "/";
             var request = (HttpWebRequest) WebRequest.Create(uri);
             request.CookieContainer = Cookies;
@@ -164,11 +166,7 @@ namespace FitBot.Services
                     {
                         throw new Exception("TODO: Self user ID cannot be found");
                     }
-                    SelfUser = new User
-                        {
-                            Id = id,
-                            Username = _username
-                        };
+                    SelfUserId = id;
                 }
             }
         }

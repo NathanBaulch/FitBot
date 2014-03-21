@@ -20,18 +20,18 @@ namespace FitBot.Services
         private const decimal MetersPerMile = 1609.344M;
         private const decimal KilogramsPerPound = 0.453592M;
 
-        public IList<Workout> ExtractWorkouts(Stream content, User selfUser)
+        public IList<Workout> ExtractWorkouts(Stream content, long selfUserId)
         {
             var doc = new HtmlDocument();
             doc.Load(content);
             return doc.DocumentNode
                       .Descendants("div")
                       .Where(div => div.GetAttributeValue("data-ag-type", null) == "workout")
-                      .Select(node => ExtractWorkout(node, selfUser))
+                      .Select(node => ExtractWorkout(node, selfUserId))
                       .ToList();
         }
 
-        private static Workout ExtractWorkout(HtmlNode node, User selfUser)
+        private static Workout ExtractWorkout(HtmlNode node, long selfUserId)
         {
             var value = node.Descendants("a")
                             .Select(a => a.GetAttributeValue("data-item-id", null))
@@ -53,8 +53,8 @@ namespace FitBot.Services
             }
 
             value = node.Descendants("span")
-                        .Where(a => a.GetAttributeValue("class", null) == "stream_total_points")
-                        .Select(a => a.InnerText)
+                        .Where(span => span.GetAttributeValue("class", null) == "stream_total_points")
+                        .Select(span => span.InnerText)
                         .FirstOrDefault();
             int points;
             if (value == null || !value.EndsWith(" pts") || !int.TryParse(value.Substring(0, value.Length - 4), NumberStyles.Any, CultureInfo.InvariantCulture, out points))
@@ -64,10 +64,10 @@ namespace FitBot.Services
             }
 
             long? commentId;
-            if (selfUser.Id != 0)
+            if (selfUserId != 0)
             {
                 value = node.Descendants("li")
-                            .Where(li => li.GetAttributeValue("data-user-id", null) == selfUser.Id.ToString(CultureInfo.InvariantCulture))
+                            .Where(li => li.GetAttributeValue("data-user-id", null) == selfUserId.ToString(CultureInfo.InvariantCulture))
                             .Select(li => li.GetAttributeValue("data-comment-id", null))
                             .FirstOrDefault();
                 long id;
@@ -84,17 +84,12 @@ namespace FitBot.Services
                     Date = date,
                     Points = points,
                     CommentId = commentId,
-                    IsPropped = node.Descendants("span")
-                                    .Where(span => span.GetAttributeValue("class", null) == "individual_prop_" + workoutId)
-                                    .SelectMany(span => span.Elements("a"))
-                                    .Any(a => a.InnerText == selfUser.Username),
                     Activities = node.Descendants("ul")
-                                     .Where(div => div.GetAttributeValue("class", null) == "action_detail")
+                                     .Where(ul => ul.GetAttributeValue("class", null) == "action_detail")
                                      .SelectMany(ul => ul.Descendants("li"))
                                      .Where(li => li.Elements("div").Any(div => div.GetAttributeValue("class", null) == "action_prompt") &&
                                                   li.Elements("div").All(div => div.GetAttributeValue("class", null) != "group_container"))
                                      .Select(ExtractActivity)
-                                     .Where(activity => activity != null)
                                      .ToList()
                 };
         }
@@ -107,18 +102,17 @@ namespace FitBot.Services
                            .FirstOrDefault();
             if (name == null)
             {
-                throw new InvalidDataException("TODO");
+                throw new InvalidDataException("TODO: unable to find activity name");
             }
 
-            var note = node.Descendants("li")
-                           .Where(div => div.GetAttributeValue("class", null) == "stream_note")
-                           .Select(div => HtmlEntity.DeEntitize(div.InnerText))
-                           .FirstOrDefault();
             return new Activity
                 {
                     Sequence = index,
                     Name = name,
-                    Note = note,
+                    Note = node.Descendants("li")
+                               .Where(li => li.GetAttributeValue("class", null) == "stream_note")
+                               .Select(li => HtmlEntity.DeEntitize(li.InnerText))
+                               .FirstOrDefault(),
                     Sets = node.Descendants("li")
                                .Where(li => li.GetAttributeValue("class", null) != "stream_note")
                                .Select(ExtractSet)
@@ -129,25 +123,25 @@ namespace FitBot.Services
         private static Set ExtractSet(HtmlNode node, int index)
         {
             var value = node.Descendants("span")
-                            .Where(div => div.GetAttributeValue("class", null) == "action_prompt_points")
-                            .Select(div => div.InnerText)
+                            .Where(span => span.GetAttributeValue("class", null) == "action_prompt_points")
+                            .Select(span => span.InnerText)
                             .FirstOrDefault();
             int points;
             if (!int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out points))
             {
-                Debug.Fail("TODO: unable to find action points");
+                Debug.Fail("TODO: unable to find set points");
             }
 
-            var action = new Set
+            var set = new Set
                 {
                     Sequence = index,
                     Points = points
                 };
 
-            var text = node.FirstChild.InnerText.Trim();
+            var text = HtmlEntity.DeEntitize(node.FirstChild.InnerText).Trim();
             if (text.EndsWith("(PR)"))
             {
-                action.IsPr = true;
+                set.IsPr = true;
                 text = text.Substring(0, text.Length - 4).Trim();
             }
 
@@ -165,7 +159,7 @@ namespace FitBot.Services
                         {
                             if (duration > TimeSpan.Zero)
                             {
-                                action.Duration = (decimal) duration.TotalSeconds;
+                                set.Duration = (decimal) duration.TotalSeconds;
                             }
                             continue;
                         }
@@ -190,104 +184,104 @@ namespace FitBot.Services
                                 case "floors":
                                 case "throws":
                                 case "jumping jacks":
-                                    action.Repetitions = (int) num;
+                                    set.Repetitions = (int) num;
                                     break;
 
                                 case "kg":
-                                    action.Weight = num;
+                                    set.Weight = num;
                                     break;
                                 case "lb":
-                                    action.Weight = num*KilogramsPerPound;
+                                    set.Weight = num*KilogramsPerPound;
                                     break;
 
                                 case "m":
-                                    action.Distance = num;
+                                    set.Distance = num;
                                     break;
                                 case "cm":
-                                    action.Distance = num*0.01M;
+                                    set.Distance = num*0.01M;
                                     break;
                                 case "laps (25m)":
-                                    action.Distance = num*25;
+                                    set.Distance = num*25;
                                     break;
                                 case "laps (50m)":
-                                    action.Distance = num*50;
+                                    set.Distance = num*50;
                                     break;
                                 case "km":
-                                    action.Distance = num*1000;
+                                    set.Distance = num*1000;
                                     break;
                                 case "in":
-                                    action.Distance = num*MetersPerInch;
+                                    set.Distance = num*MetersPerInch;
                                     break;
                                 case "ft":
-                                    action.Distance = num*MetersPerFoot;
+                                    set.Distance = num*MetersPerFoot;
                                     break;
                                 case "yd":
-                                    action.Distance = num*MetersPerYard;
+                                    set.Distance = num*MetersPerYard;
                                     break;
                                 case "fathoms":
-                                    action.Distance = num*MetersPerFathom;
+                                    set.Distance = num*MetersPerFathom;
                                     break;
                                 case "mi":
-                                    action.Distance = num*MetersPerMile;
+                                    set.Distance = num*MetersPerMile;
                                     break;
 
                                 case "m/s":
-                                    action.Speed = num;
+                                    set.Speed = num;
                                     break;
                                 case "km/hr":
-                                    action.Speed = num/3.6M;
+                                    set.Speed = num/3.6M;
                                     break;
                                 case "fps":
-                                    action.Speed = num*MetersPerFoot;
+                                    set.Speed = num*MetersPerFoot;
                                     break;
                                 case "mph":
-                                    action.Speed = num*MetersPerMile/3600;
+                                    set.Speed = num*MetersPerMile/3600;
                                     break;
                                 case "min/100m":
-                                    action.Speed = 5/(3*num);
+                                    set.Speed = 5/(3*num);
                                     break;
                                 case "split":
-                                    action.Speed = 25/(3*num);
+                                    set.Speed = 25/(3*num);
                                     break;
                                 case "min/km":
-                                    action.Speed = 50/(3*num);
+                                    set.Speed = 50/(3*num);
                                     break;
                                 case "sec/lap (25m)":
-                                    action.Speed = 25/num;
+                                    set.Speed = 25/num;
                                     break;
                                 case "sec/lap (50m)":
-                                    action.Speed = 50/num;
+                                    set.Speed = 50/num;
                                     break;
                                 case "min/mi":
-                                    action.Speed = MetersPerMile/(60*num);
+                                    set.Speed = MetersPerMile/(60*num);
                                     break;
 
                                 case "bpm":
-                                    action.HeartRate = num;
+                                    set.HeartRate = num;
                                     break;
 
                                 case "%":
-                                    action.Incline = num;
+                                    set.Incline = num;
                                     break;
 
                                     //TODO: workaround
                                 case "and 3/4-inch band":
-                                    action.Difficulty = value;
+                                    set.Difficulty = value;
                                     break;
 
                                 default:
-                                    Debug.Fail("TODO: unrecognized action metric: " + metric);
+                                    Debug.Fail("TODO: unrecognized set metric: " + metric);
                                     break;
                             }
                             continue;
                         }
                     }
 
-                    action.Difficulty = value;
+                    set.Difficulty = value;
                 }
             }
 
-            return action;
+            return set;
         }
     }
 }

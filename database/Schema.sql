@@ -25,7 +25,6 @@ CREATE TABLE [Workout] (
 	[Points] [int] NULL,
 	[CommentId] [bigint] NULL,
 	[CommentHash] [int] NULL,
-	[IsPropped] [bit] NOT NULL,
 	[SyncDate] [datetime2] NOT NULL,
 	[ActivitiesHash] [int] NOT NULL,
 	FOREIGN KEY ([UserId]) REFERENCES [User] ([Id]) ON DELETE CASCADE
@@ -81,6 +80,8 @@ CREATE TABLE [Achievement] (
 	[Speed] [decimal](9, 2) NULL,
 	[Repetitions] [decimal](9, 2) NULL,
 	[Weight] [decimal](9, 2) NULL,
+	[CommentText] [text] NULL,
+	[IsPropped] [bit] NOT NULL,
 	UNIQUE ([WorkoutId], [Type], [Group]),
 	FOREIGN KEY ([WorkoutId]) REFERENCES [Workout] ([Id]) ON DELETE CASCADE
 )

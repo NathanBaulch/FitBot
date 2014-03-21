@@ -4,9 +4,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading.Tasks;
-using FitBot.Model;
 
 namespace FitBot.Services
 {
@@ -32,11 +30,7 @@ namespace FitBot.Services
                         Cookies = (CookieContainer) new BinaryFormatter().Deserialize(stream);
                         var data = new byte[8];
                         stream.Read(data, 0, 8);
-                        SelfUser = new User
-                            {
-                                Id = BitConverter.ToInt64(data, 0),
-                                Username = new StreamReader(stream).ReadToEnd()
-                            };
+                        SelfUserId = BitConverter.ToInt64(data, 0);
                     }
                     return Stream.Null;
                 }
@@ -64,9 +58,7 @@ namespace FitBot.Services
                     using (var stream = File.OpenWrite(cacheFileName))
                     {
                         new BinaryFormatter().Serialize(stream, Cookies);
-                        stream.Write(BitConverter.GetBytes(SelfUser.Id), 0, 8);
-                        var data = Encoding.UTF8.GetBytes(SelfUser.Username);
-                        stream.Write(data, 0, data.Length);
+                        stream.Write(BitConverter.GetBytes(SelfUserId), 0, 8);
                     }
                 }
             }

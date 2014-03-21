@@ -11,18 +11,15 @@ namespace FitBot.Achievements
         private const decimal Percentile = 0.05M;
 
         private readonly IDatabaseService _database;
-        private readonly IFitocracyService _fitocracy;
 
-        public TopPercentilePointsProvider(IDatabaseService database, IFitocracyService fitocracy)
+        public TopPercentilePointsProvider(IDatabaseService database)
         {
             _database = database;
-            _fitocracy = fitocracy;
         }
 
-        public async Task<IEnumerable<string>> Execute(Workout workout)
+        public async Task<IEnumerable<Achievement>> Execute(Workout workout)
         {
             var offset = (int) (await _database.GetWorkoutCount(workout.UserId)*Percentile);
-            var isPropped = false;
             if (offset > 0)
             {
                 var threshold = await _database.Single<int>(
@@ -34,18 +31,18 @@ namespace FitBot.Achievements
                     "fetch next 1 rows only", new {workout.UserId, offset});
                 if (workout.Points > threshold)
                 {
-                    await _fitocracy.GiveProp(workout.Id);
-                    isPropped = true;
+                    return new[]
+                        {
+                            new Achievement
+                                {
+                                    Type = "TopPercentilePoints",
+                                    IsPropped = true
+                                }
+                        };
                 }
             }
 
-            if (workout.IsPropped != isPropped)
-            {
-                workout.IsPropped = isPropped;
-                _database.Update(workout);
-            }
-
-            return Enumerable.Empty<string>();
+            return Enumerable.Empty<Achievement>();
         }
     }
 }

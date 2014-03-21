@@ -6,6 +6,6 @@ namespace FitBot.Achievements
 {
     public interface IAchievementProvider
     {
-        Task<IEnumerable<string>> Execute(Workout workout);
+        Task<IEnumerable<Achievement>> Execute(Workout workout);
     }
 }

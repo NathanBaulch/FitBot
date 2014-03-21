@@ -45,13 +45,12 @@ namespace FitBot.Achievements
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<string>> Execute(Workout workout)
+        public async Task<IEnumerable<Achievement>> Execute(Workout workout)
         {
-            var comments = new List<string>();
+            var achievements = new List<Achievement>();
 
             foreach (var threshold in Thresholds)
             {
-                Achievement freshAchievement = null;
                 var group = _grouping.Get(threshold.Key);
                 if (workout.Activities.Count(activity => group.Includes(activity.Name)) > 1)
                 {
@@ -89,58 +88,33 @@ namespace FitBot.Achievements
                             "and a.[Group] = @Name " +
                             "and a.[" + column + "] = @sum", new {workout.UserId, workout.Date, group.Name, sum}) == null)
                         {
-                            freshAchievement = new Achievement
+                            var achievement = new Achievement
                                 {
-                                    WorkoutId = workout.Id,
                                     Type = "LifetimeMilestone",
                                     Group = group.Name
                                 };
                             switch (group.Category)
                             {
                                 case ActitivityCategory.Cardio:
-                                    freshAchievement.Distance = sum;
-                                    comments.Add(string.Format("Lifetime {0} distance milestone: {1:N} km", group.Name, sum/1000));
+                                    achievement.Distance = sum;
+                                    achievement.CommentText = string.Format("Lifetime {0} distance milestone: {1:N} km", group.Name, sum/1000);
                                     break;
                                 case ActitivityCategory.Sports:
-                                    freshAchievement.Duration = sum;
-                                    comments.Add(string.Format("Lifetime {0} duration milestone: {1:N} hours", group.Name, sum/3600));
+                                    achievement.Duration = sum;
+                                    achievement.CommentText = string.Format("Lifetime {0} duration milestone: {1:N} hours", group.Name, sum/3600);
                                     break;
                                 default:
-                                    freshAchievement.Repetitions = sum;
-                                    comments.Add(string.Format("Lifetime {0} repetition milestone: {1:N} reps", group.Name, sum));
+                                    achievement.Repetitions = sum;
+                                    achievement.CommentText = string.Format("Lifetime {0} repetition milestone: {1:N} reps", group.Name, sum);
                                     break;
                             }
+                            achievements.Add(achievement);
                         }
                     }
                 }
-
-                var staleAchievement = await _database.Single<Achievement>(
-                    "select * " +
-                    "from [Achievement] " +
-                    "where [WorkoutId] = @Id " +
-                    "and [Type] = 'LifetimeMilestone' " +
-                    "and [Group] = @Name", new {workout.Id, group.Name});
-                if (freshAchievement != null)
-                {
-                    if (staleAchievement == null)
-                    {
-                        _database.Insert(freshAchievement);
-                    }
-                    else if (freshAchievement.Distance != staleAchievement.Distance ||
-                             freshAchievement.Repetitions != staleAchievement.Repetitions ||
-                             freshAchievement.Duration != staleAchievement.Duration)
-                    {
-                        freshAchievement.Id = staleAchievement.Id;
-                        _database.Update(freshAchievement);
-                    }
-                }
-                else if (staleAchievement != null)
-                {
-                    _database.Delete(staleAchievement);
-                }
             }
 
-            return comments;
+            return achievements;
         }
     }
 }

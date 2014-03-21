@@ -17,25 +17,33 @@ namespace FitBot.Achievements
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<string>> Execute(Workout workout)
+        public async Task<IEnumerable<Achievement>> Execute(Workout workout)
         {
-            var comments = new List<string>();
+            var achievements = new List<Achievement>();
 
             foreach (var group in _grouping.GetAll())
             {
-                Achievement freshAchievement = null;
-                var sets = workout.Activities
-                                  .Where(activity => group.Includes(activity.Name))
-                                  .SelectMany(activity => activity.Sets);
-                foreach (var set in sets)
+                switch (group.Category)
                 {
-                    switch (group.Category)
-                    {
-                        case ActitivityCategory.Cardio:
+                    case ActitivityCategory.Cardio:
+                        {
+                            var sets = workout.Activities
+                                              .Where(activity => group.Includes(activity.Name))
+                                              .SelectMany(activity => activity.Sets)
+                                              .Select(set => new
+                                                  {
+                                                      set.Id,
+                                                      Speed = set.Speed ?? (set.Distance/set.Duration),
+                                                      Distance = set.Distance ?? (set.Speed*set.Duration)
+                                                  })
+                                              .Where(set => set.Speed != null && set.Distance != null)
+                                              .ToList();
+                            foreach (var set in sets)
                             {
-                                var speed = set.Speed ?? (set.Distance/set.Duration);
-                                var distance = set.Distance ?? (set.Speed*set.Duration);
-                                if (speed == null || distance == null)
+                                if (sets.Any(item => item != set &&
+                                                     ((item.Distance >= set.Distance && item.Speed > set.Speed) ||
+                                                      (item.Distance > set.Distance && item.Speed == set.Speed) ||
+                                                      (item.Distance == set.Distance && item.Speed == set.Speed && item.Id > set.Id))))
                                 {
                                     continue;
                                 }
@@ -48,7 +56,7 @@ namespace FitBot.Achievements
                                     "and w.[Date] < @Date " +
                                     "and a.[Type] = 'QualifiedRecord' " +
                                     "and a.[Group] = @Name " +
-                                    "and a.[Distance] >= @distance", new {workout.UserId, workout.Date, group.Name, distance});
+                                    "and a.[Distance] >= @Distance", new {workout.UserId, workout.Date, group.Name, set.Distance});
                                 if (previousMax == null)
                                 {
                                     previousMax = await _database.Single<decimal?>(
@@ -59,28 +67,37 @@ namespace FitBot.Achievements
                                         "and w.[UserId] = @UserId " +
                                         "and w.[Date] < @Date " +
                                         "and " + group.BuildSqlFilter("a.[Name]") + " " +
-                                        "and coalesce(s.[Distance], s.[Speed]*s.[Duration]) >= @distance", new {workout.UserId, workout.Date, distance});
+                                        "and coalesce(s.[Distance], s.[Speed]*s.[Duration]) >= @Distance", new {workout.UserId, workout.Date, set.Distance});
                                 }
 
-                                if (speed > previousMax)
+                                if (set.Speed > previousMax)
                                 {
-                                    freshAchievement = new Achievement
-                                        {
-                                            WorkoutId = workout.Id,
-                                            Type = "QualifiedRecord",
-                                            Group = group.Name,
-                                            Speed = speed,
-                                            Distance = distance
-                                        };
-                                    comments.Add(string.Format("{0} speed record: {1:N} km/h over {2:N} km or greater", group.Name, speed*3.6M, distance/1000));
+                                    achievements.Add(
+                                        new Achievement
+                                            {
+                                                Type = "QualifiedRecord",
+                                                Group = group.Name,
+                                                Speed = set.Speed,
+                                                Distance = set.Distance,
+                                                CommentText = string.Format("{0} Speed record: {1:N} km/h over {2:N} km or greater", group.Name, set.Speed*3.6M, set.Distance/1000)
+                                            });
                                 }
                             }
-                            break;
-                        case ActitivityCategory.Weights:
+                        }
+                        break;
+                    case ActitivityCategory.Weights:
+                        {
+                            var sets = workout.Activities
+                                              .Where(activity => group.Includes(activity.Name))
+                                              .SelectMany(activity => activity.Sets)
+                                              .Where(set => set.Repetitions != null && set.Weight != null)
+                                              .ToList();
+                            foreach (var set in sets)
                             {
-                                var repetitions = set.Repetitions;
-                                var weight = set.Weight;
-                                if (repetitions == null || weight == null)
+                                if (sets.Any(item => item != set &&
+                                                     ((item.Weight >= set.Weight && item.Repetitions > set.Repetitions) ||
+                                                      (item.Weight > set.Weight && item.Repetitions == set.Repetitions) ||
+                                                      (item.Weight == set.Weight && item.Repetitions == set.Repetitions && item.Id > set.Id))))
                                 {
                                     continue;
                                 }
@@ -93,7 +110,7 @@ namespace FitBot.Achievements
                                     "and w.[Date] < @Date " +
                                     "and a.[Type] = 'QualifiedRecord' " +
                                     "and a.[Group] = @Name " +
-                                    "and a.[Weight] >= @weight", new {workout.UserId, workout.Date, group.Name, Weight = weight});
+                                    "and a.[Weight] >= @Weight", new {workout.UserId, workout.Date, group.Name, set.Weight});
                                 if (previousMax == null)
                                 {
                                     previousMax = await _database.Single<decimal?>(
@@ -104,56 +121,28 @@ namespace FitBot.Achievements
                                         "and w.[UserId] = @UserId " +
                                         "and w.[Date] < @Date " +
                                         "and " + group.BuildSqlFilter("a.[Name]") + " " +
-                                        "and s.[Weight] >= @weight", new {workout.UserId, workout.Date, Weight = weight});
+                                        "and s.[Weight] >= @Weight", new {workout.UserId, workout.Date, set.Weight});
                                 }
 
-                                if (repetitions > previousMax)
+                                if (set.Repetitions > previousMax)
                                 {
-                                    freshAchievement = new Achievement
-                                        {
-                                            WorkoutId = workout.Id,
-                                            Type = "QualifiedRecord",
-                                            Group = group.Name,
-                                            Repetitions = repetitions,
-                                            Weight = weight
-                                        };
-                                    comments.Add(string.Format("{0} repetitions record: {1:N} reps with {2:N} kg or greater", group.Name, repetitions, weight));
+                                    achievements.Add(
+                                        new Achievement
+                                            {
+                                                Type = "QualifiedRecord",
+                                                Group = group.Name,
+                                                Repetitions = set.Repetitions,
+                                                Weight = set.Weight,
+                                                CommentText = string.Format("{0} repetitions record: {1:N} reps with {2:N} kg or greater", group.Name, set.Repetitions, set.Weight)
+                                            });
                                 }
                             }
-                            break;
-                        default:
-                            continue;
-                    }
-                }
-
-                var staleAchievement = await _database.Single<Achievement>(
-                    "select * " +
-                    "from [Achievement] " +
-                    "where [WorkoutId] = @Id " +
-                    "and [Type] = 'QualifiedRecord' " +
-                    "and [Group] = @Name", new {workout.Id, group.Name});
-                if (freshAchievement != null)
-                {
-                    if (staleAchievement == null)
-                    {
-                        _database.Insert(freshAchievement);
-                    }
-                    else if (freshAchievement.Distance != staleAchievement.Distance ||
-                             freshAchievement.Speed != staleAchievement.Speed ||
-                             freshAchievement.Repetitions != staleAchievement.Repetitions ||
-                             freshAchievement.Weight != staleAchievement.Weight)
-                    {
-                        freshAchievement.Id = staleAchievement.Id;
-                        _database.Update(freshAchievement);
-                    }
-                }
-                else if (staleAchievement != null)
-                {
-                    _database.Delete(staleAchievement);
+                        }
+                        break;
                 }
             }
 
-            return comments;
+            return achievements;
         }
     }
 }

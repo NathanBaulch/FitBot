@@ -11,5 +11,7 @@
         public decimal? Speed { get; set; }
         public decimal? Repetitions { get; set; }
         public decimal? Weight { get; set; }
+        public string CommentText { get; set; }
+        public bool IsPropped { get; set; }
     }
 }

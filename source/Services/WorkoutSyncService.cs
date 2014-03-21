@@ -23,12 +23,12 @@ namespace FitBot.Services
             {
                 var isNewUser = (await _database.GetWorkoutCount(user.Id)) == 0;
                 var offset = 0;
-                var toDate = DateTime.MaxValue;
                 DateTime? dirtyDate = null;
                 var processedIds = new HashSet<long>();
+                var toDate = DateTime.MaxValue;
                 while (true)
                 {
-                    var freshWorkouts = _fitocracy.GetWorkouts(user.Id, offset).Result;
+                    var freshWorkouts = await _fitocracy.GetWorkouts(user.Id, offset);
                     if (freshWorkouts.Count == 0)
                     {
                         if (!isNewUser)
@@ -40,14 +40,10 @@ namespace FitBot.Services
 
                     offset += freshWorkouts.Count;
 
-                    freshWorkouts = freshWorkouts.Where(workout => !processedIds.Contains(workout.Id)).ToList();
+                    freshWorkouts = freshWorkouts.Where(workout => processedIds.Add(workout.Id)).ToList();
                     if (freshWorkouts.Count == 0)
                     {
                         continue;
-                    }
-                    foreach (var freshWorkout in freshWorkouts)
-                    {
-                        processedIds.Add(freshWorkout.Id);
                     }
 
                     if (isNewUser)
@@ -80,7 +76,6 @@ namespace FitBot.Services
                                 if (staleWorkout.Date != freshWorkout.Date ||
                                     staleWorkout.Points != freshWorkout.Points ||
                                     staleWorkout.CommentId != freshWorkout.CommentId ||
-                                    staleWorkout.IsPropped != freshWorkout.IsPropped ||
                                     staleWorkout.ActivitiesHash != freshWorkout.ActivitiesHash)
                                 {
                                     _database.Update(freshWorkout, staleWorkout.ActivitiesHash != freshWorkout.ActivitiesHash);

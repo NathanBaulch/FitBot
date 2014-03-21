@@ -18,9 +18,9 @@ namespace FitBot.Achievements
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<string>> Execute(Workout workout)
+        public async Task<IEnumerable<Achievement>> Execute(Workout workout)
         {
-            var comments = new List<string>();
+            var achievements = new List<Achievement>();
 
             foreach (var group in _grouping.GetAll())
             {
@@ -42,7 +42,6 @@ namespace FitBot.Achievements
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-
                 var activities = workout.Activities
                                         .Where(activity => group.Includes(activity.Name) && !activity.Sets.Any(set => set.IsPr))
                                         .ToList();
@@ -93,68 +92,40 @@ namespace FitBot.Achievements
                             "and w.[Date] < @Date " +
                             "and a.[Name] = @Name", new {workout.UserId, fromDate, workout.Date, activity.Name});
                     }
-
-                    Achievement freshAchievement = null;
                     if (max > previousMax)
                     {
-                        freshAchievement = new Achievement
+                        var achievement = new Achievement
                             {
-                                WorkoutId = workout.Id,
                                 Type = "ComebackRecord",
                                 Group = activity.Name
                             };
                         switch (group.Category)
                         {
                             case ActitivityCategory.Cardio:
-                                freshAchievement.Distance = max;
-                                comments.Add(string.Format("{0} 1 year comeback record: {1:N} km", activity.Name, max/1000));
+                                achievement.Distance = max;
+                                achievement.CommentText = string.Format("{0} 1 year comeback record: {1:N} km", activity.Name, max/1000);
                                 break;
                             case ActitivityCategory.Bodyweight:
-                                freshAchievement.Repetitions = max;
-                                comments.Add(string.Format("{0} 1 year comeback record: {1:N} reps", activity.Name, max));
+                                achievement.Repetitions = max;
+                                achievement.CommentText = string.Format("{0} 1 year comeback record: {1:N} reps", activity.Name, max);
                                 break;
                             case ActitivityCategory.Weights:
-                                freshAchievement.Weight = max;
-                                comments.Add(string.Format("{0} 1 year comeback record: {1:N} kg", activity.Name, max));
+                                achievement.Weight = max;
+                                achievement.CommentText = string.Format("{0} 1 year comeback record: {1:N} kg", activity.Name, max);
                                 break;
                             case ActitivityCategory.Sports:
-                                freshAchievement.Duration = max;
-                                comments.Add(string.Format("{0} 1 year comeback record: {1:N} hours", activity.Name, max/3600));
+                                achievement.Duration = max;
+                                achievement.CommentText = string.Format("{0} 1 year comeback record: {1:N} hours", activity.Name, max/3600);
                                 break;
                             default:
                                 throw new ArgumentOutOfRangeException();
                         }
-                    }
-
-                    var staleAchievement = await _database.Single<Achievement>(
-                        "select * " +
-                        "from [Achievement] " +
-                        "where [WorkoutId] = @Id " +
-                        "and [Type] = 'ComebackRecord' " +
-                        "and [Group] = @Name", new {workout.Id, activity.Name});
-                    if (freshAchievement != null)
-                    {
-                        if (staleAchievement == null)
-                        {
-                            _database.Insert(freshAchievement);
-                        }
-                        else if (freshAchievement.Distance != staleAchievement.Distance ||
-                                 freshAchievement.Duration != staleAchievement.Duration ||
-                                 freshAchievement.Repetitions != staleAchievement.Repetitions ||
-                                 freshAchievement.Weight != staleAchievement.Weight)
-                        {
-                            freshAchievement.Id = staleAchievement.Id;
-                            _database.Update(freshAchievement);
-                        }
-                    }
-                    else if (staleAchievement != null)
-                    {
-                        _database.Delete(staleAchievement);
+                        achievements.Add(achievement);
                     }
                 }
             }
 
-            return comments;
+            return achievements;
         }
     }
 }

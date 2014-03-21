@@ -17,13 +17,12 @@ namespace FitBot.Achievements
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<string>> Execute(Workout workout)
+        public async Task<IEnumerable<Achievement>> Execute(Workout workout)
         {
-            var comments = new List<string>();
+            var achievements = new List<Achievement>();
 
             foreach (var group in _grouping.GetAll())
             {
-                Achievement freshAchievement = null;
                 var activities = workout.Activities
                                         .Where(activity => group.Includes(activity.Name))
                                         .ToList();
@@ -80,57 +79,32 @@ namespace FitBot.Achievements
                                             });
                     if (sum > previousMax)
                     {
-                        freshAchievement = new Achievement
+                        var achievement = new Achievement
                             {
-                                WorkoutId = workout.Id,
                                 Type = "DailyRecord",
                                 Group = group.Name
                             };
                         switch (group.Category)
                         {
                             case ActitivityCategory.Cardio:
-                                freshAchievement.Distance = sum;
-                                comments.Add(string.Format("Daily {0} distance record: {1:N} km", group.Name, sum/1000));
+                                achievement.Distance = sum;
+                                achievement.CommentText = string.Format("Daily {0} distance record: {1:N} km", group.Name, sum/1000);
                                 break;
                             case ActitivityCategory.Sports:
-                                freshAchievement.Duration = sum;
-                                comments.Add(string.Format("Daily {0} duration record: {1:N} hours", group.Name, sum/3600));
+                                achievement.Duration = sum;
+                                achievement.CommentText = string.Format("Daily {0} duration record: {1:N} hours", group.Name, sum/3600);
                                 break;
                             default:
-                                freshAchievement.Repetitions = sum;
-                                comments.Add(string.Format("Daily {0} repetition record: {1:N} reps", group.Name, sum));
+                                achievement.Repetitions = sum;
+                                achievement.CommentText = string.Format("Daily {0} repetition record: {1:N} reps", group.Name, sum);
                                 break;
                         }
+                        achievements.Add(achievement);
                     }
-                }
-
-                var staleAchievement = await _database.Single<Achievement>(
-                    "select * " +
-                    "from [Achievement] " +
-                    "where [WorkoutId] = @Id " +
-                    "and [Type] = 'DailyRecord' " +
-                    "and [Group] = @Name", new {workout.Id, group.Name});
-                if (freshAchievement != null)
-                {
-                    if (staleAchievement == null)
-                    {
-                        _database.Insert(freshAchievement);
-                    }
-                    else if (freshAchievement.Distance != staleAchievement.Distance ||
-                             freshAchievement.Repetitions != staleAchievement.Repetitions ||
-                             freshAchievement.Duration != staleAchievement.Duration)
-                    {
-                        freshAchievement.Id = staleAchievement.Id;
-                        _database.Update(freshAchievement);
-                    }
-                }
-                else if (staleAchievement != null)
-                {
-                    _database.Delete(staleAchievement);
                 }
             }
 
-            return comments;
+            return achievements;
         }
     }
 }
