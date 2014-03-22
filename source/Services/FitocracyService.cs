@@ -1,44 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using FitBot.Model;
 using FitBot.Properties;
 using ServiceStack.Text;
-
-//TODO: possible connectivity problems
 
 namespace FitBot.Services
 {
     public class FitocracyService : IFitocracyService
     {
-        private const string RootUri = "https://www.fitocracy.com/";
-
+        private readonly IWebRequestService _webRequest;
         private readonly IScrapingService _scraper;
         private readonly string _username;
         private readonly string _password;
         private string _csrfToken;
 
-        public FitocracyService(IScrapingService scraper)
+        public FitocracyService(IWebRequestService webRequest, IScrapingService scraper)
         {
+            _webRequest = webRequest;
             _scraper = scraper;
             _username = Settings.Default.Username;
             _password = Settings.Default.Password;
         }
 
-        protected CookieContainer Cookies { get; set; }
-        protected long SelfUserId { get; set; }
+        public long SelfUserId { get; private set; }
 
         public async Task<IList<User>> GetFollowers(int pageNum)
         {
             Debug.WriteLine("Getting followers page " + pageNum);
             await EnsureAuthenticated();
-            using (var stream = await Get("get-user-friends", new {followers = true, user = _username, page = pageNum}, "application/json"))
+            using (var stream = await _webRequest.Get("get-user-friends", new {followers = true, user = _username, page = pageNum}, "application/json"))
             {
                 return JsonSerializer.DeserializeFromStream<IList<User>>(stream);
             }
@@ -48,9 +41,9 @@ namespace FitBot.Services
         {
             Debug.WriteLine("Getting workouts for user {0} at offset {1}", userId, offset);
             await EnsureAuthenticated();
-            using (var stream = await Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html"))
+            using (var stream = await _webRequest.Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html"))
             {
-                var workouts = _scraper.ExtractWorkouts(stream, SelfUserId);
+                var workouts = _scraper.ExtractWorkouts(stream);
                 foreach (var workout in workouts)
                 {
                     workout.UserId = userId;
@@ -59,123 +52,62 @@ namespace FitBot.Services
             }
         }
 
+        public async Task<IDictionary<long, string>> GetWorkoutComments(long workoutId)
+        {
+            Debug.WriteLine("Getting comments for workout " + workoutId);
+            await EnsureAuthenticated();
+            using (var stream = await _webRequest.Get("entry/" + workoutId, null, "text/html"))
+            {
+                return _scraper.ExtractWorkoutComments(stream, SelfUserId);
+            }
+        }
+
         public async Task AddComment(long workoutId, string text)
         {
             Debug.WriteLine("Adding comment on workout " + workoutId);
             await EnsureAuthenticated();
-            await Post("add_comment", new {ag = workoutId, comment_text = text});
+            await _webRequest.Post("add_comment", new {csrfmiddlewaretoken = _csrfToken, ag = workoutId, comment_text = text});
         }
 
         public async Task DeleteComment(long commentId)
         {
             Debug.WriteLine("Deleting comment " + commentId);
             await EnsureAuthenticated();
-            await Post("delete_comment", new {id = commentId});
+            await _webRequest.Post("delete_comment", new {csrfmiddlewaretoken = _csrfToken, id = commentId});
         }
 
         public async Task GiveProp(long workoutId)
         {
             Debug.WriteLine("Giving prop on workout " + workoutId);
             await EnsureAuthenticated();
-            await Post("give_prop", new {id = workoutId});
+            await _webRequest.Post("give_prop", new {csrfmiddlewaretoken = _csrfToken, id = workoutId});
         }
 
         private async Task EnsureAuthenticated()
         {
-            if (Cookies != null)
+            if (_csrfToken != null)
             {
                 return;
             }
 
-            Cookies = new CookieContainer();
-            await Get("accounts/login");
-            var tokenCookie = Cookies.GetCookies(new Uri(RootUri))["csrftoken"];
+            using (await _webRequest.Get("accounts/login"))
+            {
+            }
+            var tokenCookie = _webRequest.Cookies.GetCookies(new Uri("https://www.fitocracy.com"))["csrftoken"];
             if (tokenCookie == null)
             {
                 throw new Exception("TODO: CSRF token not found");
             }
             _csrfToken = tokenCookie.Value;
-            await Post("accounts/login", new {username = _username, password = _password, json = 1, is_username = 1});
-        }
+            var headers = new NameValueCollection();
+            await _webRequest.Post("accounts/login", new {csrfmiddlewaretoken = _csrfToken, username = _username, password = _password, json = 1, is_username = 1}, headers);
 
-        protected virtual async Task<Stream> Get(string endpoint, object queryArgs = null, string expectedContentType = null)
-        {
-            //TODO: find a more permanent throttling solution
-            await Task.Delay(3000);
-
-            var uri = RootUri + endpoint + "/";
-            if (queryArgs != null)
+            long id;
+            if (!long.TryParse(headers["X-Fitocracy-User"], out id))
             {
-                uri += "?" + string.Join("&", FormatQueryArgs(queryArgs));
+                throw new Exception("TODO: Self user ID not found");
             }
-            var request = (HttpWebRequest) WebRequest.Create(uri);
-            request.CookieContainer = Cookies;
-            var response = await request.GetResponseAsync();
-            if (expectedContentType != null && expectedContentType != response.ContentType)
-            {
-                throw new Exception("TODO: unexpected content type");
-            }
-            return response.GetResponseStream();
-        }
-
-        protected virtual async Task Post(string endpoint, object formData = null)
-        {
-            //TODO: find a more permanent throttling solution
-            await Task.Delay(3000);
-
-            var uri = RootUri + endpoint + "/";
-            var request = (HttpWebRequest) WebRequest.Create(uri);
-            request.CookieContainer = Cookies;
-            request.Method = "POST";
-            request.Referer = uri;
-            using (var stream = await request.GetRequestStreamAsync())
-            {
-                var data = Encoding.UTF8.GetBytes("csrfmiddlewaretoken=" + _csrfToken);
-                await stream.WriteAsync(data, 0, data.Length);
-                if (formData != null)
-                {
-                    foreach (var queryArg in FormatQueryArgs(formData))
-                    {
-                        data = Encoding.UTF8.GetBytes("&" + queryArg);
-                        await stream.WriteAsync(data, 0, data.Length);
-                    }
-                }
-            }
-            using (var response = await request.GetResponseAsync())
-            {
-                if (endpoint == "accounts/login")
-                {
-                    if (response.ContentType != "application/json")
-                    {
-                        throw new Exception("TODO: unexpected content type");
-                    }
-
-                    JsonObject json;
-                    using (var stream = response.GetResponseStream())
-                    {
-                        json = JsonSerializer.DeserializeFromStream<JsonObject>(stream);
-                    }
-
-                    if (json != null && json["success"] != "true")
-                    {
-                        throw new Exception("TODO: " + json["error"]);
-                    }
-
-                    long id;
-                    if (!long.TryParse(response.Headers["X-Fitocracy-User"], out id))
-                    {
-                        throw new Exception("TODO: Self user ID cannot be found");
-                    }
-                    SelfUserId = id;
-                }
-            }
-        }
-
-        private static IEnumerable<string> FormatQueryArgs(object queryArgs)
-        {
-            return queryArgs.GetType()
-                            .GetProperties()
-                            .Select(prop => string.Format("{0}={1}", HttpUtility.UrlEncode(prop.Name), HttpUtility.UrlEncode(prop.GetValue(queryArgs).ToString())));
+            SelfUserId = id;
         }
     }
 }

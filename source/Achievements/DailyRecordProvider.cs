@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FitBot.Model;
@@ -26,7 +27,7 @@ namespace FitBot.Achievements
                 var activities = workout.Activities
                                         .Where(activity => group.Includes(activity.Name))
                                         .ToList();
-                if (activities.Count > 0)
+                if (activities.Count > 1)
                 {
                     string column;
                     switch (group.Category)
@@ -88,15 +89,20 @@ namespace FitBot.Achievements
                         {
                             case ActitivityCategory.Cardio:
                                 achievement.Distance = sum;
-                                achievement.CommentText = string.Format("Daily {0} distance record: {1:N} km", group.Name, sum/1000);
+                                achievement.CommentText = string.Format("Daily {0} record: {1:N1} km", group.Name, sum/1000);
                                 break;
                             case ActitivityCategory.Sports:
                                 achievement.Duration = sum;
-                                achievement.CommentText = string.Format("Daily {0} duration record: {1:N} hours", group.Name, sum/3600);
+                                var duration = TimeSpan.FromSeconds((double) sum.Value);
+                                achievement.CommentText = string.Format("Daily {0} record: {1}",
+                                                                        group.Name,
+                                                                        string.Format(duration < TimeSpan.FromHours(1)
+                                                                                          ? "{0:m\\:ss} minutes"
+                                                                                          : "{0:h\\:mm} hours", duration));
                                 break;
                             default:
                                 achievement.Repetitions = sum;
-                                achievement.CommentText = string.Format("Daily {0} repetition record: {1:N} reps", group.Name, sum);
+                                achievement.CommentText = string.Format("Daily {0} record: {1:N0} reps", group.Name, sum);
                                 break;
                         }
                         achievements.Add(achievement);

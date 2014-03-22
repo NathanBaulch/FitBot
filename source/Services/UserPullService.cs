@@ -5,19 +5,21 @@ using FitBot.Model;
 
 namespace FitBot.Services
 {
-    public class UserSyncService : IUserSyncService
+    public class UserPullService : IUserPullService
     {
         private readonly IDatabaseService _database;
         private readonly IFitocracyService _fitocracy;
 
-        public UserSyncService(IDatabaseService database, IFitocracyService fitocracy)
+        public UserPullService(IDatabaseService database, IFitocracyService fitocracy)
         {
             _database = database;
             _fitocracy = fitocracy;
         }
 
-        public async Task Execute()
+        public async Task<IEnumerable<User>> Pull()
         {
+            var users = new List<User>();
+
             var staleUsers = (await _database.GetUsers()).ToDictionary(user => user.Id);
             var pageNum = 0;
             var processedIds = new HashSet<long>();
@@ -36,10 +38,11 @@ namespace FitBot.Services
                     if (!staleUsers.TryGetValue(freshUser.Id, out staleUser))
                     {
                         _database.Insert(freshUser);
+                        freshUser.IsNew = true;
                     }
                     else
                     {
-                        if (staleUser.Username != freshUser.Username)
+                        if (freshUser.HasChanges(staleUser))
                         {
                             _database.Update(freshUser);
                         }
@@ -47,6 +50,7 @@ namespace FitBot.Services
                     }
                 }
 
+                users.AddRange(freshUsers);
                 pageNum++;
             }
 
@@ -54,6 +58,8 @@ namespace FitBot.Services
             {
                 _database.Delete(staleUser);
             }
+
+            return users;
         }
     }
 }

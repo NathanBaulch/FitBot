@@ -20,18 +20,18 @@ namespace FitBot.Services
         private const decimal MetersPerMile = 1609.344M;
         private const decimal KilogramsPerPound = 0.453592M;
 
-        public IList<Workout> ExtractWorkouts(Stream content, long selfUserId)
+        public IList<Workout> ExtractWorkouts(Stream content)
         {
             var doc = new HtmlDocument();
             doc.Load(content);
             return doc.DocumentNode
                       .Descendants("div")
                       .Where(div => div.GetAttributeValue("data-ag-type", null) == "workout")
-                      .Select(node => ExtractWorkout(node, selfUserId))
+                      .Select(ExtractWorkout)
                       .ToList();
         }
 
-        private static Workout ExtractWorkout(HtmlNode node, long selfUserId)
+        private static Workout ExtractWorkout(HtmlNode node)
         {
             var value = node.Descendants("a")
                             .Select(a => a.GetAttributeValue("data-item-id", null))
@@ -63,27 +63,11 @@ namespace FitBot.Services
                 points = 0;
             }
 
-            long? commentId;
-            if (selfUserId != 0)
-            {
-                value = node.Descendants("li")
-                            .Where(li => li.GetAttributeValue("data-user-id", null) == selfUserId.ToString(CultureInfo.InvariantCulture))
-                            .Select(li => li.GetAttributeValue("data-comment-id", null))
-                            .FirstOrDefault();
-                long id;
-                commentId = long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out id) ? id : (long?) null;
-            }
-            else
-            {
-                commentId = null;
-            }
-
             return new Workout
                 {
                     Id = workoutId,
                     Date = date,
                     Points = points,
-                    CommentId = commentId,
                     Activities = node.Descendants("ul")
                                      .Where(ul => ul.GetAttributeValue("class", null) == "action_detail")
                                      .SelectMany(ul => ul.Descendants("li"))
@@ -282,6 +266,34 @@ namespace FitBot.Services
             }
 
             return set;
+        }
+
+        public IDictionary<long, string> ExtractWorkoutComments(Stream content, long selfUserId)
+        {
+            var doc = new HtmlDocument();
+            doc.Load(content);
+            return doc.DocumentNode
+                      .Descendants("li")
+                      .Where(li => li.GetAttributeValue("data-user-id", null) == selfUserId.ToString(CultureInfo.InvariantCulture))
+                      .Select(ExtractComment)
+                      .ToDictionary(comment => comment.Item1, comment => comment.Item2);
+        }
+
+        private static Tuple<long, string> ExtractComment(HtmlNode node)
+        {
+            var value = node.GetAttributeValue("data-comment-id", null);
+            long commentId;
+            if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out commentId))
+            {
+                throw new InvalidDataException("TODO: unable to find comment ID");
+            }
+
+            return new Tuple<long, string>(
+                commentId,
+                node.Descendants("span")
+                    .Where(span => span.GetAttributeValue("class", null) == "comment-copy")
+                    .Select(span => HtmlEntity.DeEntitize(span.InnerText).Trim())
+                    .FirstOrDefault());
         }
     }
 }

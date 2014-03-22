@@ -11,7 +11,19 @@
         public decimal? Speed { get; set; }
         public decimal? Repetitions { get; set; }
         public decimal? Weight { get; set; }
+        public long? CommentId { get; set; }
         public string CommentText { get; set; }
         public bool IsPropped { get; set; }
+
+        public bool HasChanges(Achievement achievement)
+        {
+            return Distance != achievement.Distance ||
+                   Duration != achievement.Duration ||
+                   Speed != achievement.Speed ||
+                   Repetitions != achievement.Repetitions ||
+                   Weight != achievement.Weight ||
+                   CommentText != achievement.CommentText ||
+                   IsPropped != achievement.IsPropped;
+        }
     }
 }

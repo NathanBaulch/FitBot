@@ -9,10 +9,15 @@ namespace FitBot.Model
         public long UserId { get; set; }
         public DateTime Date { get; set; }
         public int? Points { get; set; }
-        public long? CommentId { get; set; }
-        public int? CommentHash { get; set; }
-        public DateTime SyncDate { get; set; }
+        public DateTime PullDate { get; set; }
         public int ActivitiesHash { get; set; }
         public IList<Activity> Activities { get; set; }
+
+        public bool HasChanges(Workout workout)
+        {
+            return Date != workout.Date ||
+                   Points != workout.Points ||
+                   ActivitiesHash != workout.ActivitiesHash;
+        }
     }
 }

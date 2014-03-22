@@ -10,10 +10,15 @@ GO
 USE [FitBot]
 GO
 
+ALTER DATABASE [FitBot] SET ALLOW_SNAPSHOT_ISOLATION ON
+GO
+
+ALTER DATABASE [FitBot] SET READ_COMMITTED_SNAPSHOT ON
+GO
+
 CREATE TABLE [User] (
 	[Id] [bigint] PRIMARY KEY NOT NULL,
 	[Username] [nvarchar] (100) NOT NULL,
-	[DirtyDate] [datetime2] NULL,
 	UNIQUE([Username])
 )
 GO
@@ -23,9 +28,7 @@ CREATE TABLE [Workout] (
 	[UserId] [bigint] NOT NULL,
 	[Date] [datetime2] NULL,
 	[Points] [int] NULL,
-	[CommentId] [bigint] NULL,
-	[CommentHash] [int] NULL,
-	[SyncDate] [datetime2] NOT NULL,
+	[PullDate] [datetime2] NOT NULL,
 	[ActivitiesHash] [int] NOT NULL,
 	FOREIGN KEY ([UserId]) REFERENCES [User] ([Id]) ON DELETE CASCADE
 )
@@ -53,7 +56,7 @@ CREATE TABLE [Set] (
 	[ActivityId] [bigint] NOT NULL,
 	[Sequence] [int] NOT NULL,
 	[Points] [int] NULL,
-	[Distance] [decimal](9, 2) NULL,
+	[Distance] [decimal](19, 2) NULL,
 	[Duration] [decimal](9, 2) NULL,
 	[Speed] [decimal](9, 2) NULL,
 	[Repetitions] [decimal](9, 2) NULL,
@@ -74,15 +77,15 @@ CREATE TABLE [Achievement] (
 	[Id] [bigint] PRIMARY KEY IDENTITY NOT NULL,
 	[WorkoutId] [bigint] NOT NULL,
 	[Type] [nvarchar] (100) NOT NULL,
-	[Group] [nvarchar] (100) NOT NULL,
-	[Distance] [decimal](9, 2) NULL,
+	[Group] [nvarchar] (100) NULL,
+	[Distance] [decimal](19, 2) NULL,
 	[Duration] [decimal](9, 2) NULL,
 	[Speed] [decimal](9, 2) NULL,
 	[Repetitions] [decimal](9, 2) NULL,
 	[Weight] [decimal](9, 2) NULL,
+	[CommentId] [bigint] NULL,
 	[CommentText] [text] NULL,
 	[IsPropped] [bit] NOT NULL,
-	UNIQUE ([WorkoutId], [Type], [Group]),
 	FOREIGN KEY ([WorkoutId]) REFERENCES [Workout] ([Id]) ON DELETE CASCADE
 )
 GO

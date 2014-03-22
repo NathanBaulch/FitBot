@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FitBot.Model;
@@ -34,7 +35,7 @@ namespace FitBot.Achievements
                                                   {
                                                       set.Id,
                                                       Speed = set.Speed ?? (set.Distance/set.Duration),
-                                                      Distance = set.Distance ?? (set.Speed*set.Duration)
+                                                      Distance = Truncate(set.Distance ?? (set.Speed*set.Duration))
                                                   })
                                               .Where(set => set.Speed != null && set.Distance != null)
                                               .ToList();
@@ -79,7 +80,7 @@ namespace FitBot.Achievements
                                                 Group = group.Name,
                                                 Speed = set.Speed,
                                                 Distance = set.Distance,
-                                                CommentText = string.Format("{0} Speed record: {1:N} km/h over {2:N} km or greater", group.Name, set.Speed*3.6M, set.Distance/1000)
+                                                CommentText = string.Format("Qualified {0} record: {1:N1} km/h for {2:N1} km or more", group.Name, set.Speed*3.6M, set.Distance/1000)
                                             });
                                 }
                             }
@@ -91,6 +92,12 @@ namespace FitBot.Achievements
                                               .Where(activity => group.Includes(activity.Name))
                                               .SelectMany(activity => activity.Sets)
                                               .Where(set => set.Repetitions != null && set.Weight != null)
+                                              .Select(set => new
+                                                  {
+                                                      set.Id,
+                                                      set.Repetitions,
+                                                      Weight = Truncate(set.Weight)
+                                                  })
                                               .ToList();
                             foreach (var set in sets)
                             {
@@ -133,7 +140,7 @@ namespace FitBot.Achievements
                                                 Group = group.Name,
                                                 Repetitions = set.Repetitions,
                                                 Weight = set.Weight,
-                                                CommentText = string.Format("{0} repetitions record: {1:N} reps with {2:N} kg or greater", group.Name, set.Repetitions, set.Weight)
+                                                CommentText = string.Format("Qualified {0} record: {1:N0} reps at {2:N1} kg or more", group.Name, set.Repetitions, set.Weight)
                                             });
                                 }
                             }
@@ -143,6 +150,17 @@ namespace FitBot.Achievements
             }
 
             return achievements;
+        }
+
+        private static decimal? Truncate(decimal? value)
+        {
+            if (value == null || value == 0)
+            {
+                return value;
+            }
+
+            var scale = (decimal) Math.Pow(10, Math.Floor(Math.Log10(Math.Abs((double) value.Value))));
+            return scale*Math.Truncate(value.Value/scale);
         }
     }
 }

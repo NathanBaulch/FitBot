@@ -1,11 +1,14 @@
-﻿using System;
-
-namespace FitBot.Model
+﻿namespace FitBot.Model
 {
     public class User
     {
         public long Id { get; set; }
         public string Username { get; set; }
-        public DateTime? DirtyDate { get; set; }
+        public bool IsNew { get; set; }
+
+        public bool HasChanges(User user)
+        {
+            return Username != user.Username;
+        }
     }
 }

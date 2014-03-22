@@ -29,6 +29,7 @@ namespace FitBot.Services
 
             var userProps = DapperExtensions.DapperExtensions.GetMap<User>().Properties;
             ((PropertyMap) userProps.First(prop => prop.ColumnName == "Id")).Key(KeyType.Assigned);
+            ((PropertyMap) userProps.First(prop => prop.ColumnName == "IsNew")).Ignore();
             var workoutProps = DapperExtensions.DapperExtensions.GetMap<Workout>().Properties;
             ((PropertyMap) workoutProps.First(prop => prop.ColumnName == "Id")).Key(KeyType.Assigned);
             ((PropertyMap) workoutProps.First(prop => prop.ColumnName == "Activities")).Ignore();
@@ -60,15 +61,6 @@ namespace FitBot.Services
                 "order by [Id]");
         }
 
-        public Task<IEnumerable<User>> GetUsersWithDirtyDate()
-        {
-            return Query<User>(
-                "select * " +
-                "from [User] " +
-                "where [DirtyDate] is not null " +
-                "order by [Id]");
-        }
-
         public void Insert(User user)
         {
             Debug.WriteLine("Inserting user " + user.Id);
@@ -94,14 +86,6 @@ namespace FitBot.Services
             {
                 con.Delete(user);
             }
-        }
-
-        public Task<int> GetWorkoutCount(long userId)
-        {
-            return Single<int>(
-                "select count(*) " +
-                "from [Workout] " +
-                "where [UserId] = @userId", new {userId});
         }
 
         public async Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime fromDate, DateTime toDate, bool deep)
@@ -148,14 +132,15 @@ namespace FitBot.Services
                 "order by [Date], [Id]", new {userId, fromDate, toDate});
         }
 
-        public void DeleteWorkoutsBefore(DateTime date)
+        public void DeleteWorkoutsBefore(long userId, DateTime date)
         {
-            Debug.WriteLine("Deleting workouts before " + date);
+            Debug.WriteLine("Deleting workouts for user {0} before {1}", userId, date);
             using (var con = OpenConnection())
             {
                 con.Execute(
                     "delete from [Workout] " +
-                    "where [Date] < @date", new {date});
+                    "where [UserId] = @userId " +
+                    "and [Date] < @date", new {userId, date});
             }
         }
 
@@ -219,7 +204,7 @@ namespace FitBot.Services
                 "select * " +
                 "from [Achievement] " +
                 "where [WorkoutId] = @workoutId " +
-                "order by [Type], [Group]", new {workoutId});
+                "order by [Type], [Group], [Id]", new {workoutId});
         }
 
         public void Insert(Achievement achievement)

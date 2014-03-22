@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FitBot.Achievements;
@@ -10,90 +9,76 @@ namespace FitBot.Services
     public class AchievementService : IAchievementService
     {
         private readonly IDatabaseService _database;
-        private readonly IFitocracyService _fitocracy;
         private readonly IList<IAchievementProvider> _providers;
 
-        public AchievementService(IDatabaseService database, IFitocracyService fitocracy, IEnumerable<IAchievementProvider> providers)
+        public AchievementService(IDatabaseService database, IEnumerable<IAchievementProvider> providers)
         {
             _database = database;
-            _fitocracy = fitocracy;
             _providers = providers.ToList();
         }
 
-        public async Task Execute()
+        public async Task<IEnumerable<Achievement>> Process(IEnumerable<Workout> workouts)
         {
-            foreach (var user in await _database.GetUsersWithDirtyDate())
-            {
-                foreach (var workout in await _database.GetWorkouts(user.Id, user.DirtyDate.Value, DateTime.MaxValue, true))
-                {
-                    if (user.DirtyDate != workout.Date)
-                    {
-                        user.DirtyDate = workout.Date;
-                        _database.Update(user);
-                    }
+            var achievements = new List<Achievement>();
 
-                    var staleAchievements = (await _database.GetAchievements(workout.Id)).ToDictionary(achievement => new {achievement.Type, achievement.Group});
-                    var freshAchievements = (await Task.WhenAll(_providers.Select(achievement => achievement.Execute(workout)))).SelectMany(items => items).ToList();
-                    foreach (var freshAchievement in freshAchievements)
+            foreach (var workout in workouts)
+            {
+                var tasks = _providers.Select(achievement => achievement.Execute(workout)).ToList();
+                var staleAchievements = (await _database.GetAchievements(workout.Id)).ToList();
+
+                while (tasks.Count > 0)
+                {
+                    var task = await Task.WhenAny(tasks);
+
+                    foreach (var freshAchievement in task.Result)
                     {
-                        Achievement staleAchievement;
-                        var key = new {freshAchievement.Type, freshAchievement.Group};
-                        if (!staleAchievements.TryGetValue(key, out staleAchievement))
+                        var matchingAchievements = staleAchievements
+                            .Where(achievement => achievement.Type == freshAchievement.Type &&
+                                                  achievement.Group == freshAchievement.Group)
+                            .ToList();
+
+                        if (matchingAchievements.Count == 0)
                         {
                             freshAchievement.WorkoutId = workout.Id;
                             _database.Insert(freshAchievement);
+                            achievements.Add(freshAchievement);
                         }
                         else
                         {
-                            if (freshAchievement.Distance != staleAchievement.Distance ||
-                                freshAchievement.Duration != staleAchievement.Duration ||
-                                freshAchievement.Repetitions != staleAchievement.Repetitions ||
-                                freshAchievement.Weight != staleAchievement.Weight)
+                            var staleAchievement = matchingAchievements.FirstOrDefault(achievement => !freshAchievement.HasChanges(achievement));
+                            if (staleAchievement == null)
                             {
+                                staleAchievement = matchingAchievements[0];
                                 freshAchievement.Id = staleAchievement.Id;
                                 freshAchievement.WorkoutId = workout.Id;
                                 _database.Update(freshAchievement);
+
+                                if (freshAchievement.CommentText != staleAchievement.CommentText ||
+                                    (freshAchievement.IsPropped && !staleAchievement.IsPropped))
+                                {
+                                    achievements.Add(freshAchievement);
+                                }
                             }
-                            staleAchievements.Remove(key);
+                            staleAchievements.Remove(staleAchievement);
                         }
                     }
 
-                    foreach (var staleAchievement in staleAchievements.Values)
-                    {
-                        _database.Delete(staleAchievement);
-                    }
-
-                    var text = string.Join(", ", freshAchievements.Select(achievement => achievement.CommentText).OrderBy(comment => comment));
-
-                    if (!string.IsNullOrEmpty(text))
-                    {
-                        var hash = text.GetHashCode();
-                        if (workout.CommentId != null)
-                        {
-                            if (workout.CommentHash == hash)
-                            {
-                                continue;
-                            }
-                            await _fitocracy.DeleteComment(workout.CommentId.Value);
-                        }
-                        await _fitocracy.AddComment(workout.Id, text);
-                        workout.CommentHash = hash;
-                        _database.Update(workout);
-                    }
-                    else if (workout.CommentId != null)
-                    {
-                        await _fitocracy.DeleteComment(workout.CommentId.Value);
-                        workout.CommentHash = null;
-                        _database.Update(workout);
-                    }
+                    tasks.Remove(task);
                 }
 
-                if (user.DirtyDate != null)
+                foreach (var staleAchievement in staleAchievements)
                 {
-                    user.DirtyDate = null;
-                    _database.Update(user);
+                    _database.Delete(staleAchievement);
+
+                    if (staleAchievement.CommentId != null)
+                    {
+                        staleAchievement.CommentText = null;
+                        achievements.Add(staleAchievement);
+                    }
                 }
             }
+
+            return achievements;
         }
     }
 }

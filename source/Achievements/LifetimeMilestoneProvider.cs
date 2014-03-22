@@ -9,6 +9,7 @@ namespace FitBot.Achievements
 {
     public class LifetimeMilestoneProvider : IAchievementProvider
     {
+        //TODO: support more groups
         private static readonly IDictionary<string, int> Thresholds = new Dictionary<string, int>
             {
                 //Cardio (meters)
@@ -18,15 +19,15 @@ namespace FitBot.Achievements
                 {"Walking", 200000},
                 {"Swimming", 100000},
                 //Bodyweight (reps)
-                {"Push-Up", 1000},
-                {"Pull-Up", 1000},
-                {"Sit-Up", 1000},
-                {"Dip", 1000},
+                {"Push-Up", 2000},
+                {"Pull-Up", 2000},
+                {"Sit-Up", 4000},
+                {"Dip", 2000},
                 //Weights (reps)
-                {"Pulldown", 1000},
-                {"Shrug", 1000},
-                {"Deadlift", 1000},
-                {"Squat", 1000},
+                {"Pulldown", 2000},
+                {"Shrug", 2000},
+                {"Deadlift", 2000},
+                {"Squat", 2000},
                 //Sports (seconds)
                 {"Volleyball", 360000},
                 {"Football", 360000},
@@ -52,7 +53,7 @@ namespace FitBot.Achievements
             foreach (var threshold in Thresholds)
             {
                 var group = _grouping.Get(threshold.Key);
-                if (workout.Activities.Count(activity => group.Includes(activity.Name)) > 1)
+                if (workout.Activities.Count(activity => group.Includes(activity.Name)) > 0)
                 {
                     string column;
                     switch (group.Category)
@@ -97,15 +98,15 @@ namespace FitBot.Achievements
                             {
                                 case ActitivityCategory.Cardio:
                                     achievement.Distance = sum;
-                                    achievement.CommentText = string.Format("Lifetime {0} distance milestone: {1:N} km", group.Name, sum/1000);
+                                    achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} km", group.Name, sum/1000);
                                     break;
                                 case ActitivityCategory.Sports:
                                     achievement.Duration = sum;
-                                    achievement.CommentText = string.Format("Lifetime {0} duration milestone: {1:N} hours", group.Name, sum/3600);
+                                    achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} hours", group.Name, sum/3600);
                                     break;
                                 default:
                                     achievement.Repetitions = sum;
-                                    achievement.CommentText = string.Format("Lifetime {0} repetition milestone: {1:N} reps", group.Name, sum);
+                                    achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} reps", group.Name, sum);
                                     break;
                             }
                             achievements.Add(achievement);

@@ -4,8 +4,8 @@ using FitBot.Model;
 
 namespace FitBot.Services
 {
-    public interface IAchievementService
+    public interface IUserPullService
     {
-        Task<IEnumerable<Achievement>> Process(IEnumerable<Workout> workouts);
+        Task<IEnumerable<User>> Pull();
     }
 }

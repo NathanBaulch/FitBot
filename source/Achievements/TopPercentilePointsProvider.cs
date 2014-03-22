@@ -19,7 +19,10 @@ namespace FitBot.Achievements
 
         public async Task<IEnumerable<Achievement>> Execute(Workout workout)
         {
-            var offset = (int) (await _database.GetWorkoutCount(workout.UserId)*Percentile);
+            var offset = (int) (await _database.Single<int>(
+                "select count(*) " +
+                "from [Workout] " +
+                "where [UserId] = @UserId", new {workout.UserId})*Percentile);
             if (offset > 0)
             {
                 var threshold = await _database.Single<int>(

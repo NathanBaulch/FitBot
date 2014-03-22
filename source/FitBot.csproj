@@ -62,6 +62,13 @@
     <Compile Include="Achievements\LifetimeMilestoneProvider.cs" />
     <Compile Include="Achievements\QualifiedRecordProvider.cs" />
     <Compile Include="Achievements\TopPercentilePointsProvider.cs" />
+    <Compile Include="Development\AddMeFitocracyDecorator.cs" />
+    <Compile Include="Development\BaseFitocracyDecorator.cs" />
+    <Compile Include="Development\BypassAchievementPushDecorator.cs" />
+    <Compile Include="Development\CachedWebRequestDecorator.cs" />
+    <Compile Include="Development\ExtraFollowersFitocracyDecorator.cs" />
+    <Compile Include="Development\OnlyMeFitocracyDecorator.cs" />
+    <Compile Include="Development\UserNotNewDatabaseDecorator.cs" />
     <Compile Include="Model\Achievement.cs" />
     <Compile Include="Model\Activity.cs" />
     <Compile Include="Model\Set.cs" />
@@ -74,21 +81,25 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Services\AchievementPushService.cs" />
     <Compile Include="Services\AchievementService.cs" />
     <Compile Include="Services\ActivityGroupingService.cs" />
     <Compile Include="Services\DatabaseService.cs" />
-    <Compile Include="Services\DevFitocracyService.cs" />
     <Compile Include="Services\FitocracyService.cs" />
+    <Compile Include="Services\IAchievementPushService.cs" />
     <Compile Include="Services\IAchievementService.cs" />
     <Compile Include="Services\IActivityGroupingService.cs" />
     <Compile Include="Services\IDatabaseService.cs" />
     <Compile Include="Services\IFitocracyService.cs" />
     <Compile Include="Services\IScrapingService.cs" />
-    <Compile Include="Services\IUserSyncService.cs" />
-    <Compile Include="Services\IWorkoutSyncService.cs" />
+    <Compile Include="Services\IUserPullService.cs" />
+    <Compile Include="Services\IWebRequestService.cs" />
+    <Compile Include="Services\IWorkoutPullService.cs" />
     <Compile Include="Services\ScrapingService.cs" />
-    <Compile Include="Services\UserSyncService.cs" />
-    <Compile Include="Services\WorkoutSyncService.cs" />
+    <Compile Include="Services\ThrottledWebRequestDecorator.cs" />
+    <Compile Include="Services\UserPullService.cs" />
+    <Compile Include="Services\WebRequestService.cs" />
+    <Compile Include="Services\WorkoutPullService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

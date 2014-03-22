@@ -64,25 +64,17 @@ namespace FitBot.Achievements
                             }
                         });
                     var fromDate = workout.Date.AddYears(-1);
-                    var previousMax = await _database.Single<decimal?>(
-                        "select max(a.[" + column + "]) " +
-                        "from [Workout] w, [Achievement] a " +
+                    var lastYearMax = await _database.Single<decimal?>(
+                        "select max(s.[" + column + "]) " +
+                        "from [Workout] w, [Activity] a, [Set] s " +
                         "where w.[Id] = a.[WorkoutId] " +
+                        "and a.[Id] = s.[ActivityId] " +
                         "and w.[UserId] = @UserId " +
-                        "and w.[Date] >= @fromDate " +
-                        "and w.[Date] < @Date " +
-                        "and a.[Type] = 'ComebackRecord' " +
-                        "and a.[Group] = @Name", new {workout.UserId, fromDate, workout.Date, activity.Name});
-                    if (previousMax == null &&
-                        (await _database.Single<long?>(
-                            "select top 1 a.[Id] " +
-                            "from [Workout] w, [Activity] a " +
-                            "where w.[Id] = a.[WorkoutId] " +
-                            "and w.[UserId] = @UserId " +
-                            "and w.[Date] < @fromDate " +
-                            "and a.[Name] = @Name", new {workout.UserId, fromDate, activity.Name})) != null)
+                        "and w.[Date] < @fromDate " +
+                        "and a.[Name] = @Name", new {workout.UserId, fromDate, activity.Name});
+                    if (lastYearMax != null)
                     {
-                        previousMax = await _database.Single<decimal?>(
+                        var thisYearMax = await _database.Single<decimal?>(
                             "select max(s.[" + column + "]) " +
                             "from [Workout] w, [Activity] a, [Set] s " +
                             "where w.[Id] = a.[WorkoutId] " +
@@ -91,36 +83,41 @@ namespace FitBot.Achievements
                             "and w.[Date] >= @fromDate " +
                             "and w.[Date] < @Date " +
                             "and a.[Name] = @Name", new {workout.UserId, fromDate, workout.Date, activity.Name});
-                    }
-                    if (max > previousMax)
-                    {
-                        var achievement = new Achievement
-                            {
-                                Type = "ComebackRecord",
-                                Group = activity.Name
-                            };
-                        switch (group.Category)
+                        if (max > (thisYearMax ?? 0) && max < lastYearMax && max*2 > lastYearMax)
                         {
-                            case ActitivityCategory.Cardio:
-                                achievement.Distance = max;
-                                achievement.CommentText = string.Format("{0} 1 year comeback record: {1:N} km", activity.Name, max/1000);
-                                break;
-                            case ActitivityCategory.Bodyweight:
-                                achievement.Repetitions = max;
-                                achievement.CommentText = string.Format("{0} 1 year comeback record: {1:N} reps", activity.Name, max);
-                                break;
-                            case ActitivityCategory.Weights:
-                                achievement.Weight = max;
-                                achievement.CommentText = string.Format("{0} 1 year comeback record: {1:N} kg", activity.Name, max);
-                                break;
-                            case ActitivityCategory.Sports:
-                                achievement.Duration = max;
-                                achievement.CommentText = string.Format("{0} 1 year comeback record: {1:N} hours", activity.Name, max/3600);
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
+                            var achievement = new Achievement
+                                {
+                                    Type = "ComebackRecord",
+                                    Group = activity.Name
+                                };
+                            switch (group.Category)
+                            {
+                                case ActitivityCategory.Cardio:
+                                    achievement.Distance = max;
+                                    achievement.CommentText = string.Format("1 year {0} comeback record: {1:N1} km", activity.Name, max/1000);
+                                    break;
+                                case ActitivityCategory.Bodyweight:
+                                    achievement.Repetitions = max;
+                                    achievement.CommentText = string.Format("1 year {0} comeback record: {1:N0} reps", activity.Name, max);
+                                    break;
+                                case ActitivityCategory.Weights:
+                                    achievement.Weight = max;
+                                    achievement.CommentText = string.Format("1 year {0} comeback record: {1:N1} kg", activity.Name, max);
+                                    break;
+                                case ActitivityCategory.Sports:
+                                    achievement.Duration = max;
+                                    var duration = TimeSpan.FromSeconds((double) max.Value);
+                                    achievement.CommentText = string.Format("1 year {0} comeback record: {1}",
+                                                                            group.Name,
+                                                                            string.Format(duration < TimeSpan.FromHours(1)
+                                                                                              ? "{0:m\\:ss} minutes"
+                                                                                              : "{0:h\\:mm} hours", duration));
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
+                            achievements.Add(achievement);
                         }
-                        achievements.Add(achievement);
                     }
                 }
             }
