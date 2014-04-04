@@ -16,6 +16,7 @@ namespace FitBot.Services
         private readonly string _username;
         private readonly string _password;
         private string _csrfToken;
+        private long _selfUserId;
 
         public FitocracyService(IWebRequestService webRequest, IScrapingService scraper)
         {
@@ -25,7 +26,14 @@ namespace FitBot.Services
             _password = Settings.Default.Password;
         }
 
-        public long SelfUserId { get; private set; }
+        public long SelfUserId
+        {
+            get
+            {
+                EnsureAuthenticated().Wait();
+                return _selfUserId;
+            }
+        }
 
         public async Task<IList<User>> GetFollowers(int pageNum)
         {
@@ -102,12 +110,10 @@ namespace FitBot.Services
             var headers = new NameValueCollection();
             await _webRequest.Post("accounts/login", new {csrfmiddlewaretoken = _csrfToken, username = _username, password = _password, json = 1, is_username = 1}, headers);
 
-            long id;
-            if (!long.TryParse(headers["X-Fitocracy-User"], out id))
+            if (!long.TryParse(headers["X-Fitocracy-User"], out _selfUserId))
             {
                 throw new Exception("TODO: Self user ID not found");
             }
-            SelfUserId = id;
         }
     }
 }

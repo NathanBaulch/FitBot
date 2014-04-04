@@ -14,6 +14,11 @@ using SimpleInjector.Extensions;
 //TODO: unit tests
 //TODO: performance tests
 //TODO: load tests
+//TODO: rock climbing has two difficulty options
+//TODO: what happens if network goes down halfway through new user scrape?
+//TODO: interval training should really contribute to running and walking
+//TODO: insert workouts in reverse order after downloading, perhaps in batches?
+//TODO: what if group was stored in activity? what are the perf gains?
 
 namespace FitBot
 {
@@ -44,10 +49,11 @@ namespace FitBot
             //TODO: remove in production
             {
                 container.RegisterSingleDecorator(typeof (IWebRequestService), typeof (CachedWebRequestDecorator));
-                //container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (ExtraFollowersFitocracyDecorator));
+                container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (ExtraFollowersFitocracyDecorator));
                 //container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (OnlyMeFitocracyDecorator));
                 container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (AddMeFitocracyDecorator));
-                container.RegisterSingleDecorator(typeof (IUserPullService), typeof (UserNotNewPullDecorator));
+                //container.RegisterSingleDecorator(typeof (IUserPullService), typeof (UserNotNewPullDecorator));
+                container.RegisterSingleDecorator(typeof (IAchievementService), typeof (BypassAchievementDecorator));
                 container.RegisterSingleDecorator(typeof (IAchievementPushService), typeof (BypassAchievementPushDecorator));
             }
 

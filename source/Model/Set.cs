@@ -12,7 +12,6 @@
         public decimal? Repetitions { get; set; }
         public decimal? Weight { get; set; }
         public decimal? HeartRate { get; set; }
-        public decimal? Incline { get; set; }
         public string Difficulty { get; set; }
         public bool IsPr { get; set; }
     }

@@ -31,6 +31,7 @@ namespace FitBot.Services
             }
             var request = (HttpWebRequest) WebRequest.Create(url);
             request.CookieContainer = Cookies;
+            request.UserAgent = "FitBot";
             var response = await request.GetResponseAsync();
             if (expectedContentType != null &&
                 expectedContentType != response.ContentType &&
@@ -48,6 +49,7 @@ namespace FitBot.Services
             request.CookieContainer = Cookies;
             request.Method = "POST";
             request.Referer = url;
+            request.UserAgent = "FitBot";
             if (data != null)
             {
                 using (var stream = await request.GetRequestStreamAsync())

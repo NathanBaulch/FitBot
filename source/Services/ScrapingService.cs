@@ -82,7 +82,7 @@ namespace FitBot.Services
         {
             var name = node.Descendants("div")
                            .Where(div => div.GetAttributeValue("class", null) == "action_prompt")
-                           .Select(div => HtmlEntity.DeEntitize(div.InnerText).Replace("  ", " "))
+                           .Select(div => HtmlEntity.DeEntitize(div.InnerText).Trim().Replace("  ", " "))
                            .FirstOrDefault();
             if (name == null)
             {
@@ -95,7 +95,7 @@ namespace FitBot.Services
                     Name = name,
                     Note = node.Descendants("li")
                                .Where(li => li.GetAttributeValue("class", null) == "stream_note")
-                               .Select(li => HtmlEntity.DeEntitize(li.InnerText))
+                               .Select(li => HtmlEntity.DeEntitize(li.InnerText).Trim())
                                .FirstOrDefault(),
                     Sets = node.Descendants("li")
                                .Where(li => li.GetAttributeValue("class", null) != "stream_note")
@@ -131,15 +131,14 @@ namespace FitBot.Services
 
             if (!string.IsNullOrEmpty(text))
             {
-                foreach (var part in text.Replace(" x ", " | ").Split('|'))
+                var assisted = false;
+                foreach (var part in text.Replace(" x ", " | ").Split('|').Select(part => part.Trim()))
                 {
-                    value = part.Trim();
-
-                    var pos = value.IndexOf(' ');
+                    var pos = part.IndexOf(' ');
                     if (pos < 0)
                     {
                         TimeSpan duration;
-                        if (TimeSpan.TryParse(value, out duration))
+                        if (TimeSpan.TryParse(part, out duration))
                         {
                             if (duration > TimeSpan.Zero)
                             {
@@ -147,18 +146,27 @@ namespace FitBot.Services
                             }
                             continue;
                         }
+
+                        switch (part.ToLowerInvariant())
+                        {
+                            case "assisted":
+                                assisted = true;
+                                continue;
+                            case "weighted":
+                                continue;
+                        }
                     }
                     else
                     {
                         decimal num;
-                        if (decimal.TryParse(value.Substring(0, pos), NumberStyles.Any, CultureInfo.InvariantCulture, out num))
+                        if (decimal.TryParse(part.Substring(0, pos), NumberStyles.Any, CultureInfo.InvariantCulture, out num))
                         {
                             if (num == 0)
                             {
                                 continue;
                             }
 
-                            var metric = value.Substring(pos + 1);
+                            var metric = part.Substring(pos + 1);
                             switch (metric.ToLowerInvariant())
                             {
                                 case "reps":
@@ -169,99 +177,93 @@ namespace FitBot.Services
                                 case "throws":
                                 case "jumping jacks":
                                     set.Repetitions = (int) num;
-                                    break;
+                                    continue;
 
                                 case "kg":
-                                    set.Weight = num;
-                                    break;
+                                    set.Weight = (assisted ? -1 : 1)*num;
+                                    continue;
                                 case "lb":
-                                    set.Weight = num*KilogramsPerPound;
-                                    break;
+                                    set.Weight = (assisted ? -1 : 1)*num*KilogramsPerPound;
+                                    continue;
 
                                 case "m":
                                     set.Distance = num;
-                                    break;
+                                    continue;
                                 case "cm":
                                     set.Distance = num*0.01M;
-                                    break;
+                                    continue;
                                 case "laps (25m)":
                                     set.Distance = num*25;
-                                    break;
+                                    continue;
                                 case "laps (50m)":
                                     set.Distance = num*50;
-                                    break;
+                                    continue;
                                 case "km":
                                     set.Distance = num*1000;
-                                    break;
+                                    continue;
                                 case "in":
                                     set.Distance = num*MetersPerInch;
-                                    break;
+                                    continue;
                                 case "ft":
                                     set.Distance = num*MetersPerFoot;
-                                    break;
+                                    continue;
                                 case "yd":
                                     set.Distance = num*MetersPerYard;
-                                    break;
+                                    continue;
                                 case "fathoms":
                                     set.Distance = num*MetersPerFathom;
-                                    break;
+                                    continue;
                                 case "mi":
                                     set.Distance = num*MetersPerMile;
-                                    break;
+                                    continue;
 
                                 case "m/s":
                                     set.Speed = num;
-                                    break;
+                                    continue;
                                 case "km/hr":
                                     set.Speed = num/3.6M;
-                                    break;
+                                    continue;
                                 case "fps":
                                     set.Speed = num*MetersPerFoot;
-                                    break;
+                                    continue;
                                 case "mph":
                                     set.Speed = num*MetersPerMile/3600;
-                                    break;
+                                    continue;
                                 case "min/100m":
                                     set.Speed = 5/(3*num);
-                                    break;
+                                    continue;
                                 case "split":
                                     set.Speed = 25/(3*num);
-                                    break;
+                                    continue;
                                 case "min/km":
                                     set.Speed = 50/(3*num);
-                                    break;
+                                    continue;
                                 case "sec/lap (25m)":
                                     set.Speed = 25/num;
-                                    break;
+                                    continue;
                                 case "sec/lap (50m)":
                                     set.Speed = 50/num;
-                                    break;
+                                    continue;
                                 case "min/mi":
                                     set.Speed = MetersPerMile/(60*num);
-                                    break;
+                                    continue;
 
                                 case "bpm":
                                     set.HeartRate = num;
-                                    break;
+                                    continue;
 
                                 case "%":
-                                    set.Incline = num;
-                                    break;
-
-                                    //TODO: workaround
-                                case "and 3/4-inch band":
-                                    set.Difficulty = value;
+                                case "and 3/4-inch band": //workaround
                                     break;
 
                                 default:
                                     Debug.Fail("TODO: unrecognized set metric: " + metric);
-                                    break;
+                                    continue;
                             }
-                            continue;
                         }
                     }
 
-                    set.Difficulty = value;
+                    set.Difficulty = part;
                 }
             }
 

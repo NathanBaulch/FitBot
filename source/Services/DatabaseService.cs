@@ -88,41 +88,8 @@ namespace FitBot.Services
             }
         }
 
-        public async Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime fromDate, DateTime toDate, bool deep)
+        public async Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime fromDate, DateTime toDate)
         {
-            if (deep)
-            {
-                using (var con = OpenConnection())
-                {
-                    return (await con.QueryAsync<Workout, Activity, Set, Tuple<Workout, Activity, Set>>(
-                        "select * " +
-                        "from [Workout] w, [Activity] a, [Set] s " +
-                        "where w.[Id] = a.[WorkoutId] " +
-                        "and a.[Id] = s.[ActivityId] " +
-                        "and w.[UserId] = @userId " +
-                        "and w.[Date] >= @fromDate " +
-                        "and w.[Date] < @toDate " +
-                        "order by w.[Date], w.[Id], a.[Sequence], s.[Sequence]",
-                        (w, a, s) => new Tuple<Workout, Activity, Set>(w, a, s),
-                        new {userId, fromDate, toDate}))
-                        .GroupBy(tuple => tuple.Item1.Id)
-                        .Select(workoutGroup =>
-                            {
-                                var workout = workoutGroup.First().Item1;
-                                workout.Activities = workoutGroup
-                                    .GroupBy(tuple => tuple.Item2.Id)
-                                    .Select(activityGroup =>
-                                        {
-                                            var activity = activityGroup.First().Item2;
-                                            activity.Sets = activityGroup.Select(item => item.Item3).ToList();
-                                            return activity;
-                                        })
-                                    .ToList();
-                                return workout;
-                            });
-                }
-            }
-
             return await Query<Workout>(
                 "select * " +
                 "from [Workout] " +
@@ -144,23 +111,16 @@ namespace FitBot.Services
             }
         }
 
-        public void Insert(Workout workout, bool deep)
+        public void Insert(Workout workout)
         {
-            Debug.WriteLine("Inserting workout {0} ({1})", workout.Id, deep ? "deep" : "shallow");
+            Debug.WriteLine("Inserting workout " + workout.Id);
             using (var con = OpenConnection())
             {
-                if (deep)
+                using (var trans = con.BeginTransaction())
                 {
-                    using (var trans = con.BeginTransaction())
-                    {
-                        con.Insert(workout, trans);
-                        InsertWorkoutActivities(workout, con, trans);
-                        trans.Commit();
-                    }
-                }
-                else
-                {
-                    con.Insert(workout);
+                    con.Insert(workout, trans);
+                    InsertWorkoutActivities(workout, con, trans);
+                    trans.Commit();
                 }
             }
         }

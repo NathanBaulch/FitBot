@@ -50,7 +50,7 @@ namespace FitBot.Services
                     {
                         freshWorkout.PullDate = DateTime.UtcNow;
                         freshWorkout.ActivitiesHash = ComputeActivitiesHashCode(freshWorkout.Activities);
-                        _database.Insert(freshWorkout, true);
+                        _database.Insert(freshWorkout);
                     }
                 }
                 else
@@ -67,7 +67,7 @@ namespace FitBot.Services
                         Workout staleWorkout;
                         if (!staleWorkouts.TryGetValue(freshWorkout.Id, out staleWorkout))
                         {
-                            _database.Insert(freshWorkout, true);
+                            _database.Insert(freshWorkout);
                             dirtyIndex = index;
                         }
                         else
@@ -121,7 +121,6 @@ namespace FitBot.Services
                         hash = (hash*397) ^ set.Repetitions.GetHashCode();
                         hash = (hash*397) ^ set.Weight.GetHashCode();
                         hash = (hash*397) ^ set.HeartRate.GetHashCode();
-                        hash = (hash*397) ^ set.Incline.GetHashCode();
                         hash = (hash*397) ^ (set.Difficulty ?? string.Empty).GetHashCode();
                         hash = (hash*397) ^ set.IsPr.GetHashCode();
                     }

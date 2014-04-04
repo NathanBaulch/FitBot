@@ -64,6 +64,7 @@
     <Compile Include="Achievements\TopPercentilePointsProvider.cs" />
     <Compile Include="Development\AddMeFitocracyDecorator.cs" />
     <Compile Include="Development\BaseFitocracyDecorator.cs" />
+    <Compile Include="Development\BypassAchievementDecorator.cs" />
     <Compile Include="Development\BypassAchievementPushDecorator.cs" />
     <Compile Include="Development\CachedWebRequestDecorator.cs" />
     <Compile Include="Development\ExtraFollowersFitocracyDecorator.cs" />
