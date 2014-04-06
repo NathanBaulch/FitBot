@@ -1,10 +1,12 @@
-﻿namespace FitBot.Model
+﻿using System;
+
+namespace FitBot.Model
 {
     public class User
     {
         public long Id { get; set; }
         public string Username { get; set; }
-        public bool IsNew { get; set; }
+        public DateTime InsertDate { get; set; }
 
         public bool HasChanges(User user)
         {

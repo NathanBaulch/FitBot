@@ -29,7 +29,6 @@ namespace FitBot.Services
 
             var userProps = DapperExtensions.DapperExtensions.GetMap<User>().Properties;
             ((PropertyMap) userProps.First(prop => prop.ColumnName == "Id")).Key(KeyType.Assigned);
-            ((PropertyMap) userProps.First(prop => prop.ColumnName == "IsNew")).Ignore();
             var workoutProps = DapperExtensions.DapperExtensions.GetMap<Workout>().Properties;
             ((PropertyMap) workoutProps.First(prop => prop.ColumnName == "Id")).Key(KeyType.Assigned);
             ((PropertyMap) workoutProps.First(prop => prop.ColumnName == "Activities")).Ignore();
@@ -66,6 +65,7 @@ namespace FitBot.Services
             Debug.WriteLine("Inserting user " + user.Id);
             using (var con = OpenConnection())
             {
+                user.InsertDate = DateTime.UtcNow;
                 con.Insert(user);
             }
         }
@@ -118,6 +118,7 @@ namespace FitBot.Services
             {
                 using (var trans = con.BeginTransaction())
                 {
+                    workout.InsertDate = DateTime.UtcNow;
                     con.Insert(workout, trans);
                     InsertWorkoutActivities(workout, con, trans);
                     trans.Commit();
@@ -172,6 +173,7 @@ namespace FitBot.Services
             Debug.WriteLine("Inserting achievement {0} for group {1}", achievement.Type, achievement.Group);
             using (var con = OpenConnection())
             {
+                achievement.InsertDate = DateTime.UtcNow;
                 con.Insert(achievement);
             }
         }

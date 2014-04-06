@@ -38,7 +38,6 @@ namespace FitBot.Services
                     if (!staleUsers.TryGetValue(freshUser.Id, out staleUser))
                     {
                         _database.Insert(freshUser);
-                        freshUser.IsNew = true;
                     }
                     else
                     {

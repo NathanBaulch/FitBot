@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FitBot.Model;
@@ -19,7 +20,7 @@ namespace FitBot.Development
             var users = await _decorated.Pull();
             foreach (var user in users)
             {
-                user.IsNew = false;
+                user.InsertDate = DateTime.MinValue;
             }
             return users;
         }

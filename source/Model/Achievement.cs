@@ -1,4 +1,6 @@
-﻿namespace FitBot.Model
+﻿using System;
+
+namespace FitBot.Model
 {
     public class Achievement
     {
@@ -14,6 +16,7 @@
         public long? CommentId { get; set; }
         public string CommentText { get; set; }
         public bool IsPropped { get; set; }
+        public DateTime InsertDate { get; set; }
 
         public bool HasChanges(Achievement achievement)
         {
