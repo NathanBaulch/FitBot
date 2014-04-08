@@ -26,7 +26,7 @@ namespace FitBot.Achievements
             {
                 switch (group.Category)
                 {
-                    case ActitivityCategory.Cardio:
+                    case ActivityCategory.Cardio:
                         {
                             var sets = workout.Activities
                                               .Where(activity => group.Includes(activity.Name))
@@ -86,7 +86,7 @@ namespace FitBot.Achievements
                             }
                         }
                         break;
-                    case ActitivityCategory.Weights:
+                    case ActivityCategory.Weights:
                         {
                             var sets = workout.Activities
                                               .Where(activity => group.Includes(activity.Name))

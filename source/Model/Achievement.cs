@@ -8,6 +8,7 @@ namespace FitBot.Model
         public long WorkoutId { get; set; }
         public string Type { get; set; }
         public string Group { get; set; }
+        public string Activity { get; set; }
         public decimal? Distance { get; set; }
         public decimal? Duration { get; set; }
         public decimal? Speed { get; set; }

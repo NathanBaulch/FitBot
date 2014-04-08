@@ -14,14 +14,14 @@ namespace FitBot.Services
 
     public class ActivityGroup
     {
-        private readonly ActitivityCategory _category;
+        private readonly ActivityCategory _category;
         private readonly string _name;
         private readonly IList<string> _includeStrings;
         private readonly IList<string> _excludeStrings;
         private readonly string _sqlTemplate;
         private readonly IDictionary<string, bool> _includesCache;
 
-        public ActivityGroup(ActitivityCategory category, string name, IList<string> includeStrings, IList<string> excludeStrings)
+        public ActivityGroup(ActivityCategory category, string name, IList<string> includeStrings, IList<string> excludeStrings)
         {
             _category = category;
             _name = name;
@@ -38,7 +38,7 @@ namespace FitBot.Services
             _includesCache = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public ActitivityCategory Category
+        public ActivityCategory Category
         {
             get { return _category; }
         }
@@ -70,7 +70,7 @@ namespace FitBot.Services
         }
     }
 
-    public enum ActitivityCategory
+    public enum ActivityCategory
     {
         Cardio,
         Bodyweight,

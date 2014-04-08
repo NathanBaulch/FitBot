@@ -46,11 +46,11 @@ namespace FitBot
             //TODO: remove in production
             {
                 container.RegisterSingleDecorator(typeof (IWebRequestService), typeof (CachedWebRequestDecorator));
-                container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (ExtraFollowersFitocracyDecorator));
                 //container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (OnlyMeFitocracyDecorator));
                 container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (AddMeFitocracyDecorator));
-                //container.RegisterSingleDecorator(typeof (IUserPullService), typeof (UserNotNewPullDecorator));
-                container.RegisterSingleDecorator(typeof (IAchievementService), typeof (BypassAchievementDecorator));
+                container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (ExtraFollowersFitocracyDecorator));
+                container.RegisterSingleDecorator(typeof (IUserPullService), typeof (UserNotNewPullDecorator));
+                //container.RegisterSingleDecorator(typeof (IAchievementService), typeof (BypassAchievementDecorator));
                 container.RegisterSingleDecorator(typeof (IAchievementPushService), typeof (BypassAchievementPushDecorator));
             }
 

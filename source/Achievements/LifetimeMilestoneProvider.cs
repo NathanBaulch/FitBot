@@ -148,17 +148,17 @@ namespace FitBot.Achievements
         {
             var achievements = new List<Achievement>();
 
-            foreach (var group in _grouping.GetAll())
+            foreach (var group in _grouping.GetAll().Where(group => workout.Activities.Count(activity => group.Includes(activity.Name)) > 0))
             {
                 int threshold;
                 if (!Thresholds.TryGetValue(group.Name, out threshold))
                 {
                     switch (group.Category)
                     {
-                        case ActitivityCategory.Cardio:
+                        case ActivityCategory.Cardio:
                             threshold = 500;
                             break;
-                        case ActitivityCategory.Sports:
+                        case ActivityCategory.Sports:
                             threshold = 100;
                             break;
                         default:
@@ -167,68 +167,70 @@ namespace FitBot.Achievements
                     }
                 }
 
-                if (workout.Activities.Count(activity => group.Includes(activity.Name)) > 0)
+                string column;
+                switch (group.Category)
                 {
-                    string column;
-                    switch (group.Category)
-                    {
-                        case ActitivityCategory.Cardio:
-                            column = "Distance";
-                            threshold *= 1000;
-                            break;
-                        case ActitivityCategory.Sports:
-                            column = "Duration";
-                            threshold *= 3600;
-                            break;
-                        default:
-                            column = "Repetitions";
-                            break;
-                    }
-                    var sum = await _database.Single<decimal?>(
-                        "select sum([" + column + "]) " +
-                        "from [Workout] w, [Activity] a, [Set] s " +
-                        "where w.[Id] = a.[WorkoutId] " +
-                        "and a.[Id] = s.[ActivityId] " +
-                        "and w.[UserId] = @UserId " +
-                        "and w.[Date] <= @Date " +
-                        "and " + group.BuildSqlFilter("a.[Name]"), new {workout.UserId, workout.Date});
-                    if (sum >= threshold)
-                    {
-                        sum = Math.Floor(sum.Value/threshold)*threshold;
-                        if (await _database.Single<long?>(
-                            "select top 1 a.[Id] " +
-                            "from [Workout] w, [Achievement] a " +
-                            "where w.[Id] = a.[WorkoutId] " +
-                            "and w.[UserId] = @UserId " +
-                            "and w.[Date] < @Date " +
-                            "and a.[Type] = 'LifetimeMilestone' " +
-                            "and a.[Group] = @Name " +
-                            "and a.[" + column + "] = @sum", new {workout.UserId, workout.Date, group.Name, sum}) == null)
-                        {
-                            var achievement = new Achievement
-                                {
-                                    Type = "LifetimeMilestone",
-                                    Group = group.Name
-                                };
-                            switch (group.Category)
-                            {
-                                case ActitivityCategory.Cardio:
-                                    achievement.Distance = sum;
-                                    achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} km", group.Name, sum/1000);
-                                    break;
-                                case ActitivityCategory.Sports:
-                                    achievement.Duration = sum;
-                                    achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} hours", group.Name, sum/3600);
-                                    break;
-                                default:
-                                    achievement.Repetitions = sum;
-                                    achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} reps", group.Name, sum);
-                                    break;
-                            }
-                            achievements.Add(achievement);
-                        }
-                    }
+                    case ActivityCategory.Cardio:
+                        column = "Distance";
+                        threshold *= 1000;
+                        break;
+                    case ActivityCategory.Sports:
+                        column = "Duration";
+                        threshold *= 3600;
+                        break;
+                    default:
+                        column = "Repetitions";
+                        break;
                 }
+
+                var sum = await _database.Single<decimal?>(
+                    "select sum([" + column + "]) " +
+                    "from [Workout] w, [Activity] a, [Set] s " +
+                    "where w.[Id] = a.[WorkoutId] " +
+                    "and a.[Id] = s.[ActivityId] " +
+                    "and w.[UserId] = @UserId " +
+                    "and w.[Date] <= @Date " +
+                    "and " + group.BuildSqlFilter("a.[Name]"), new {workout.UserId, workout.Date});
+                if (sum == null || sum < threshold)
+                {
+                    continue;
+                }
+
+                sum = Math.Floor(sum.Value/threshold)*threshold;
+                if (await _database.Single<long?>(
+                    "select top 1 a.[Id] " +
+                    "from [Workout] w, [Achievement] a " +
+                    "where w.[Id] = a.[WorkoutId] " +
+                    "and w.[UserId] = @UserId " +
+                    "and w.[Date] < @Date " +
+                    "and a.[Type] = 'LifetimeMilestone' " +
+                    "and a.[Group] = @Name " +
+                    "and a.[" + column + "] = @sum", new {workout.UserId, workout.Date, group.Name, sum}) != null)
+                {
+                    continue;
+                }
+
+                var achievement = new Achievement
+                    {
+                        Type = "LifetimeMilestone",
+                        Group = group.Name
+                    };
+                switch (group.Category)
+                {
+                    case ActivityCategory.Cardio:
+                        achievement.Distance = sum;
+                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} km", group.Name, sum/1000);
+                        break;
+                    case ActivityCategory.Sports:
+                        achievement.Duration = sum;
+                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} hours", group.Name, sum/3600);
+                        break;
+                    default:
+                        achievement.Repetitions = sum;
+                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} reps", group.Name, sum);
+                        break;
+                }
+                achievements.Add(achievement);
             }
 
             return achievements;

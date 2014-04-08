@@ -225,31 +225,31 @@ namespace FitBot.Services
         private class Builder
         {
             private readonly string _name;
-            private readonly ActitivityCategory _category;
+            private readonly ActivityCategory _category;
             private IList<string> _includeStrings;
             private IList<string> _excludeStrings;
 
             public static Builder Cardio(string name)
             {
-                return new Builder(ActitivityCategory.Cardio, name);
+                return new Builder(ActivityCategory.Cardio, name);
             }
 
             public static Builder Bodyweight(string name)
             {
-                return new Builder(ActitivityCategory.Bodyweight, name);
+                return new Builder(ActivityCategory.Bodyweight, name);
             }
 
             public static Builder Weights(string name)
             {
-                return new Builder(ActitivityCategory.Weights, name);
+                return new Builder(ActivityCategory.Weights, name);
             }
 
             public static Builder Sports(string name)
             {
-                return new Builder(ActitivityCategory.Sports, name);
+                return new Builder(ActivityCategory.Sports, name);
             }
 
-            private Builder(ActitivityCategory category, string name)
+            private Builder(ActivityCategory category, string name)
             {
                 _category = category;
                 _name = name;

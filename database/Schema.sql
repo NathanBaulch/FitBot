@@ -79,6 +79,7 @@ CREATE TABLE [Achievement] (
 	[WorkoutId] [bigint] NOT NULL,
 	[Type] [nvarchar] (100) NOT NULL,
 	[Group] [nvarchar] (100) NULL,
+	[Activity] [nvarchar] (100) NULL,
 	[Distance] [decimal](19, 2) NULL,
 	[Duration] [decimal](9, 2) NULL,
 	[Speed] [decimal](9, 2) NULL,
