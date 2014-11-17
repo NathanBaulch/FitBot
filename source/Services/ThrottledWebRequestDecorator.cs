@@ -10,14 +10,19 @@ namespace FitBot.Services
     {
         private readonly Random _random = new Random();
         private readonly IWebRequestService _decorated;
+        private int _throttleFactor;
 
         public ThrottledWebRequestDecorator(IWebRequestService decorated)
         {
             _decorated = decorated;
-            ThrottleFactor = 2048;
+            ThrottleFactor = 10;
         }
 
-        public int ThrottleFactor { get; set; }
+        public int ThrottleFactor
+        {
+            get { return _throttleFactor; }
+            set { _throttleFactor = Math.Max(value, 0); }
+        }
 
         public CookieContainer Cookies
         {
@@ -39,7 +44,7 @@ namespace FitBot.Services
 
         private Task Delay()
         {
-            return Task.Delay((int) (ThrottleFactor*(1 + _random.NextDouble())));
+            return Task.Delay((int) ((1 << ThrottleFactor)*(1 + _random.NextDouble())));
         }
     }
 }

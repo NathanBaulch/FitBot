@@ -50,11 +50,11 @@ namespace FitBot
                 Debug.WriteLine("Processing time: " + elapsed);
                 if (elapsed > TimeSpan.FromHours(1))
                 {
-                    throttler.ThrottleFactor /= 2;
+                    throttler.ThrottleFactor--;
                 }
                 else
                 {
-                    throttler.ThrottleFactor *= 2;
+                    throttler.ThrottleFactor++;
                 }
             }
         }
