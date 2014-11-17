@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="Achievements\ComebackRecordProvider.cs" />
     <Compile Include="Achievements\DailyRecordProvider.cs" />
+    <Compile Include="Achievements\FormattingExtensions.cs" />
     <Compile Include="Achievements\IAchievementProvider.cs" />
     <Compile Include="Achievements\LifetimeMilestoneProvider.cs" />
     <Compile Include="Achievements\QualifiedRecordProvider.cs" />

@@ -78,7 +78,7 @@ namespace FitBot.Achievements
                                                 Group = group.Key,
                                                 Speed = set.Speed,
                                                 Distance = set.Distance,
-                                                CommentText = string.Format("Qualified {0} record: {1:N1} km/h for {2:N1} km or more", group.Key, set.Speed*3.6M, set.Distance/1000)
+                                                CommentText = string.Format("Qualified {0} record: {1} for {2} or more", group.Key, set.Speed.FormatSpeed(), set.Distance.FormatDistance())
                                             });
                                 }
                             }
@@ -136,7 +136,7 @@ namespace FitBot.Achievements
                                                 Group = group.Key,
                                                 Repetitions = set.Repetitions,
                                                 Weight = set.Weight,
-                                                CommentText = string.Format("Qualified {0} record: {1:N0} reps at {2:N1} kg or more", group.Key, set.Repetitions, set.Weight)
+                                                CommentText = string.Format("Qualified {0} record: {1} at {2} or more", group.Key, set.Repetitions.FormatRepetitions(), set.Weight.FormatWeight())
                                             });
                                 }
                             }

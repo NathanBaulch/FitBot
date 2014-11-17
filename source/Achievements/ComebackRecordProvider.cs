@@ -103,32 +103,29 @@ namespace FitBot.Achievements
                         Type = "ComebackRecord",
                         Activity = activity.Name
                     };
+                string formattedValue;
                 switch (category)
                 {
                     case ActivityCategory.Cardio:
                         achievement.Distance = max;
-                        achievement.CommentText = string.Format("1 year {0} comeback record: {1:N1} km", activity.Name, max/1000);
+                        formattedValue = max.FormatDistance();
                         break;
                     case ActivityCategory.Bodyweight:
                         achievement.Repetitions = max;
-                        achievement.CommentText = string.Format("1 year {0} comeback record: {1:N0} reps", activity.Name, max);
+                        formattedValue = max.FormatRepetitions();
                         break;
                     case ActivityCategory.Weights:
                         achievement.Weight = max;
-                        achievement.CommentText = string.Format("1 year {0} comeback record: {1:N1} kg", activity.Name, max);
+                        formattedValue = max.FormatWeight();
                         break;
                     case ActivityCategory.Sports:
                         achievement.Duration = max;
-                        var duration = TimeSpan.FromSeconds((double) max.Value);
-                        achievement.CommentText = string.Format("1 year {0} comeback record: {1}",
-                                                                activity.Name,
-                                                                string.Format(duration < TimeSpan.FromHours(1)
-                                                                                  ? "{0:m\\:ss} minutes"
-                                                                                  : "{0:h\\:mm} hours", duration));
+                        formattedValue = max.FormatDuration();
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+                achievement.CommentText = string.Format("1 year {0} comeback record: {1}", activity.Name, formattedValue);
                 achievements.Add(achievement);
             }
 

@@ -221,21 +221,23 @@ namespace FitBot.Achievements
                         Type = "LifetimeMilestone",
                         Group = group.Key
                     };
+                string formattedValue;
                 switch (category)
                 {
                     case ActivityCategory.Cardio:
                         achievement.Distance = sum;
-                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} km", group.Key, sum/1000);
+                        formattedValue = sum.FormatDistance();
                         break;
                     case ActivityCategory.Sports:
                         achievement.Duration = sum;
-                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} hours", group.Key, sum/3600);
+                        formattedValue = sum.FormatDuration();
                         break;
                     default:
                         achievement.Repetitions = sum;
-                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} reps", group.Key, sum);
+                        formattedValue = sum.FormatRepetitions();
                         break;
                 }
+                achievement.CommentText = string.Format("Lifetime {0} milestone: {1}", group.Key, formattedValue);
                 achievements.Add(achievement);
             }
 

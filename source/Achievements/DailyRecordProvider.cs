@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FitBot.Model;
@@ -96,26 +95,23 @@ namespace FitBot.Achievements
                         Type = "DailyRecord",
                         Group = group.Key
                     };
+                string formattedValue;
                 switch (category)
                 {
                     case ActivityCategory.Cardio:
                         achievement.Distance = sum;
-                        achievement.CommentText = string.Format("Daily {0} record: {1:N1} km", group.Key, sum/1000);
+                        formattedValue = sum.FormatDistance();
                         break;
                     case ActivityCategory.Sports:
                         achievement.Duration = sum;
-                        var duration = TimeSpan.FromSeconds((double) sum.Value);
-                        achievement.CommentText = string.Format("Daily {0} record: {1}",
-                                                                group.Key,
-                                                                string.Format(duration < TimeSpan.FromHours(1)
-                                                                                  ? "{0:m\\:ss} minutes"
-                                                                                  : "{0:h\\:mm} hours", duration));
+                        formattedValue = sum.FormatDuration();
                         break;
                     default:
                         achievement.Repetitions = sum;
-                        achievement.CommentText = string.Format("Daily {0} record: {1:N0} reps", group.Key, sum);
+                        formattedValue = sum.FormatRepetitions();
                         break;
                 }
+                achievement.CommentText = string.Format("Daily {0} record: {1}", group.Key, formattedValue);
                 achievements.Add(achievement);
             }
 
