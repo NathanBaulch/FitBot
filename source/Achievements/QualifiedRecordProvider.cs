@@ -22,23 +22,21 @@ namespace FitBot.Achievements
         {
             var achievements = new List<Achievement>();
 
-            foreach (var group in _grouping.GetAll())
+            foreach (var group in workout.Activities.GroupBy(activity => activity.Group).Where(group => group.Key != null))
             {
-                switch (group.Category)
+                switch (_grouping.GetGroupCategory(group.Key))
                 {
                     case ActivityCategory.Cardio:
                         {
-                            var sets = workout.Activities
-                                              .Where(activity => group.Includes(activity.Name))
-                                              .SelectMany(activity => activity.Sets)
-                                              .Select(set => new
-                                                  {
-                                                      set.Id,
-                                                      Speed = set.Speed ?? (set.Distance/set.Duration),
-                                                      Distance = Truncate(set.Distance ?? (set.Speed*set.Duration))
-                                                  })
-                                              .Where(set => set.Speed != null && set.Distance != null)
-                                              .ToList();
+                            var sets = group.SelectMany(activity => activity.Sets)
+                                            .Select(set => new
+                                                {
+                                                    set.Id,
+                                                    Speed = set.Speed ?? (set.Distance/set.Duration),
+                                                    Distance = Truncate(set.Distance ?? (set.Speed*set.Duration))
+                                                })
+                                            .Where(set => set.Speed != null && set.Distance != null)
+                                            .ToList();
                             foreach (var set in sets)
                             {
                                 if (sets.Any(item => item != set &&
@@ -56,8 +54,8 @@ namespace FitBot.Achievements
                                     "and w.[UserId] = @UserId " +
                                     "and w.[Date] < @Date " +
                                     "and a.[Type] = 'QualifiedRecord' " +
-                                    "and a.[Group] = @Name " +
-                                    "and a.[Distance] >= @Distance", new {workout.UserId, workout.Date, group.Name, set.Distance});
+                                    "and a.[Group] = @Key " +
+                                    "and a.[Distance] >= @Distance", new {workout.UserId, workout.Date, group.Key, set.Distance});
                                 if (previousMax == null)
                                 {
                                     previousMax = await _database.Single<decimal?>(
@@ -67,8 +65,8 @@ namespace FitBot.Achievements
                                         "and a.[Id] = s.[ActivityId] " +
                                         "and w.[UserId] = @UserId " +
                                         "and w.[Date] < @Date " +
-                                        "and " + group.BuildSqlFilter("a.[Name]") + " " +
-                                        "and coalesce(s.[Distance], s.[Speed]*s.[Duration]) >= @Distance", new {workout.UserId, workout.Date, set.Distance});
+                                        "and a.[Group] = @Key " +
+                                        "and coalesce(s.[Distance], s.[Speed]*s.[Duration]) >= @Distance", new {workout.UserId, workout.Date, group.Key, set.Distance});
                                 }
 
                                 if (set.Speed > previousMax)
@@ -77,10 +75,10 @@ namespace FitBot.Achievements
                                         new Achievement
                                             {
                                                 Type = "QualifiedRecord",
-                                                Group = group.Name,
+                                                Group = group.Key,
                                                 Speed = set.Speed,
                                                 Distance = set.Distance,
-                                                CommentText = string.Format("Qualified {0} record: {1:N1} km/h for {2:N1} km or more", group.Name, set.Speed*3.6M, set.Distance/1000)
+                                                CommentText = string.Format("Qualified {0} record: {1:N1} km/h for {2:N1} km or more", group.Key, set.Speed*3.6M, set.Distance/1000)
                                             });
                                 }
                             }
@@ -88,17 +86,15 @@ namespace FitBot.Achievements
                         break;
                     case ActivityCategory.Weights:
                         {
-                            var sets = workout.Activities
-                                              .Where(activity => group.Includes(activity.Name))
-                                              .SelectMany(activity => activity.Sets)
-                                              .Where(set => set.Repetitions != null && set.Weight != null)
-                                              .Select(set => new
-                                                  {
-                                                      set.Id,
-                                                      set.Repetitions,
-                                                      Weight = Truncate(set.Weight)
-                                                  })
-                                              .ToList();
+                            var sets = group.SelectMany(activity => activity.Sets)
+                                            .Where(set => set.Repetitions != null && set.Weight != null)
+                                            .Select(set => new
+                                                {
+                                                    set.Id,
+                                                    set.Repetitions,
+                                                    Weight = Truncate(set.Weight)
+                                                })
+                                            .ToList();
                             foreach (var set in sets)
                             {
                                 if (sets.Any(item => item != set &&
@@ -116,8 +112,8 @@ namespace FitBot.Achievements
                                     "and w.[UserId] = @UserId " +
                                     "and w.[Date] < @Date " +
                                     "and a.[Type] = 'QualifiedRecord' " +
-                                    "and a.[Group] = @Name " +
-                                    "and a.[Weight] >= @Weight", new {workout.UserId, workout.Date, group.Name, set.Weight});
+                                    "and a.[Group] = @Key " +
+                                    "and a.[Weight] >= @Weight", new {workout.UserId, workout.Date, group.Key, set.Weight});
                                 if (previousMax == null)
                                 {
                                     previousMax = await _database.Single<decimal?>(
@@ -127,8 +123,8 @@ namespace FitBot.Achievements
                                         "and a.[Id] = s.[ActivityId] " +
                                         "and w.[UserId] = @UserId " +
                                         "and w.[Date] < @Date " +
-                                        "and " + group.BuildSqlFilter("a.[Name]") + " " +
-                                        "and s.[Weight] >= @Weight", new {workout.UserId, workout.Date, set.Weight});
+                                        "and a.[Group] = @Key " +
+                                        "and s.[Weight] >= @Weight", new {workout.UserId, workout.Date, group.Key, set.Weight});
                                 }
 
                                 if (set.Repetitions > previousMax)
@@ -137,10 +133,10 @@ namespace FitBot.Achievements
                                         new Achievement
                                             {
                                                 Type = "QualifiedRecord",
-                                                Group = group.Name,
+                                                Group = group.Key,
                                                 Repetitions = set.Repetitions,
                                                 Weight = set.Weight,
-                                                CommentText = string.Format("Qualified {0} record: {1:N0} reps at {2:N1} kg or more", group.Name, set.Repetitions, set.Weight)
+                                                CommentText = string.Format("Qualified {0} record: {1:N0} reps at {2:N1} kg or more", group.Key, set.Repetitions, set.Weight)
                                             });
                                 }
                             }

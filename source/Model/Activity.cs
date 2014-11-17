@@ -8,6 +8,7 @@ namespace FitBot.Model
         public long WorkoutId { get; set; }
         public int Sequence { get; set; }
         public string Name { get; set; }
+        public string Group { get; set; }
         public string Note { get; set; }
         public IList<Set> Sets { get; set; }
     }

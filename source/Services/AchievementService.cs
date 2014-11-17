@@ -34,7 +34,8 @@ namespace FitBot.Services
                     {
                         var matchingAchievements = staleAchievements
                             .Where(achievement => achievement.Type == freshAchievement.Type &&
-                                                  achievement.Group == freshAchievement.Group)
+                                                  achievement.Group == freshAchievement.Group &&
+                                                  achievement.Activity == freshAchievement.Activity)
                             .ToList();
 
                         if (matchingAchievements.Count == 0)

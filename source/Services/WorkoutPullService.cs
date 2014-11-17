@@ -10,11 +10,13 @@ namespace FitBot.Services
     {
         private readonly IDatabaseService _database;
         private readonly IFitocracyService _fitocracy;
+        private readonly IActivityGroupingService _grouping;
 
-        public WorkoutPullService(IDatabaseService database, IFitocracyService fitocracy)
+        public WorkoutPullService(IDatabaseService database, IFitocracyService fitocracy, IActivityGroupingService grouping)
         {
             _database = database;
             _fitocracy = fitocracy;
+            _grouping = grouping;
         }
 
         public async Task<IEnumerable<Workout>> Pull(User user)
@@ -62,6 +64,10 @@ namespace FitBot.Services
                                      .Select(workout =>
                                          {
                                              workout.ActivitiesHash = ComputeActivitiesHashCode(workout.Activities);
+                                             foreach (var activity in workout.Activities)
+                                             {
+                                                 activity.Group = _grouping.GetActvityGroup(activity.Name);
+                                             }
                                              var staleWorkout = staleLookup[workout.Id].FirstOrDefault() ?? deletedWorkouts.FirstOrDefault(item => item.Id == workout.Id);
                                              return new
                                                  {

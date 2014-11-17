@@ -10,11 +10,7 @@ using SimpleInjector;
 using SimpleInjector.Extensions;
 
 //TODO: should set data be summarized at the activity level? SetCount, Points, Distance, Duration, Repetitions
-//TODO: unit tests
-//TODO: performance tests
-//TODO: load tests
 //TODO: interval training should really contribute to running and walking
-//TODO: what if group was stored in activity? what are the perf gains?
 
 namespace FitBot
 {

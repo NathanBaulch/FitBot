@@ -148,12 +148,18 @@ namespace FitBot.Achievements
         {
             var achievements = new List<Achievement>();
 
-            foreach (var group in _grouping.GetAll().Where(group => workout.Activities.Count(activity => group.Includes(activity.Name)) > 0))
+            foreach (var group in workout.Activities.GroupBy(activity => activity.Group).Where(group => group.Key != null))
             {
-                int threshold;
-                if (!Thresholds.TryGetValue(group.Name, out threshold))
+                var category = _grouping.GetGroupCategory(group.Key);
+                if (category == null)
                 {
-                    switch (group.Category)
+                    continue;
+                }
+
+                int threshold;
+                if (!Thresholds.TryGetValue(group.Key, out threshold))
+                {
+                    switch (category)
                     {
                         case ActivityCategory.Cardio:
                             threshold = 500;
@@ -168,7 +174,7 @@ namespace FitBot.Achievements
                 }
 
                 string column;
-                switch (group.Category)
+                switch (category)
                 {
                     case ActivityCategory.Cardio:
                         column = "Distance";
@@ -190,7 +196,7 @@ namespace FitBot.Achievements
                     "and a.[Id] = s.[ActivityId] " +
                     "and w.[UserId] = @UserId " +
                     "and w.[Date] <= @Date " +
-                    "and " + group.BuildSqlFilter("a.[Name]"), new {workout.UserId, workout.Date});
+                    "and a.[Group] = @Key", new {workout.UserId, workout.Date, group.Key});
                 if (sum == null || sum < threshold)
                 {
                     continue;
@@ -204,8 +210,8 @@ namespace FitBot.Achievements
                     "and w.[UserId] = @UserId " +
                     "and w.[Date] < @Date " +
                     "and a.[Type] = 'LifetimeMilestone' " +
-                    "and a.[Group] = @Name " +
-                    "and a.[" + column + "] = @sum", new {workout.UserId, workout.Date, group.Name, sum}) != null)
+                    "and a.[Group] = @Key " +
+                    "and a.[" + column + "] = @sum", new {workout.UserId, workout.Date, group.Key, sum}) != null)
                 {
                     continue;
                 }
@@ -213,21 +219,21 @@ namespace FitBot.Achievements
                 var achievement = new Achievement
                     {
                         Type = "LifetimeMilestone",
-                        Group = group.Name
+                        Group = group.Key
                     };
-                switch (group.Category)
+                switch (category)
                 {
                     case ActivityCategory.Cardio:
                         achievement.Distance = sum;
-                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} km", group.Name, sum/1000);
+                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} km", group.Key, sum/1000);
                         break;
                     case ActivityCategory.Sports:
                         achievement.Duration = sum;
-                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} hours", group.Name, sum/3600);
+                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} hours", group.Key, sum/3600);
                         break;
                     default:
                         achievement.Repetitions = sum;
-                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} reps", group.Name, sum);
+                        achievement.CommentText = string.Format("Lifetime {0} milestone: {1:N0} reps", group.Key, sum);
                         break;
                 }
                 achievements.Add(achievement);

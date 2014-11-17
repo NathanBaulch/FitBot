@@ -22,19 +22,22 @@ namespace FitBot.Achievements
         {
             var achievements = new List<Achievement>();
 
-            foreach (var group in _grouping.GetAll())
+            foreach (var group in workout.Activities.GroupBy(activity => activity.Group).Where(group => group.Key != null))
             {
-                var sets = workout.Activities
-                                  .Where(activity => group.Includes(activity.Name))
-                                  .SelectMany(activity => activity.Sets)
-                                  .ToList();
+                var category = _grouping.GetGroupCategory(group.Key);
+                if (category == null)
+                {
+                    continue;
+                }
+
+                var sets = group.SelectMany(activity => activity.Sets).ToList();
                 if (sets.Count <= 1)
                 {
                     continue;
                 }
 
                 string column;
-                switch (group.Category)
+                switch (category)
                 {
                     case ActivityCategory.Cardio:
                         column = "Distance";
@@ -54,7 +57,7 @@ namespace FitBot.Achievements
                     "and w.[UserId] = @UserId " +
                     "and w.[Date] < @Date " +
                     "and a.[Type] = 'DailyRecord' " +
-                    "and a.[Group] = @Name", new {workout.UserId, workout.Date, group.Name});
+                    "and a.[Group] = @Key", new {workout.UserId, workout.Date, group.Key});
                 if (previousMax == null)
                 {
                     previousMax = await _database.Single<decimal?>(
@@ -66,14 +69,14 @@ namespace FitBot.Achievements
                         "  and a.[Id] = s.[ActivityId] " +
                         "  and w.[UserId] = @UserId " +
                         "  and w.[Date] < @Date " +
-                        "  and " + group.BuildSqlFilter("a.[Name]") + " " +
+                        "  and a.[Group] = @Key " +
                         "  group by w.[Id] " +
-                        ") [x]", new {workout.UserId, workout.Date});
+                        ") [x]", new {workout.UserId, workout.Date, group.Key});
                 }
 
                 var sum = sets.Sum(set =>
                     {
-                        switch (group.Category)
+                        switch (category)
                         {
                             case ActivityCategory.Cardio:
                                 return set.Distance;
@@ -91,26 +94,26 @@ namespace FitBot.Achievements
                 var achievement = new Achievement
                     {
                         Type = "DailyRecord",
-                        Group = group.Name
+                        Group = group.Key
                     };
-                switch (group.Category)
+                switch (category)
                 {
                     case ActivityCategory.Cardio:
                         achievement.Distance = sum;
-                        achievement.CommentText = string.Format("Daily {0} record: {1:N1} km", group.Name, sum/1000);
+                        achievement.CommentText = string.Format("Daily {0} record: {1:N1} km", group.Key, sum/1000);
                         break;
                     case ActivityCategory.Sports:
                         achievement.Duration = sum;
                         var duration = TimeSpan.FromSeconds((double) sum.Value);
                         achievement.CommentText = string.Format("Daily {0} record: {1}",
-                                                                group.Name,
+                                                                group.Key,
                                                                 string.Format(duration < TimeSpan.FromHours(1)
                                                                                   ? "{0:m\\:ss} minutes"
                                                                                   : "{0:h\\:mm} hours", duration));
                         break;
                     default:
                         achievement.Repetitions = sum;
-                        achievement.CommentText = string.Format("Daily {0} record: {1:N0} reps", group.Name, sum);
+                        achievement.CommentText = string.Format("Daily {0} record: {1:N0} reps", group.Key, sum);
                         break;
                 }
                 achievements.Add(achievement);

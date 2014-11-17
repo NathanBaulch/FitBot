@@ -43,6 +43,7 @@ CREATE TABLE [Activity] (
 	[WorkoutId] [bigint] NOT NULL,
 	[Sequence] [int] NOT NULL,
 	[Name] [nvarchar] (100) NOT NULL,
+	[Group] [nvarchar] (100) NULL,
 	[Note] [text] NULL,
 	UNIQUE ([WorkoutId], [Sequence]),
 	FOREIGN KEY ([WorkoutId]) REFERENCES [Workout] ([Id]) ON DELETE CASCADE

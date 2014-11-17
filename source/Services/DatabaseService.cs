@@ -170,7 +170,19 @@ namespace FitBot.Services
 
         public void Insert(Achievement achievement)
         {
-            Debug.WriteLine("Inserting achievement {0} for group {1}", achievement.Type, achievement.Group);
+            if (achievement.Group != null)
+            {
+                Debug.WriteLine("Inserting achievement {0} for group {1}", achievement.Type, achievement.Group);
+            }
+            else if (achievement.Activity != null)
+            {
+                Debug.WriteLine("Inserting achievement {0} for activity {1}", achievement.Type, achievement.Activity);
+            }
+            else
+            {
+                Debug.WriteLine("Inserting achievement {0}", (object) achievement.Type);
+            }
+
             using (var con = OpenConnection())
             {
                 achievement.InsertDate = DateTime.UtcNow;
@@ -180,7 +192,19 @@ namespace FitBot.Services
 
         public void Update(Achievement achievement)
         {
-            Debug.WriteLine("Updating achievement {0} for group {1}", achievement.Type, achievement.Group);
+            if (achievement.Group != null)
+            {
+                Debug.WriteLine("Updating achievement {0} for group {1}", achievement.Type, achievement.Group);
+            }
+            else if (achievement.Activity != null)
+            {
+                Debug.WriteLine("Updating achievement {0} for activity {1}", achievement.Type, achievement.Activity);
+            }
+            else
+            {
+                Debug.WriteLine("Updating achievement {0}", (object) achievement.Type);
+            }
+
             using (var con = OpenConnection())
             {
                 con.Update(achievement);
@@ -189,7 +213,19 @@ namespace FitBot.Services
 
         public void Delete(Achievement achievement)
         {
-            Debug.WriteLine("Deleting achievement {0} for group {1}", achievement.Type, achievement.Group);
+            if (achievement.Group != null)
+            {
+                Debug.WriteLine("Deleting achievement {0} for group {1}", achievement.Type, achievement.Group);
+            }
+            else if (achievement.Activity != null)
+            {
+                Debug.WriteLine("Deleting achievement {0} for activity {1}", achievement.Type, achievement.Activity);
+            }
+            else
+            {
+                Debug.WriteLine("Deleting achievement {0}", (object) achievement.Type);
+            }
+
             using (var con = OpenConnection())
             {
                 con.Delete(achievement);

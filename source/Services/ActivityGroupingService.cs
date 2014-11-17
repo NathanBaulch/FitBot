@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace FitBot.Services
 {
     public class ActivityGroupingService : IActivityGroupingService
     {
-        private readonly IDictionary<string, ActivityGroup> _groups = new[]
+        private readonly IDictionary<string, Group> _groups = new[]
             {
                 Builder.Bodyweight("Ab Wheel").Include("ab wheel"),
                 Builder.Bodyweight("Band Pull Apart").Include("band pull apart"),
@@ -128,7 +131,7 @@ namespace FitBot.Services
                 Builder.Sports("SCA Heavy Combat").Include("sca heavy combat"),
                 Builder.Sports("Sailing").Include("sailing"),
                 Builder.Sports("Scuba Diving").Include("scuba diving"),
-                Builder.Sports("Shoveling snow").Include("shoveling snow"),
+                Builder.Sports("Shoveling Snow").Include("shoveling snow"),
                 Builder.Sports("Skateboarding").Include("skateboarding"),
                 Builder.Sports("Skating").Include("skating"),
                 Builder.Sports("Skiing").Include("skiing", "ski machine"),
@@ -210,14 +213,34 @@ namespace FitBot.Services
             }.Select(builder => builder.Build())
              .ToDictionary(group => group.Name);
 
-        public IEnumerable<ActivityGroup> GetAll()
+        private readonly IDictionary<string, string> _activitiesCache = new ConcurrentDictionary<string, string>();
+
+        public string GetActvityGroup(string activityName)
         {
-            return _groups.Values;
+            string groupName;
+            if (!_activitiesCache.TryGetValue(activityName, out groupName))
+            {
+                var groups = _groups.Values.Where(group => group.Includes(activityName)).ToList();
+                if (groups.Count > 0)
+                {
+                    if (groups.Count > 1)
+                    {
+                        //TODO: warn
+                    }
+                    groupName = groups[0].Name;
+                }
+                _activitiesCache[activityName] = groupName;
+            }
+
+            return groupName;
         }
 
-        public ActivityGroup Get(string name)
+        public ActivityCategory? GetGroupCategory(string groupName)
         {
-            return _groups[name];
+            Group group;
+            return _groups.TryGetValue(groupName, out group)
+                       ? group.Category
+                       : (ActivityCategory?) null;
         }
 
         #region Nested type: Builder
@@ -267,9 +290,51 @@ namespace FitBot.Services
                 return this;
             }
 
-            public ActivityGroup Build()
+            public Group Build()
             {
-                return new ActivityGroup(_category, _name, _includeStrings, _excludeStrings);
+                return new Group(_category, _name, _includeStrings, _excludeStrings);
+            }
+        }
+
+        #endregion
+
+        #region Nested type: Group
+
+        private class Group
+        {
+            private readonly ActivityCategory _category;
+            private readonly string _name;
+            private readonly IList<string> _includeStrings;
+            private readonly IList<string> _excludeStrings;
+
+            public Group(ActivityCategory category, string name, IList<string> includeStrings, IList<string> excludeStrings)
+            {
+                _category = category;
+                _name = name;
+                _includeStrings = includeStrings;
+                _excludeStrings = excludeStrings ?? new string[0];
+            }
+
+            public ActivityCategory Category
+            {
+                get { return _category; }
+            }
+
+            public string Name
+            {
+                get { return _name; }
+            }
+
+            public bool Includes(string activityName)
+            {
+                return Matches(activityName, _includeStrings) && !Matches(activityName, _excludeStrings);
+            }
+
+            private static bool Matches(string name, IEnumerable<string> strings)
+            {
+                return strings.Any(str => str.Contains("*")
+                                              ? Regex.IsMatch(name, str.Replace("*", ".*"), RegexOptions.IgnoreCase)
+                                              : name.IndexOf(str, StringComparison.OrdinalIgnoreCase) >= 0);
             }
         }
 
