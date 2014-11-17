@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using FitBot.Achievements;
-using FitBot.Development;
 using FitBot.Model;
 using FitBot.Services;
 using SimpleInjector;
@@ -43,23 +42,11 @@ namespace FitBot
 
             container.RegisterSingleDecorator(typeof (IWebRequestService), typeof (ThrottledWebRequestDecorator));
 
-            //TODO: remove in production
-            {
-                container.RegisterSingleDecorator(typeof (IWebRequestService), typeof (CachedWebRequestDecorator));
-                //container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (OnlyMeFitocracyDecorator));
-                container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (AddMeFitocracyDecorator));
-                container.RegisterSingleDecorator(typeof (IFitocracyService), typeof (ExtraFollowersFitocracyDecorator));
-                container.RegisterSingleDecorator(typeof (IUserPullService), typeof (UserNotNewPullDecorator));
-                //container.RegisterSingleDecorator(typeof (IAchievementService), typeof (BypassAchievementDecorator));
-                container.RegisterSingleDecorator(typeof (IAchievementPushService), typeof (BypassAchievementPushDecorator));
-            }
-
             container.Verify();
 
             var throttler = container.GetInstance<ThrottledWebRequestDecorator>();
 
-            //TODO: restore loop
-            //while (!Console.KeyAvailable)
+            while (!Console.KeyAvailable)
             {
                 var watch = Stopwatch.StartNew();
                 Execute(container).Wait();

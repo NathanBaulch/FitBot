@@ -30,6 +30,7 @@ namespace FitBot.Services
                 {
                     break;
                 }
+                pageNum++;
 
                 freshUsers = freshUsers.Where(user => processedIds.Add(user.Id)).ToList();
                 foreach (var freshUser in freshUsers)
@@ -50,7 +51,6 @@ namespace FitBot.Services
                 }
 
                 users.AddRange(freshUsers);
-                pageNum++;
             }
 
             foreach (var staleUser in staleUsers.Values)
