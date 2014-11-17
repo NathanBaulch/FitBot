@@ -17,7 +17,7 @@ namespace FitBot.Services
             _providers = providers.ToList();
         }
 
-        public async Task<IEnumerable<Achievement>> Process(IEnumerable<Workout> workouts)
+        public async Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts)
         {
             var achievements = new List<Achievement>();
 
@@ -42,7 +42,11 @@ namespace FitBot.Services
                         {
                             freshAchievement.WorkoutId = workout.Id;
                             _database.Insert(freshAchievement);
-                            achievements.Add(freshAchievement);
+
+                            if (workout.Date > user.InsertDate)
+                            {
+                                achievements.Add(freshAchievement);
+                            }
                         }
                         else
                         {

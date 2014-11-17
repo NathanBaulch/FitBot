@@ -47,6 +47,7 @@ namespace FitBot.Services
                             _database.Update(freshUser);
                         }
                         staleUsers.Remove(freshUser.Id);
+                        freshUser.InsertDate = staleUser.InsertDate;
                     }
                 }
 

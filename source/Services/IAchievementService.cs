@@ -6,6 +6,6 @@ namespace FitBot.Services
 {
     public interface IAchievementService
     {
-        Task<IEnumerable<Achievement>> Process(IEnumerable<Workout> workouts);
+        Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts);
     }
 }

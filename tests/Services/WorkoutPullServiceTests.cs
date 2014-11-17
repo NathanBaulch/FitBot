@@ -311,9 +311,9 @@ namespace FitBot.Test.Services
 
             var activityGrouping = new Mock<IActivityGroupingService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = new DateTime(2014, 2, 1)}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User()).Result;
 
-            Assert.That(workouts, Is.Empty);
+            Assert.That(workouts, Is.EqualTo(new[] {workout1A}));
             database.Verify(x => x.Update(workout1A, false));
             database.Verify(x => x.Insert(It.IsAny<Workout>()), Times.Never);
             database.Verify(x => x.Delete(It.IsAny<Workout>()), Times.Never);
@@ -336,7 +336,7 @@ namespace FitBot.Test.Services
 
             var activityGrouping = new Mock<IActivityGroupingService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = new DateTime(2014, 2, 1)}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User()).Result;
 
             Assert.That(workouts, Is.Empty);
             database.Verify(x => x.Insert(It.IsAny<Workout>()), Times.Never);

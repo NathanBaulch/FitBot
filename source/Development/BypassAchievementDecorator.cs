@@ -12,7 +12,7 @@ namespace FitBot.Development
         {
         }
 
-        public Task<IEnumerable<Achievement>> Process(IEnumerable<Workout> workouts)
+        public Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts)
         {
             return Task.FromResult(Enumerable.Empty<Achievement>());
         }

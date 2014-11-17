@@ -109,7 +109,7 @@ namespace FitBot.Services
                 }
             }
 
-            return changes.Where(item => item.workout.Date > user.InsertDate && item.operation != delete)
+            return changes.Where(item => item.operation != delete)
                           .SkipWhile(item => item.operation == none)
                           .Select(item => item.workout)
                           .ToList();

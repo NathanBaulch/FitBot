@@ -70,7 +70,7 @@ namespace FitBot
             foreach (var user in await userPull.Pull())
             {
                 var workouts = await workoutPull.Pull(user);
-                tasks.Add(achievements.Process(workouts));
+                tasks.Add(achievements.Process(user, workouts));
             }
 
             while (tasks.Count > 0)
