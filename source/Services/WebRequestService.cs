@@ -73,7 +73,7 @@ namespace FitBot.Services
 
                 if (json != null && json["success"] != "true" && json["result"] != "true")
                 {
-                    throw new Exception("TODO: " + json["error"]);
+                    throw new Exception("TODO: " + json["error"] + json["reason"]);
                 }
 
                 if (headers != null)
