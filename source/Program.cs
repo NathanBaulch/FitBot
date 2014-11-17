@@ -40,7 +40,7 @@ namespace FitBot
 
             container.Verify();
 
-            var throttler = container.GetInstance<ThrottledWebRequestDecorator>();
+            var throttler = (ThrottledWebRequestDecorator) container.GetInstance<IWebRequestService>();
 
             while (!Console.KeyAvailable)
             {
