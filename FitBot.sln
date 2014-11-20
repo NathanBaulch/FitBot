@@ -7,7 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitBot.Test", "tests\FitBot
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{F16D9358-17C1-42C5-8850-D084ABC7FCFE}"
 	ProjectSection(SolutionItems) = preProject
-		database\Schema.sql = database\Schema.sql
+		database\MSSQL.sql = database\MSSQL.sql
+		database\SQLite.sql = database\SQLite.sql
 	EndProjectSection
 EndProject
 Global

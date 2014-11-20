@@ -50,28 +50,17 @@ namespace FitBot.Achievements
                 }
 
                 var previousMax = await _database.Single<decimal?>(
-                    "select max(a.[" + column + "]) " +
-                    "from [Workout] w, [Achievement] a " +
-                    "where w.[Id] = a.[WorkoutId] " +
-                    "and w.[UserId] = @UserId " +
-                    "and w.[Date] < @Date " +
-                    "and a.[Type] = 'DailyRecord' " +
-                    "and a.[Group] = @Key", new {workout.UserId, workout.Date, group.Key});
-                if (previousMax == null)
-                {
-                    previousMax = await _database.Single<decimal?>(
-                        "select max([Value]) " +
-                        "from ( " +
-                        "  select sum(s.[" + column + "]) [Value] " +
-                        "  from [Workout] w, [Activity] a, [Set] s " +
-                        "  where w.[Id] = a.[WorkoutId] " +
-                        "  and a.[Id] = s.[ActivityId] " +
-                        "  and w.[UserId] = @UserId " +
-                        "  and w.[Date] < @Date " +
-                        "  and a.[Group] = @Key " +
-                        "  group by w.[Id] " +
-                        ") [x]", new {workout.UserId, workout.Date, group.Key});
-                }
+                    "select max([Value]) " +
+                    "from ( " +
+                    "  select sum(s.[" + column + "]) [Value] " +
+                    "  from [Workout] w, [Activity] a, [Set] s " +
+                    "  where w.[Id] = a.[WorkoutId] " +
+                    "  and a.[Id] = s.[ActivityId] " +
+                    "  and w.[UserId] = @UserId " +
+                    "  and w.[Date] < @Date " +
+                    "  and a.[Group] = @Key " +
+                    "  group by w.[Id] " +
+                    ") [x]", new {workout.UserId, workout.Date, group.Key});
 
                 var sum = sets.Sum(set =>
                     {
