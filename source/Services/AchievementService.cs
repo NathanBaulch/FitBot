@@ -43,7 +43,7 @@ namespace FitBot.Services
                             freshAchievement.WorkoutId = workout.Id;
                             _database.Insert(freshAchievement);
 
-                            if (workout.Date > user.InsertDate)
+                            if (workout.Date > user.InsertDate.AddDays(-7))
                             {
                                 achievements.Add(freshAchievement);
                             }
