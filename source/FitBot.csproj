@@ -63,6 +63,7 @@
     <Compile Include="Achievements\QualifiedRecordProvider.cs" />
     <Compile Include="Achievements\TopPercentilePointsProvider.cs" />
     <Compile Include="Development\AddMeFitocracyDecorator.cs" />
+    <Compile Include="Development\AdHocUsersFitocracyDecorator.cs" />
     <Compile Include="Development\BaseFitocracyDecorator.cs" />
     <Compile Include="Development\BypassAchievementDecorator.cs" />
     <Compile Include="Development\BypassAchievementPushDecorator.cs" />

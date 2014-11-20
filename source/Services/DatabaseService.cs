@@ -21,12 +21,8 @@ namespace FitBot.Services
         private readonly DbProviderFactory _factory;
         private readonly string _connectionString;
 
-        public DatabaseService()
+        static DatabaseService()
         {
-            var setting = ConfigurationManager.ConnectionStrings["Default"];
-            _factory = DbProviderFactories.GetFactory(setting.ProviderName);
-            _connectionString = setting.ConnectionString;
-
             var userProps = DapperExtensions.DapperExtensions.GetMap<User>().Properties;
             ((PropertyMap) userProps.First(prop => prop.ColumnName == "Id")).Key(KeyType.Assigned);
             var workoutProps = DapperExtensions.DapperExtensions.GetMap<Workout>().Properties;
@@ -34,6 +30,13 @@ namespace FitBot.Services
             ((PropertyMap) workoutProps.First(prop => prop.ColumnName == "Activities")).Ignore();
             var activityProps = DapperExtensions.DapperExtensions.GetMap<Activity>().Properties;
             ((PropertyMap) activityProps.First(prop => prop.ColumnName == "Sets")).Ignore();
+        }
+
+        public DatabaseService()
+        {
+            var setting = ConfigurationManager.ConnectionStrings["Default"];
+            _factory = DbProviderFactories.GetFactory(setting.ProviderName);
+            _connectionString = setting.ConnectionString;
         }
 
         public async Task<IEnumerable<T>> Query<T>(string sql, object parameters = null)

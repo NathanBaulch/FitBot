@@ -17,6 +17,9 @@ namespace FitBot.Development
             var users = await base.GetFollowers(pageNum);
             if (pageNum == 0)
             {
+                //OTHER
+                users.Insert(0, new User {Id = 1728298, Username = "jperona"});
+
                 //RANDOM USERS
                 users.Insert(0, new User {Id = 1499493, Username = "Lillith32"});
                 users.Insert(0, new User {Id = 29512, Username = "JasonSuave"});
@@ -83,43 +86,63 @@ namespace FitBot.Development
 
                 //RECENT USERS
                 users.Insert(0, new User {Id = 1052041, Username = "bette_"});
+                users.Insert(0, new User {Id = 1092870, Username = "aztek1099"});
+                users.Insert(0, new User {Id = 1129889, Username = "gusts94"});
                 users.Insert(0, new User {Id = 1136408, Username = "Justin_44"});
                 users.Insert(0, new User {Id = 1148675, Username = "BalintGabriel"});
                 users.Insert(0, new User {Id = 1184136, Username = "alleday_cross"});
                 users.Insert(0, new User {Id = 1212190, Username = "manahime193"});
+                users.Insert(0, new User {Id = 1219800, Username = "Lanalia"});
                 users.Insert(0, new User {Id = 125933, Username = "dottore"});
+                users.Insert(0, new User {Id = 1347872, Username = "marster"});
                 users.Insert(0, new User {Id = 1355466, Username = "cacheng88"});
+                users.Insert(0, new User {Id = 136113, Username = "AprilCat"});
                 users.Insert(0, new User {Id = 1363908, Username = "H_Saxon"});
                 users.Insert(0, new User {Id = 137833, Username = "Eha"});
                 users.Insert(0, new User {Id = 1430777, Username = "bbooth29"});
                 users.Insert(0, new User {Id = 1482231, Username = "alisontgillaspy"});
                 users.Insert(0, new User {Id = 1490528, Username = "dmatsuura"});
+                users.Insert(0, new User {Id = 1510968, Username = "farshad"});
                 users.Insert(0, new User {Id = 1551259, Username = "RAW-in-caps"});
                 users.Insert(0, new User {Id = 15636, Username = "TheDart"});
                 users.Insert(0, new User {Id = 1603955, Username = "saharat83"});
                 users.Insert(0, new User {Id = 1609404, Username = "missdevonlynne"});
                 users.Insert(0, new User {Id = 1612283, Username = "JohnDozer"});
+                users.Insert(0, new User {Id = 1621554, Username = "anni_martikaine"});
+                users.Insert(0, new User {Id = 1632861, Username = "chap2850"});
                 users.Insert(0, new User {Id = 170355, Username = "LegaTron"});
                 users.Insert(0, new User {Id = 176346, Username = "tapani"});
                 users.Insert(0, new User {Id = 183486, Username = "Edgemo2001"});
+                users.Insert(0, new User {Id = 202423, Username = "dvdlcs"});
                 users.Insert(0, new User {Id = 2043, Username = "none"});
+                users.Insert(0, new User {Id = 214700, Username = "Bantering_Ram"});
+                users.Insert(0, new User {Id = 279913, Username = "powahmonkee"});
                 users.Insert(0, new User {Id = 284099, Username = "Cheese_Sandwich"});
                 users.Insert(0, new User {Id = 301366, Username = "hrr5010"});
                 users.Insert(0, new User {Id = 309175, Username = "Wellfleet"});
+                users.Insert(0, new User {Id = 41076, Username = "Brick_121"});
+                users.Insert(0, new User {Id = 436689, Username = "Georgina"});
+                users.Insert(0, new User {Id = 44036, Username = "erikjmc"});
                 users.Insert(0, new User {Id = 458580, Username = "Sensei_Lars"});
                 users.Insert(0, new User {Id = 492969, Username = "ParaMagician"});
+                users.Insert(0, new User {Id = 511533, Username = "MightyMora"});
                 users.Insert(0, new User {Id = 574536, Username = "likedevilsrain"});
                 users.Insert(0, new User {Id = 593635, Username = "amukid92"});
                 users.Insert(0, new User {Id = 596250, Username = "brianofarrell"});
+                users.Insert(0, new User {Id = 596481, Username = "adamlazaro"});
                 users.Insert(0, new User {Id = 610219, Username = "Carpathia_wave"});
+                users.Insert(0, new User {Id = 629758, Username = "a_ron50"});
+                users.Insert(0, new User {Id = 655193, Username = "sudofaulkner"});
                 users.Insert(0, new User {Id = 714560, Username = "grekulf"});
                 users.Insert(0, new User {Id = 762071, Username = "barbiefriend"});
                 users.Insert(0, new User {Id = 78155, Username = "dpyro"});
                 users.Insert(0, new User {Id = 809415, Username = "the_krister"});
                 users.Insert(0, new User {Id = 820365, Username = "mathieu_f"});
-                users.Insert(0, new User {Id = 820365, Username = "mathieu_f"});
+                users.Insert(0, new User {Id = 832426, Username = "svenk"});
                 users.Insert(0, new User {Id = 83350, Username = "edicius"});
+                users.Insert(0, new User {Id = 852756, Username = "Mr_Dizzel"});
                 users.Insert(0, new User {Id = 874017, Username = "kaschongs"});
+                users.Insert(0, new User {Id = 881530, Username = "beanedge"});
                 users.Insert(0, new User {Id = 89293, Username = "jmolife"});
                 users.Insert(0, new User {Id = 95503, Username = "MichaelVo"});
 
@@ -169,7 +192,6 @@ namespace FitBot.Development
 
                 //30 DAY LEADERS
                 users.Insert(0, new User {Id = 1590163, Username = "OkCountryBoy"});
-                users.Insert(0, new User {Id = 1608969, Username = "bacularia"});
                 users.Insert(0, new User {Id = 1170581, Username = "mikeb12"});
                 users.Insert(0, new User {Id = 553711, Username = "jigbim1"});
                 users.Insert(0, new User {Id = 892834, Username = "mikeaguirre"});
@@ -188,28 +210,7 @@ namespace FitBot.Development
                 users.Insert(0, new User {Id = 1137716, Username = "djfunkep"});
                 users.Insert(0, new User {Id = 605351, Username = "HappyRunnerGirl"});
                 users.Insert(0, new User {Id = 265773, Username = "Jarkko"});
-
-                //7 DAY LEADERS
-                users.Insert(0, new User {Id = 1280540, Username = "wendy_covich"});
-                users.Insert(0, new User {Id = 1338803, Username = "sffr23"});
-                users.Insert(0, new User {Id = 770455, Username = "billtracyalways"});
-                users.Insert(0, new User {Id = 1308473, Username = "seetherchild109"});
-                users.Insert(0, new User {Id = 879102, Username = "Michael0926"});
-                users.Insert(0, new User {Id = 1355038, Username = "dennison_jana"});
-                users.Insert(0, new User {Id = 1392865, Username = "desmondp22"});
-                users.Insert(0, new User {Id = 1028351, Username = "papacarbon"});
-                users.Insert(0, new User {Id = 938097, Username = "cocoagal22"});
-                users.Insert(0, new User {Id = 1444189, Username = "liverpoolfxcmic"});
-                users.Insert(0, new User {Id = 1253802, Username = "deaa_d"});
-                users.Insert(0, new User {Id = 1340475, Username = "areneew_200984"});
-                users.Insert(0, new User {Id = 854240, Username = "deep_stealth"});
-                users.Insert(0, new User {Id = 1388673, Username = "jhay1986"});
-                users.Insert(0, new User {Id = 670785, Username = "hurricanesandy"});
-                users.Insert(0, new User {Id = 925789, Username = "Tillmannffm"});
-                users.Insert(0, new User {Id = 984286, Username = "yoitsliz"});
-                users.Insert(0, new User {Id = 1267090, Username = "sullygirl88"});
-                users.Insert(0, new User {Id = 1421965, Username = "sbranagan"});
-                users.Insert(0, new User {Id = 1308372, Username = "KoryBlandford"});
+                users.Insert(0, new User {Id = 1515872, Username = "seeAnna"});
             }
             return users;
         }

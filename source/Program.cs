@@ -42,7 +42,7 @@ namespace FitBot
 
             var throttler = (ThrottledWebRequestDecorator) container.GetInstance<IWebRequestService>();
 
-            while (!Console.KeyAvailable)
+            while (true)
             {
                 var watch = Stopwatch.StartNew();
                 Execute(container).Wait();

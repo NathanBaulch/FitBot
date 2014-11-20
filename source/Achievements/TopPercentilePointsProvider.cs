@@ -34,14 +34,12 @@ namespace FitBot.Achievements
                     "fetch next 1 rows only", new {workout.UserId, offset});
                 if (workout.Points > threshold)
                 {
-                    return new[]
-                        {
-                            new Achievement
-                                {
-                                    Type = "TopPercentilePoints",
-                                    IsPropped = true
-                                }
-                        };
+                    return Enumerable.Repeat(
+                        new Achievement
+                            {
+                                Type = "TopPercentilePoints",
+                                IsPropped = true
+                            }, 1);
                 }
             }
 
