@@ -9,9 +9,6 @@ using FitBot.Services;
 using SimpleInjector;
 using SimpleInjector.Extensions;
 
-//TODO: should set data be summarized at the activity level? SetCount, Points, Distance, Duration, Repetitions
-//TODO: interval training should really contribute to running and walking
-
 namespace FitBot
 {
     internal static class Program

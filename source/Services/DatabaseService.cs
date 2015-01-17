@@ -21,17 +21,6 @@ namespace FitBot.Services
         private readonly DbProviderFactory _factory;
         private readonly string _connectionString;
 
-        static DatabaseService()
-        {
-            var userProps = DapperExtensions.DapperExtensions.GetMap<User>().Properties;
-            ((PropertyMap) userProps.First(prop => prop.ColumnName == "Id")).Key(KeyType.Assigned);
-            var workoutProps = DapperExtensions.DapperExtensions.GetMap<Workout>().Properties;
-            ((PropertyMap) workoutProps.First(prop => prop.ColumnName == "Id")).Key(KeyType.Assigned);
-            ((PropertyMap) workoutProps.First(prop => prop.ColumnName == "Activities")).Ignore();
-            var activityProps = DapperExtensions.DapperExtensions.GetMap<Activity>().Properties;
-            ((PropertyMap) activityProps.First(prop => prop.ColumnName == "Sets")).Ignore();
-        }
-
         public DatabaseService()
         {
             var setting = ConfigurationManager.ConnectionStrings["Default"];
@@ -118,14 +107,12 @@ namespace FitBot.Services
         {
             Debug.WriteLine("Inserting workout " + workout.Id);
             using (var con = OpenConnection())
+            using (var trans = con.BeginTransaction())
             {
-                using (var trans = con.BeginTransaction())
-                {
-                    workout.InsertDate = DateTime.UtcNow;
-                    con.Insert(workout, trans);
-                    InsertWorkoutActivities(workout, con, trans);
-                    trans.Commit();
-                }
+                workout.InsertDate = DateTime.UtcNow;
+                con.Insert(workout, trans);
+                InsertWorkoutActivities(workout, con, trans);
+                trans.Commit();
             }
         }
 
@@ -256,5 +243,45 @@ namespace FitBot.Services
                 }
             }
         }
+
+        #region Nested type: UserMapper
+
+        private class UserMapper : ClassMapper<User>
+        {
+            public UserMapper()
+            {
+                Map(x => x.Id).Key(KeyType.Assigned);
+                AutoMap();
+            }
+        }
+
+        #endregion
+
+        #region Nested type: WorkoutMapper
+
+        private class WorkoutMapper : ClassMapper<Workout>
+        {
+            public WorkoutMapper()
+            {
+                Map(x => x.Id).Key(KeyType.Assigned);
+                Map(x => x.Activities).Ignore();
+                AutoMap();
+            }
+        }
+
+        #endregion
+
+        #region Nested type: ActivityMapper
+
+        private class ActivityMapper : ClassMapper<Activity>
+        {
+            public ActivityMapper()
+            {
+                Map(x => x.Sets).Ignore();
+                AutoMap();
+            }
+        }
+
+        #endregion
     }
 }
