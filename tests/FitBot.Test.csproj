@@ -58,6 +58,7 @@
     <Compile Include="Achievements\DailyRecordProviderTests.cs" />
     <Compile Include="Achievements\FormattingExtensionsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ScrapingServiceTests.cs" />
     <Compile Include="Services\WorkoutPullServiceTests.cs" />
   </ItemGroup>
   <ItemGroup>

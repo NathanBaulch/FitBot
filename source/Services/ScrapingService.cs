@@ -57,7 +57,7 @@ namespace FitBot.Services
                         .Select(span => span.InnerText)
                         .FirstOrDefault();
             int points;
-            if (value == null || !value.EndsWith(" pts") || !int.TryParse(value.Substring(0, value.Length - 4), NumberStyles.Any, CultureInfo.InvariantCulture, out points))
+            if (value == null || !value.EndsWith(" pts") || !int.TryParse(value.Substring(0, value.Length - 4).Replace(".", ","), NumberStyles.Any, CultureInfo.InvariantCulture, out points))
             {
                 Debug.Fail("TODO: unable to find workout points");
                 points = 0;
