@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Configuration;
-using System.Data;
-using System.Data.Common;
-using System.IO;
 using System.Linq;
-using Dapper;
-using DapperExtensions.Sql;
 using FitBot.Achievements;
 using FitBot.Model;
 using FitBot.Services;
@@ -15,47 +9,12 @@ using NUnit.Framework;
 namespace FitBot.Test.Achievements
 {
     [TestFixture]
-    public class DailyRecordProviderTests
+    public class DailyRecordProviderTests : BaseAchievementProviderTests
     {
-        static DailyRecordProviderTests()
-        {
-            SqlMapper.AddTypeHandler(new DecimalTypeHandler());
-            DapperExtensions.DapperExtensions.SqlDialect = new QuotedSqliteDialect();
-        }
-
-        [SetUp]
-        public void SetUp()
-        {
-            File.Delete("FitBotTests.db");
-            var setting = ConfigurationManager.ConnectionStrings["Default"];
-            var factory = DbProviderFactories.GetFactory(setting.ProviderName);
-
-            using (var con = factory.CreateConnection())
-            {
-                con.ConnectionString = setting.ConnectionString;
-                con.Open();
-
-                using (var cmd = con.CreateCommand())
-                {
-                    using (var stream = new StreamReader(GetType().Assembly.GetManifestResourceStream("FitBot.Test.SQLite.sql")))
-                    {
-                        cmd.CommandText = stream.ReadToEnd();
-                    }
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            File.Delete("FitBotTests.db");
-        }
-
         [Test]
         public void Normal_Test()
         {
-            var database = new DatabaseService();
+            var database = CreateDatabase();
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);
@@ -75,7 +34,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Only_Single_Set_Test()
         {
-            var database = new DatabaseService();
+            var database = CreateDatabase();
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);
@@ -90,8 +49,8 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Previous_Single_Set_Record_Test()
         {
-            var database = new DatabaseService();
-            database.Insert(new Workout {Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 1000, Sequence = 1}}}}});
+            var database = CreateDatabase();
+            database.Insert(new Workout {Id = 0, Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 1000, Sequence = 1}}}}});
             database.Insert(new Workout {Id = 1, Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 5000}}}}});
 
             var activityGrouping = new Mock<IActivityGroupingService>();
@@ -103,44 +62,5 @@ namespace FitBot.Test.Achievements
 
             Assert.That(achievements.Any(), Is.False);
         }
-
-        #region Nested type: DecimalTypeHandler
-
-        private class DecimalTypeHandler : SqlMapper.TypeHandler<decimal>
-        {
-            public override decimal Parse(object value)
-            {
-                return Convert.ToDecimal(value);
-            }
-
-            public override void SetValue(IDbDataParameter parameter, decimal value)
-            {
-                parameter.Value = value;
-            }
-        }
-
-        #endregion
-
-        #region Nested type: QuotedSqliteDialect
-
-        private class QuotedSqliteDialect : SqliteDialect
-        {
-            public override string GetColumnName(string prefix, string columnName, string alias)
-            {
-                if (string.IsNullOrWhiteSpace(columnName))
-                {
-                    throw new ArgumentNullException(columnName);
-                }
-
-                var name = QuoteString(columnName);
-                if (!string.IsNullOrWhiteSpace(alias))
-                {
-                    name += " AS " + QuoteString(alias);
-                }
-                return name;
-            }
-        }
-
-        #endregion
     }
 }

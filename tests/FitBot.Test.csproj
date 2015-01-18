@@ -53,6 +53,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Achievements\BaseAchievementProviderTests.cs" />
+    <Compile Include="Achievements\ComebackRecordProviderTests.cs" />
     <Compile Include="Achievements\DailyRecordProviderTests.cs" />
     <Compile Include="Achievements\FormattingExtensionsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
