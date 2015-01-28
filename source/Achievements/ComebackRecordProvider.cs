@@ -140,7 +140,7 @@ namespace FitBot.Achievements
                         continue;
                     }
 
-                    var thisYearCount = await _database.Single<long>(
+                    var thisYearCount = await _database.Single<int>(
                         "select count(*) " +
                         "from [Workout] w, [Activity] a, [Set] s " +
                         "where w.[Id] = a.[WorkoutId] " +

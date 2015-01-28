@@ -18,6 +18,7 @@ namespace FitBot.Test.Achievements
         static BaseAchievementProviderTests()
         {
             SqlMapper.AddTypeHandler(new DecimalTypeHandler());
+            SqlMapper.AddTypeHandler(new Int32TypeHandler());
             DapperExtensions.DapperExtensions.SqlDialect = new QuotedSqliteDialect();
         }
 
@@ -63,6 +64,23 @@ namespace FitBot.Test.Achievements
             }
 
             public override void SetValue(IDbDataParameter parameter, decimal value)
+            {
+                parameter.Value = value;
+            }
+        }
+
+        #endregion
+
+        #region Nested type: Int32TypeHandler
+
+        private class Int32TypeHandler : SqlMapper.TypeHandler<int>
+        {
+            public override int Parse(object value)
+            {
+                return Convert.ToInt32(value);
+            }
+
+            public override void SetValue(IDbDataParameter parameter, int value)
             {
                 parameter.Value = value;
             }
