@@ -15,6 +15,13 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
+        public void Distance_Imperial_Test()
+        {
+            Assert.That(((decimal?) 123000).FormatDistance(true), Is.EqualTo("76.4 mi"));
+            Assert.That(((decimal?) 123456).FormatDistance(true), Is.EqualTo("76.7 mi"));
+        }
+
+        [Test]
         public void Weight_Test()
         {
             Assert.That(((decimal?) 123).FormatWeight(), Is.EqualTo("123 kg"));
@@ -22,10 +29,24 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
+        public void Weight_Imperial_Test()
+        {
+            Assert.That(((decimal?) 123).FormatWeight(true), Is.EqualTo("271.2 lb"));
+            Assert.That(((decimal?) 123.456).FormatWeight(true), Is.EqualTo("272.2 lb"));
+        }
+
+        [Test]
         public void Speed_Test()
         {
             Assert.That(((decimal?) 100).FormatSpeed(), Is.EqualTo("360 km/h"));
             Assert.That(((decimal?) 123).FormatSpeed(), Is.EqualTo("442.8 km/h"));
+        }
+
+        [Test]
+        public void Speed_Imperial_Test()
+        {
+            Assert.That(((decimal?) 100).FormatSpeed(true), Is.EqualTo("223.7 mph"));
+            Assert.That(((decimal?) 123).FormatSpeed(true), Is.EqualTo("275.1 mph"));
         }
 
         [Test]

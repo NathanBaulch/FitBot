@@ -4,19 +4,28 @@ namespace FitBot.Achievements
 {
     public static class FormattingExtensions
     {
-        public static string FormatDistance(this decimal? meters)
+        private const decimal MilesPerMeter = 0.0006213712M;
+        private const decimal PoundsPerKilogram = 2.204624M;
+
+        public static string FormatDistance(this decimal? meters, bool isImperial = false)
         {
-            return string.Format("{0:#,##0.#} km", meters/1000);
+            return isImperial
+                       ? string.Format("{0:#,##0.#} mi", meters*MilesPerMeter)
+                       : string.Format("{0:#,##0.#} km", meters/1000);
         }
 
-        public static string FormatWeight(this decimal? kilograms)
+        public static string FormatWeight(this decimal? kilograms, bool isImperial = false)
         {
-            return string.Format("{0:#,##0.#} kg", kilograms);
+            return isImperial
+                       ? string.Format("{0:#,##0.#} lb", kilograms*PoundsPerKilogram)
+                       : string.Format("{0:#,##0.#} kg", kilograms);
         }
 
-        public static string FormatSpeed(this decimal? metersPerSecond)
+        public static string FormatSpeed(this decimal? metersPerSecond, bool isImperial = false)
         {
-            return string.Format("{0:#,##0.#} km/h", metersPerSecond*3.6M);
+            return isImperial
+                       ? string.Format("{0:#,##0.#} mph", metersPerSecond*3600M*MilesPerMeter)
+                       : string.Format("{0:#,##0.#} km/h", metersPerSecond*3.6M);
         }
 
         public static string FormatRepetitions(this decimal? reps)

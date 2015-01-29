@@ -61,6 +61,7 @@ CREATE TABLE [Set] (
   [HeartRate] [decimal](9, 2) NULL,
   [Incline] [decimal](9, 2) NULL,
   [Difficulty] [nvarchar] (100) NULL,
+  [IsImperial] [bit] NOT NULL,
   [IsPr] [bit] NOT NULL,
   UNIQUE ([ActivityId], [Sequence]),
   FOREIGN KEY ([ActivityId]) REFERENCES [Activity] ([Id]) ON DELETE CASCADE
@@ -108,7 +109,7 @@ SELECT u.[Id] [UserId], u.[Username], u.[InsertDate] [UserInsertDate],
        a.[Id] [ActivityId], a.[Sequence] [ActivitySequence], a.[Name], a.[Group], a.[Note],
        s.[Id] [SetId], s.[Sequence] [SetSequence], s.[Points] [SetPoints],
        s.[Distance], s.[Duration], s.[Speed], s.[Repetitions], s.[Weight],
-       s.[HeartRate], s.[Incline], s.[Difficulty], s.[IsPr]
+       s.[HeartRate], s.[Incline], s.[Difficulty], s.[IsImperial], s.[IsPr]
 FROM [User] u, [Workout] w, [Activity] a, [Set] s
 WHERE u.[Id] = w.[UserId]
   AND w.[Id] = a.[WorkoutId]

@@ -13,6 +13,7 @@
         public decimal? Weight { get; set; }
         public decimal? HeartRate { get; set; }
         public string Difficulty { get; set; }
+        public bool IsImperial { get; set; }
         public bool IsPr { get; set; }
     }
 }

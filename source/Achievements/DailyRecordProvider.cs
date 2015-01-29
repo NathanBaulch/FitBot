@@ -89,7 +89,8 @@ namespace FitBot.Achievements
                 {
                     case ActivityCategory.Cardio:
                         achievement.Distance = sum;
-                        formattedValue = sum.FormatDistance();
+                        var lookup = sets.ToLookup(set => set.IsImperial);
+                        formattedValue = sum.FormatDistance(lookup[true].Count() > lookup[false].Count());
                         break;
                     case ActivityCategory.Sports:
                         achievement.Duration = sum;

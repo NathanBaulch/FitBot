@@ -43,7 +43,7 @@ namespace FitBot.Test.Achievements
 
             var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
 
-            Assert.That(achievements.Any(), Is.False);
+            Assert.That(achievements, Is.Empty);
         }
 
         [Test]
@@ -60,7 +60,7 @@ namespace FitBot.Test.Achievements
 
             var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
 
-            Assert.That(achievements.Any(), Is.False);
+            Assert.That(achievements, Is.Empty);
         }
     }
 }
