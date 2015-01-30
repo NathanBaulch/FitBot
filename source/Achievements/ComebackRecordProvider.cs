@@ -68,7 +68,7 @@ namespace FitBot.Achievements
                         "and w.[Date] >= @fromDate " +
                         "and w.[Date] < @Date " +
                         "and a.[Name] = @Name " +
-                        "and s.[Weight] >= @Weight " +
+                        "and s.[Weight] " + (max.Weight != null ? ">= @Weight" : "is null") + " " +
                         "order by s.[Weight] desc, s.[Repetitions] desc", new {workout.UserId, fromDate, workout.Date, activity.Name, max.Weight});
                     if (thisYearMax != null && (max.Weight < thisYearMax.Weight || max.Repetitions <= thisYearMax.Repetitions))
                     {

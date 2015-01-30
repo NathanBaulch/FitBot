@@ -73,6 +73,23 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
+        public void Equal_To_Recent_Record_Test()
+        {
+            var database = CreateDatabase();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}});
+            database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}};
+
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+
+            Assert.That(achievements, Is.Empty);
+        }
+
+        [Test]
         public void Normal_Weights_Test()
         {
             var database = CreateDatabase();
@@ -134,6 +151,23 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
+        public void Equal_To_Recent_Weights_Record_Test()
+        {
+            var database = CreateDatabase();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 2}}}}});
+            database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 1}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Squats")).Returns(ActivityCategory.Weights);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 1}}}}};
+
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+
+            Assert.That(achievements, Is.Empty);
+        }
+
+        [Test]
         public void Equal_To_Recent_Weights_Record_With_More_Reps_Test()
         {
             var database = CreateDatabase();
@@ -173,7 +207,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public void Weights_Record_With_Only_Reps_Test()
+        public void Normal_Reps_Test()
         {
             var database = CreateDatabase();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 3}}}}});
@@ -192,6 +226,62 @@ namespace FitBot.Test.Achievements
             Assert.That(achievement.Activity, Is.EqualTo("Squats"));
             Assert.That(achievement.Repetitions, Is.EqualTo(2M));
             Assert.That(achievement.CommentText, Is.EqualTo("1 year Squats comeback record: 2 reps"));
+        }
+
+        [Test]
+        public void New_Reps_Record_Test()
+        {
+            var database = CreateDatabase();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}});
+            database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Squats")).Returns(ActivityCategory.Weights);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 3}}}}};
+
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+
+            Assert.That(achievements, Is.Empty);
+        }
+
+        [Test]
+        public void Equal_To_Old_Reps_Record_Test()
+        {
+            var database = CreateDatabase();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}});
+            database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Squats")).Returns(ActivityCategory.Weights);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}};
+
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+
+            Assert.That(achievements.Count, Is.EqualTo(1));
+            var achievement = achievements[0];
+            Assert.That(achievement.Type, Is.EqualTo("ComebackRecord"));
+            Assert.That(achievement.Activity, Is.EqualTo("Squats"));
+            Assert.That(achievement.Repetitions, Is.EqualTo(2M));
+            Assert.That(achievement.CommentText, Is.EqualTo("1 year Squats comeback record: 2 reps"));
+        }
+
+        [Test]
+        public void Equal_To_Recent_Reps_Record_Test()
+        {
+            var database = CreateDatabase();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}});
+            database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Squats")).Returns(ActivityCategory.Weights);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}};
+
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+
+            Assert.That(achievements, Is.Empty);
         }
     }
 }
