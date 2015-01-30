@@ -9,6 +9,9 @@ namespace FitBot.Achievements
 {
     public class QualifiedRecordProvider : IAchievementProvider
     {
+        private const decimal KilometersPerMile = 1.609344M;
+        private const decimal KilogramsPerPound = 0.453592M;
+
         private readonly IDatabaseService _database;
         private readonly IActivityGroupingService _grouping;
 
@@ -34,7 +37,7 @@ namespace FitBot.Achievements
                                                     set.Id,
                                                     set.IsImperial,
                                                     Speed = set.Speed ?? Round(set.Distance/set.Duration),
-                                                    Distance = Truncate(set.Distance ?? (set.Speed*set.Duration))
+                                                    Distance = Truncate(set.Distance ?? (set.Speed*set.Duration), set.IsImperial ? KilometersPerMile : 0)
                                                 })
                                             .Where(set => (set.Speed ?? 0) > 0 && (set.Distance ?? 0) >= 1000)
                                             .ToList();
@@ -93,7 +96,7 @@ namespace FitBot.Achievements
                                                     set.Id,
                                                     set.IsImperial,
                                                     set.Repetitions,
-                                                    Weight = Truncate(set.Weight)
+                                                    Weight = Truncate(set.Weight, set.IsImperial ? KilogramsPerPound : 0)
                                                 })
                                             .Where(set => (set.Repetitions ?? 0) > 0 && (set.Weight ?? 0) >= 1)
                                             .ToList();
@@ -155,15 +158,31 @@ namespace FitBot.Achievements
             return value != null ? Math.Round(value.Value, 2, MidpointRounding.AwayFromZero) : (decimal?) null;
         }
 
-        private static decimal? Truncate(decimal? value)
+        private static decimal? Truncate(decimal? value, decimal scale)
         {
             if (value == null || value == 0)
             {
                 return value;
             }
 
-            var scale = (decimal) Math.Pow(10, Math.Floor(Math.Log10(Math.Abs((double) value))));
-            return scale*Math.Truncate(value.Value/scale);
+            if (scale != 0)
+            {
+                value = Math.Round(value.Value/scale, 2, MidpointRounding.AwayFromZero);
+                if (value == 0)
+                {
+                    return 0;
+                }
+            }
+
+            var order = (decimal) Math.Pow(10, Math.Floor(Math.Log10(Math.Abs((double) value))));
+            value = order*Math.Truncate(value.Value/order);
+
+            if (scale != 0)
+            {
+                value = Math.Round(scale*value.Value, 2, MidpointRounding.AwayFromZero);
+            }
+
+            return value;
         }
     }
 }

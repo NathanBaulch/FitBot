@@ -80,5 +80,49 @@ namespace FitBot.Test.Achievements
 
             Assert.That(achievements, Is.Empty);
         }
+
+        [Test]
+        public void Imperial_Distance_Test()
+        {
+            var database = CreateDatabase();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 20000, Duration = 2000}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 16100, Duration = 1000, IsImperial = true}}}}};
+
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+
+            Assert.That(achievements.Count, Is.EqualTo(1));
+            var achievement = achievements[0];
+            Assert.That(achievement.Type, Is.EqualTo("QualifiedRecord"));
+            Assert.That(achievement.Group, Is.EqualTo("Cycling"));
+            Assert.That(achievement.Speed, Is.EqualTo(16.1M));
+            Assert.That(achievement.Distance, Is.EqualTo(16093.44M));
+            Assert.That(achievement.CommentText, Is.EqualTo("Qualified Cycling record: 36 mph for 10 mi or more"));
+        }
+
+        [Test]
+        public void Imperial_Weight_Test()
+        {
+            var database = CreateDatabase();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 100, Repetitions = 1}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Squats")).Returns(ActivityCategory.Weights);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Squats", Sets = new[] {new Set {Weight = 46, Repetitions = 2, IsImperial = true}}}}};
+
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+
+            Assert.That(achievements.Count, Is.EqualTo(1));
+            var achievement = achievements[0];
+            Assert.That(achievement.Type, Is.EqualTo("QualifiedRecord"));
+            Assert.That(achievement.Group, Is.EqualTo("Squats"));
+            Assert.That(achievement.Weight, Is.EqualTo(45.36M));
+            Assert.That(achievement.Repetitions, Is.EqualTo(2M));
+            Assert.That(achievement.CommentText, Is.EqualTo("Qualified Squats record: 2 reps at 100 lb or more"));
+        }
     }
 }
