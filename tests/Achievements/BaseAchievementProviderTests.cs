@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dapper;
@@ -116,20 +117,41 @@ namespace FitBot.Test.Achievements
         {
             Task<IEnumerable<T>> IDatabaseService.Query<T>(string sql, object parameters)
             {
-                return Query<T>(TransformSql(sql), parameters);
+                return Query<T>(TransformSql(sql), TransformParameters(parameters));
             }
 
             Task<T> IDatabaseService.Single<T>(string sql, object parameters)
             {
-                return Single<T>(TransformSql(sql), parameters);
+                return Single<T>(TransformSql(sql), TransformParameters(parameters));
             }
 
             private static string TransformSql(string sql)
             {
-                var match = Regex.Match(sql, @"select top (\d+) (.*)", RegexOptions.Multiline | RegexOptions.IgnoreCase);
-                return match.Success
-                           ? string.Format("select {0} limit {1}", match.Groups[2].Value, match.Groups[1].Value)
-                           : sql;
+                var match = Regex.Match(sql, @"select top ([@\w]+) (.*)", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    return string.Format("select {0} limit {1}", match.Groups[2].Value, match.Groups[1].Value);
+                }
+                match = Regex.Match(sql, @"(.*) offset ([@\w]+) rows fetch next ([@\w]+) rows only", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    return string.Format("{0} limit {1} offset {2}", match.Groups[1].Value, match.Groups[3].Value, match.Groups[2].Value);
+                }
+                return sql;
+            }
+
+            private static object TransformParameters(object parameters)
+            {
+                return parameters != null
+                           ? parameters.GetType()
+                                       .GetProperties()
+                                       .ToDictionary(prop => prop.Name,
+                                                     prop =>
+                                                         {
+                                                             var value = prop.GetValue(parameters, null);
+                                                             return value is decimal ? Convert.ToDouble(value) : value;
+                                                         })
+                           : null;
             }
         }
 
