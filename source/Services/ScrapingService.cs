@@ -129,6 +129,9 @@ namespace FitBot.Services
                 text = text.Substring(0, text.Length - 4).Trim();
             }
 
+            decimal? weight = null;
+            decimal? distance = null;
+            decimal? speed = null;
             var metricCount = 0;
             var imperialCount = 0;
             if (!string.IsNullOrEmpty(text))
@@ -182,93 +185,93 @@ namespace FitBot.Services
                                     continue;
 
                                 case "kg":
-                                    set.Weight = (assisted ? -1 : 1)*num;
+                                    weight = (assisted ? -1 : 1)*num;
                                     metricCount++;
                                     continue;
                                 case "lb":
-                                    set.Weight = (assisted ? -1 : 1)*num*KilogramsPerPound;
+                                    weight = (assisted ? -1 : 1)*num*KilogramsPerPound;
                                     imperialCount++;
                                     continue;
 
                                 case "m":
-                                    set.Distance = num;
+                                    distance = num;
                                     metricCount++;
                                     continue;
                                 case "cm":
-                                    set.Distance = num*0.01M;
+                                    distance = num*0.01M;
                                     metricCount++;
                                     continue;
                                 case "laps (25m)":
-                                    set.Distance = num*25;
+                                    distance = num*25;
                                     metricCount++;
                                     continue;
                                 case "laps (50m)":
-                                    set.Distance = num*50;
+                                    distance = num*50;
                                     metricCount++;
                                     continue;
                                 case "km":
-                                    set.Distance = num*1000;
+                                    distance = num*1000;
                                     metricCount++;
                                     continue;
                                 case "in":
-                                    set.Distance = num*MetersPerInch;
+                                    distance = num*MetersPerInch;
                                     imperialCount++;
                                     continue;
                                 case "ft":
-                                    set.Distance = num*MetersPerFoot;
+                                    distance = num*MetersPerFoot;
                                     imperialCount++;
                                     continue;
                                 case "yd":
-                                    set.Distance = num*MetersPerYard;
+                                    distance = num*MetersPerYard;
                                     imperialCount++;
                                     continue;
                                 case "fathoms":
-                                    set.Distance = num*MetersPerFathom;
+                                    distance = num*MetersPerFathom;
                                     imperialCount++;
                                     continue;
                                 case "mi":
-                                    set.Distance = num*MetersPerMile;
+                                    distance = num*MetersPerMile;
                                     imperialCount++;
                                     continue;
 
                                 case "m/s":
-                                    set.Speed = num;
+                                    speed = num;
                                     metricCount++;
                                     continue;
                                 case "km/hr":
-                                    set.Speed = num/3.6M;
+                                    speed = num/3.6M;
                                     metricCount++;
                                     continue;
                                 case "fps":
-                                    set.Speed = num*MetersPerFoot;
+                                    speed = num*MetersPerFoot;
                                     imperialCount++;
                                     continue;
                                 case "mph":
-                                    set.Speed = num*MetersPerMile/3600;
+                                    speed = num*MetersPerMile/3600;
                                     imperialCount++;
                                     continue;
                                 case "min/100m":
-                                    set.Speed = 5/(3*num);
+                                    speed = 5/(3*num);
                                     metricCount++;
                                     continue;
                                 case "split":
-                                    set.Speed = 25/(3*num);
+                                    speed = 25/(3*num);
                                     metricCount++;
                                     continue;
                                 case "min/km":
-                                    set.Speed = 50/(3*num);
+                                    speed = 50/(3*num);
                                     metricCount++;
                                     continue;
                                 case "sec/lap (25m)":
-                                    set.Speed = 25/num;
+                                    speed = 25/num;
                                     metricCount++;
                                     continue;
                                 case "sec/lap (50m)":
-                                    set.Speed = 50/num;
+                                    speed = 50/num;
                                     metricCount++;
                                     continue;
                                 case "min/mi":
-                                    set.Speed = MetersPerMile/(60*num);
+                                    speed = MetersPerMile/(60*num);
                                     imperialCount++;
                                     continue;
 
@@ -291,8 +294,16 @@ namespace FitBot.Services
                 }
             }
 
+            set.Weight = Round(weight);
+            set.Distance = Round(distance);
+            set.Speed = Round(speed);
             set.IsImperial = imperialCount > metricCount;
             return set;
+        }
+
+        private static decimal? Round(decimal? value)
+        {
+            return value != null ? Math.Round(value.Value, 2, MidpointRounding.AwayFromZero) : (decimal?) null;
         }
 
         public IDictionary<long, string> ExtractWorkoutComments(Stream content, long selfUserId)
