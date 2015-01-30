@@ -35,6 +35,23 @@ namespace FitBot.Achievements
                     continue;
                 }
 
+                var sum = sets.Sum(set =>
+                    {
+                        switch (category)
+                        {
+                            case ActivityCategory.Cardio:
+                                return set.Distance;
+                            case ActivityCategory.Sports:
+                                return set.Duration;
+                            default:
+                                return set.Repetitions;
+                        }
+                    });
+                if (sum == 0)
+                {
+                    continue;
+                }
+
                 string column;
                 switch (category)
                 {
@@ -61,20 +78,7 @@ namespace FitBot.Achievements
                     "  and a.[Group] = @Key " +
                     "  group by w.[Id] " +
                     ") [x]", new {workout.UserId, workout.Date, group.Key});
-
-                var sum = sets.Sum(set =>
-                    {
-                        switch (category)
-                        {
-                            case ActivityCategory.Cardio:
-                                return set.Distance;
-                            case ActivityCategory.Sports:
-                                return set.Duration;
-                            default:
-                                return set.Repetitions;
-                        }
-                    });
-                if (sum <= previousMax)
+                if ((previousMax ?? 0) == 0 || sum <= previousMax)
                 {
                     continue;
                 }
