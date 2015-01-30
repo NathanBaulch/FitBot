@@ -36,7 +36,7 @@ namespace FitBot.Achievements
                                                     Speed = set.Speed ?? (set.Distance/set.Duration),
                                                     Distance = Truncate(set.Distance ?? (set.Speed*set.Duration))
                                                 })
-                                            .Where(set => set.Speed != null && set.Distance != null)
+                                            .Where(set => (set.Speed ?? 0) > 0 && (set.Distance ?? 0) >= 1000)
                                             .ToList();
                             foreach (var set in sets)
                             {
@@ -88,7 +88,6 @@ namespace FitBot.Achievements
                     case ActivityCategory.Weights:
                         {
                             var sets = group.SelectMany(activity => activity.Sets)
-                                            .Where(set => set.Repetitions != null && set.Weight != null)
                                             .Select(set => new
                                                 {
                                                     set.Id,
@@ -96,6 +95,7 @@ namespace FitBot.Achievements
                                                     set.Repetitions,
                                                     Weight = Truncate(set.Weight)
                                                 })
+                                            .Where(set => (set.Repetitions ?? 0) > 0 && (set.Weight ?? 0) >= 1)
                                             .ToList();
                             foreach (var set in sets)
                             {
@@ -157,7 +157,7 @@ namespace FitBot.Achievements
                 return value;
             }
 
-            var scale = (decimal) Math.Pow(10, Math.Floor(Math.Log10(Math.Abs((double) value.Value))));
+            var scale = (decimal) Math.Pow(10, Math.Floor(Math.Log10(Math.Abs((double) value))));
             return scale*Math.Truncate(value.Value/scale);
         }
     }

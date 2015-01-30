@@ -109,5 +109,20 @@ namespace FitBot.Test.Achievements
 
             Assert.That(achievements, Is.Empty);
         }
+
+        [Test]
+        public void Very_Small_Distance_Test()
+        {
+            var database = CreateDatabase();
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 400}, new Set {Distance = 400}}}}};
+
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+
+            Assert.That(achievements, Is.Empty);
+        }
     }
 }

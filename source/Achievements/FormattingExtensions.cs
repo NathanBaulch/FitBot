@@ -35,16 +35,16 @@ namespace FitBot.Achievements
 
         public static string FormatDuration(this decimal? seconds)
         {
-            var duration = TimeSpan.FromSeconds((double) seconds.Value);
+            var duration = TimeSpan.FromSeconds((double) (seconds ?? 0));
             if (duration.TotalMinutes < 1)
             {
-                return string.Format("{0} second{1}", duration.Seconds, duration.Seconds != 1 ? "s" : null);
+                return string.Format("{0} second{1}", duration.Seconds, duration.Seconds > 1 ? "s" : null);
             }
             if (duration.TotalHours < 1)
             {
                 if (duration.Seconds == 0)
                 {
-                    return string.Format("{0} minute{1}", duration.Minutes, duration.Minutes != 1 ? "s" : null);
+                    return string.Format("{0} minute{1}", duration.Minutes, duration.Minutes > 1 ? "s" : null);
                 }
                 return string.Format("{0:m\\:ss} minutes", duration);
             }
@@ -54,7 +54,7 @@ namespace FitBot.Achievements
                 {
                     if (duration.Minutes == 0)
                     {
-                        return string.Format("{0} hour{1}", duration.Hours, duration.Hours != 1 ? "s" : null);
+                        return string.Format("{0} hour{1}", duration.Hours, duration.Hours > 1 ? "s" : null);
                     }
                     return string.Format("{0:h\\:mm} hours", duration);
                 }

@@ -47,7 +47,7 @@ namespace FitBot.Achievements
                                 return set.Repetitions;
                         }
                     });
-                if (sum == 0)
+                if (sum == 0 || (category == ActivityCategory.Cardio && sum < 1000))
                 {
                     continue;
                 }
