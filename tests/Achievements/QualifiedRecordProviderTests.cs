@@ -44,7 +44,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 900, Speed = 2}}}}};
 
-            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
 
             Assert.That(achievements, Is.Empty);
         }
@@ -60,7 +60,23 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Squats", Sets = new[] {new Set {Weight = 0.9M, Repetitions = 2}}}}};
 
-            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+
+            Assert.That(achievements, Is.Empty);
+        }
+
+        [Test]
+        public void Same_As_Previous_Floating_Point_Speed_Test()
+        {
+            var database = CreateDatabase();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 3200, Duration = 720}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 3200, Duration = 720}}}}};
+
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
 
             Assert.That(achievements, Is.Empty);
         }

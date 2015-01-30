@@ -33,7 +33,7 @@ namespace FitBot.Achievements
                                                 {
                                                     set.Id,
                                                     set.IsImperial,
-                                                    Speed = set.Speed ?? (set.Distance/set.Duration),
+                                                    Speed = set.Speed ?? Round(set.Distance/set.Duration),
                                                     Distance = Truncate(set.Distance ?? (set.Speed*set.Duration))
                                                 })
                                             .Where(set => (set.Speed ?? 0) > 0 && (set.Distance ?? 0) >= 1000)
@@ -70,7 +70,7 @@ namespace FitBot.Achievements
                                         "and coalesce(s.[Distance], s.[Speed]*s.[Duration]) >= @Distance", new {workout.UserId, workout.Date, group.Key, set.Distance});
                                 }
 
-                                if (set.Speed > previousMax)
+                                if (set.Speed > Round(previousMax))
                                 {
                                     achievements.Add(
                                         new Achievement
@@ -148,6 +148,11 @@ namespace FitBot.Achievements
             }
 
             return achievements;
+        }
+
+        private static decimal? Round(decimal? value)
+        {
+            return value != null ? Math.Round(value.Value, 2, MidpointRounding.AwayFromZero) : (decimal?) null;
         }
 
         private static decimal? Truncate(decimal? value)

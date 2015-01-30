@@ -42,7 +42,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
 
             Assert.That(achievements, Is.Empty);
         }
@@ -72,7 +72,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 1000}}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
 
             Assert.That(achievements, Is.Empty);
         }
@@ -88,7 +88,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 1000}}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
 
             Assert.That(achievements, Is.Empty);
         }
@@ -120,7 +120,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 400}, new Set {Distance = 400}}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
 
             Assert.That(achievements, Is.Empty);
         }

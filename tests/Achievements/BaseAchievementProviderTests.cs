@@ -115,14 +115,14 @@ namespace FitBot.Test.Achievements
 
         private class SqliteDatabaseService : DatabaseService, IDatabaseService
         {
-            Task<IEnumerable<T>> IDatabaseService.Query<T>(string sql, object parameters)
+            async Task<IEnumerable<T>> IDatabaseService.Query<T>(string sql, object parameters)
             {
-                return Query<T>(TransformSql(sql), TransformParameters(parameters));
+                return (await Query<T>(TransformSql(sql), TransformParameters(parameters))).Select(TransformResult);
             }
 
-            Task<T> IDatabaseService.Single<T>(string sql, object parameters)
+            async Task<T> IDatabaseService.Single<T>(string sql, object parameters)
             {
-                return Single<T>(TransformSql(sql), TransformParameters(parameters));
+                return TransformResult(await Single<T>(TransformSql(sql), TransformParameters(parameters)));
             }
 
             private static string TransformSql(string sql)
@@ -152,6 +152,22 @@ namespace FitBot.Test.Achievements
                                                              return value is decimal ? Convert.ToDouble(value) : value;
                                                          })
                            : null;
+            }
+
+            private static T TransformResult<T>(T result)
+            {
+                var dict = result as IDictionary<string, object>;
+                if (dict != null)
+                {
+                    foreach (var pair in dict.ToArray())
+                    {
+                        if (pair.Value is double)
+                        {
+                            dict[pair.Key] = Convert.ToDecimal(pair.Value);
+                        }
+                    }
+                }
+                return result;
             }
         }
 

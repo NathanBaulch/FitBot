@@ -84,7 +84,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
 
             Assert.That(achievements, Is.Empty);
         }
@@ -162,7 +162,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 1}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
 
             Assert.That(achievements, Is.Empty);
         }
@@ -279,7 +279,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
 
             Assert.That(achievements, Is.Empty);
         }
