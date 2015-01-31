@@ -10,6 +10,7 @@ namespace FitBot.Model
         public DateTime Date { get; set; }
         public int? Points { get; set; }
         public DateTime InsertDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
         public int ActivitiesHash { get; set; }
         public IList<Activity> Activities { get; set; }
 

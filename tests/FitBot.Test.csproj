@@ -30,12 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dapper, Version=1.38.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Dapper">
       <HintPath>..\packages\Dapper.1.38\lib\net45\Dapper.dll</HintPath>
     </Reference>
-    <Reference Include="DapperExtensions, Version=1.4.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="DapperExtensions">
       <HintPath>..\packages\DapperExtensions.1.4.4\lib\net40\DapperExtensions.dll</HintPath>
     </Reference>
     <Reference Include="Moq">
@@ -45,7 +43,6 @@
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.SQLite">
@@ -53,7 +50,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Achievements\BaseAchievementProviderTests.cs" />
     <Compile Include="Achievements\ComebackRecordProviderTests.cs" />
     <Compile Include="Achievements\DailyRecordProviderTests.cs" />
     <Compile Include="Achievements\FormattingExtensionsTests.cs" />
@@ -61,6 +57,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ScrapingServiceTests.cs" />
     <Compile Include="Services\WorkoutPullServiceTests.cs" />
+    <Compile Include="SQLiteDatabaseService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -20,6 +20,7 @@ CREATE TABLE [User] (
   [Id] [bigint] PRIMARY KEY NOT NULL,
   [Username] [nvarchar] (100) NOT NULL,
   [InsertDate] [datetime2] NOT NULL,
+  [UpdateDate] [datetime2],
   UNIQUE([Username])
 );
 
@@ -29,6 +30,7 @@ CREATE TABLE [Workout] (
   [Date] [datetime2] NULL,
   [Points] [int] NULL,
   [InsertDate] [datetime2] NOT NULL,
+  [UpdateDate] [datetime2],
   [ActivitiesHash] [int] NOT NULL,
   FOREIGN KEY ([UserId]) REFERENCES [User] ([Id]) ON DELETE CASCADE
 );
@@ -53,13 +55,13 @@ CREATE TABLE [Set] (
   [ActivityId] [bigint] NOT NULL,
   [Sequence] [int] NOT NULL,
   [Points] [int] NULL,
-  [Distance] REAL(19, 2) NULL,
-  [Duration] REAL(9, 2) NULL,
-  [Speed] REAL(9, 2) NULL,
-  [Repetitions] REAL(9, 2) NULL,
-  [Weight] REAL(9, 2) NULL,
-  [HeartRate] REAL(9, 2) NULL,
-  [Incline] REAL(9, 2) NULL,
+  [Distance] REAL NULL,
+  [Duration] REAL NULL,
+  [Speed] REAL NULL,
+  [Repetitions] REAL NULL,
+  [Weight] REAL NULL,
+  [HeartRate] REAL NULL,
+  [Incline] REAL NULL,
   [Difficulty] [nvarchar] (100) NULL,
   [IsImperial] [bit] NOT NULL,
   [IsPr] [bit] NOT NULL,
@@ -75,15 +77,16 @@ CREATE TABLE [Achievement] (
   [Type] [nvarchar] (100) NOT NULL,
   [Group] [nvarchar] (100) NULL,
   [Activity] [nvarchar] (100) NULL,
-  [Distance] REAL(19, 2) NULL,
-  [Duration] REAL(9, 2) NULL,
-  [Speed] REAL(9, 2) NULL,
-  [Repetitions] REAL(9, 2) NULL,
-  [Weight] REAL(9, 2) NULL,
+  [Distance] REAL NULL,
+  [Duration] REAL NULL,
+  [Speed] REAL NULL,
+  [Repetitions] REAL NULL,
+  [Weight] REAL NULL,
   [CommentId] [bigint] NULL,
   [CommentText] [text] NULL,
   [IsPropped] [bit] NOT NULL,
   [InsertDate] [datetime2] NOT NULL,
+  [UpdateDate] [datetime2],
   FOREIGN KEY ([WorkoutId]) REFERENCES [Workout] ([Id]) ON DELETE CASCADE
 );
 

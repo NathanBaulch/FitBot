@@ -9,12 +9,12 @@ using NUnit.Framework;
 namespace FitBot.Test.Achievements
 {
     [TestFixture]
-    public class ComebackRecordProviderTests : BaseAchievementProviderTests
+    public class ComebackRecordProviderTests
     {
         [Test]
         public void Normal_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 3000}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}});
 
@@ -36,7 +36,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void New_Record_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}});
 
@@ -53,7 +53,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Equal_To_Old_Record_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}});
 
@@ -75,7 +75,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Equal_To_Recent_Record_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}});
 
@@ -92,7 +92,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Normal_Weights_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 3}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 1}}}}});
 
@@ -114,7 +114,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void New_Weights_Record_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 2}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 1}}}}});
 
@@ -131,7 +131,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Equal_To_Old_Weights_Record_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 2}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 1}}}}});
 
@@ -153,7 +153,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Equal_To_Recent_Weights_Record_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 2}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 1}}}}});
 
@@ -170,7 +170,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Equal_To_Recent_Weights_Record_With_More_Reps_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 3, Repetitions = 1}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 2, Repetitions = 2}}}}});
 
@@ -192,7 +192,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Equal_To_Recent_Weights_Record_With_Less_Reps_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 3, Repetitions = 1}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 2, Repetitions = 2}}}}});
 
@@ -209,7 +209,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Normal_Reps_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 3}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}});
 
@@ -231,7 +231,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void New_Reps_Record_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}});
 
@@ -248,7 +248,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Equal_To_Old_Reps_Record_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}});
 
@@ -270,7 +270,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Equal_To_Recent_Reps_Record_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}});
 

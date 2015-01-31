@@ -9,12 +9,12 @@ using NUnit.Framework;
 namespace FitBot.Test.Achievements
 {
     [TestFixture]
-    public class QualifiedRecordProviderTests : BaseAchievementProviderTests
+    public class QualifiedRecordProviderTests
     {
         [Test]
         public void Normal_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 2000, Speed = 1}}}}});
 
             var activityGrouping = new Mock<IActivityGroupingService>();
@@ -36,7 +36,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Very_Small_Distance_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 2000, Speed = 1}}}}});
 
             var activityGrouping = new Mock<IActivityGroupingService>();
@@ -52,7 +52,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Very_Small_Weight_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 2, Repetitions = 1}}}}});
 
             var activityGrouping = new Mock<IActivityGroupingService>();
@@ -68,7 +68,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Same_As_Previous_Floating_Point_Speed_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 3200, Duration = 720}}}}});
 
             var activityGrouping = new Mock<IActivityGroupingService>();
@@ -84,7 +84,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Imperial_Distance_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 20000, Duration = 2000}}}}});
 
             var activityGrouping = new Mock<IActivityGroupingService>();
@@ -106,7 +106,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Imperial_Weight_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 100, Repetitions = 1}}}}});
 
             var activityGrouping = new Mock<IActivityGroupingService>();

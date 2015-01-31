@@ -5,6 +5,8 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 using Dapper;
 using DapperExtensions;
@@ -21,14 +23,36 @@ namespace FitBot.Services
         private readonly DbProviderFactory _factory;
         private readonly string _connectionString;
 
+        private readonly IncludablePropertyMap _userInsertDateProp;
+        private readonly IncludablePropertyMap _workoutInsertDateProp;
+        private readonly IncludablePropertyMap _achievementInsertDateProp;
+
         public DatabaseService()
+            : this(ConfigurationManager.ConnectionStrings["Default"])
         {
-            var setting = ConfigurationManager.ConnectionStrings["Default"];
-            _factory = DbProviderFactories.GetFactory(setting.ProviderName);
-            _connectionString = setting.ConnectionString;
         }
 
-        public async Task<IEnumerable<T>> Query<T>(string sql, object parameters = null)
+        private DatabaseService(ConnectionStringSettings setting)
+            : this(setting.ProviderName, setting.ConnectionString)
+        {
+        }
+
+        protected DatabaseService(string providerName, string connectionString)
+        {
+            _factory = DbProviderFactories.GetFactory(providerName);
+            _connectionString = connectionString;
+
+            DapperExtensions.DapperExtensions.DefaultMapper = typeof (IncludableClassMapper<>);
+            GetPropertyMap<User>(x => x.Id).Key(KeyType.Assigned);
+            GetPropertyMap<Workout>(x => x.Id).Key(KeyType.Assigned);
+            GetPropertyMap<Workout>(x => x.Activities).Ignore();
+            GetPropertyMap<Activity>(x => x.Sets).Ignore();
+            _userInsertDateProp = GetPropertyMap<User>(x => x.InsertDate);
+            _workoutInsertDateProp = GetPropertyMap<Workout>(x => x.InsertDate);
+            _achievementInsertDateProp = GetPropertyMap<Achievement>(x => x.InsertDate);
+        }
+
+        public virtual async Task<IEnumerable<T>> Query<T>(string sql, object parameters = null)
         {
             using (var con = OpenConnection())
             {
@@ -36,7 +60,7 @@ namespace FitBot.Services
             }
         }
 
-        public async Task<T> Single<T>(string sql, object parameters)
+        public virtual async Task<T> Single<T>(string sql, object parameters)
         {
             using (var con = OpenConnection())
             {
@@ -57,6 +81,7 @@ namespace FitBot.Services
             Debug.WriteLine("Inserting user " + user.Id);
             using (var con = OpenConnection())
             {
+                _userInsertDateProp.Include();
                 user.InsertDate = DateTime.UtcNow;
                 con.Insert(user);
             }
@@ -67,6 +92,8 @@ namespace FitBot.Services
             Debug.WriteLine("Updating user " + user.Id);
             using (var con = OpenConnection())
             {
+                _userInsertDateProp.Ignore();
+                user.UpdateDate = DateTime.UtcNow;
                 con.Update(user);
             }
         }
@@ -109,6 +136,7 @@ namespace FitBot.Services
             using (var con = OpenConnection())
             using (var trans = con.BeginTransaction())
             {
+                _workoutInsertDateProp.Include();
                 workout.InsertDate = DateTime.UtcNow;
                 con.Insert(workout, trans);
                 InsertWorkoutActivities(workout, con, trans);
@@ -121,6 +149,8 @@ namespace FitBot.Services
             Debug.WriteLine("Updating workout {0} ({1})", workout.Id, deep ? "deep" : "shallow");
             using (var con = OpenConnection())
             {
+                _workoutInsertDateProp.Ignore();
+                workout.UpdateDate = DateTime.UtcNow;
                 if (deep)
                 {
                     using (var trans = con.BeginTransaction())
@@ -175,6 +205,7 @@ namespace FitBot.Services
 
             using (var con = OpenConnection())
             {
+                _achievementInsertDateProp.Include();
                 achievement.InsertDate = DateTime.UtcNow;
                 con.Insert(achievement);
             }
@@ -197,6 +228,8 @@ namespace FitBot.Services
 
             using (var con = OpenConnection())
             {
+                _achievementInsertDateProp.Ignore();
+                achievement.UpdateDate = DateTime.UtcNow;
                 con.Update(achievement);
             }
         }
@@ -222,6 +255,17 @@ namespace FitBot.Services
             }
         }
 
+        private static IncludablePropertyMap GetPropertyMap<T>(Expression<Func<T, object>> expression)
+            where T: class
+        {
+            var member = ReflectionHelper.GetProperty(expression);
+            return DapperExtensions.DapperExtensions
+                                   .GetMap<T>()
+                                   .Properties
+                                   .Cast<IncludablePropertyMap>()
+                                   .First(prop => prop.PropertyInfo == member);
+        }
+
         private IDbConnection OpenConnection()
         {
             var con = _factory.CreateConnection();
@@ -244,41 +288,59 @@ namespace FitBot.Services
             }
         }
 
-        #region Nested type: UserMapper
+        #region Nested type: IncludableClassMapper
 
-        private class UserMapper : ClassMapper<User>
+        private class IncludableClassMapper<T> : AutoClassMapper<T>
+            where T : class
         {
-            public UserMapper()
+            protected override void AutoMap()
             {
-                Map(x => x.Id).Key(KeyType.Assigned);
-                AutoMap();
+                base.AutoMap();
+                var props = Properties.Select(prop => new IncludablePropertyMap(prop)).ToList();
+                Properties.Clear();
+                foreach (var prop in props)
+                {
+                    Properties.Add(prop);
+                }
             }
         }
 
         #endregion
 
-        #region Nested type: WorkoutMapper
+        #region Nested type: IncludablePropertyMap
 
-        private class WorkoutMapper : ClassMapper<Workout>
+        private class IncludablePropertyMap : IPropertyMap
         {
-            public WorkoutMapper()
+            public IncludablePropertyMap(IPropertyMap map)
             {
-                Map(x => x.Id).Key(KeyType.Assigned);
-                Map(x => x.Activities).Ignore();
-                AutoMap();
+                Name = map.Name;
+                ColumnName = map.ColumnName;
+                Ignored = map.Ignored;
+                IsReadOnly = map.IsReadOnly;
+                KeyType = map.KeyType;
+                PropertyInfo = map.PropertyInfo;
             }
-        }
 
-        #endregion
+            public string Name { get; private set; }
+            public string ColumnName { get; private set; }
+            public bool Ignored { get; private set; }
+            public bool IsReadOnly { get; private set; }
+            public KeyType KeyType { get; private set; }
+            public PropertyInfo PropertyInfo { get; private set; }
 
-        #region Nested type: ActivityMapper
-
-        private class ActivityMapper : ClassMapper<Activity>
-        {
-            public ActivityMapper()
+            public void Key(KeyType keyType)
             {
-                Map(x => x.Sets).Ignore();
-                AutoMap();
+                KeyType = keyType;
+            }
+
+            public void Include()
+            {
+                Ignored = false;
+            }
+
+            public void Ignore()
+            {
+                Ignored = true;
             }
         }
 

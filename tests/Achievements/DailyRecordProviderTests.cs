@@ -9,12 +9,12 @@ using NUnit.Framework;
 namespace FitBot.Test.Achievements
 {
     [TestFixture]
-    public class DailyRecordProviderTests : BaseAchievementProviderTests
+    public class DailyRecordProviderTests
     {
         [Test]
         public void Normal_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}});
 
             var activityGrouping = new Mock<IActivityGroupingService>();
@@ -35,7 +35,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Only_Single_Set_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);
@@ -50,7 +50,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Key_Metric_Not_Specified_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);
@@ -65,7 +65,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Activity_Not_Previously_Done_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);
@@ -80,7 +80,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Key_Metric_Not_Previously_Specified_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 0}}}}});
 
             var activityGrouping = new Mock<IActivityGroupingService>();
@@ -96,7 +96,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Previous_Single_Set_Record_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 1000, Sequence = 1}}}}});
             database.Insert(new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 5000}}}}});
 
@@ -113,7 +113,7 @@ namespace FitBot.Test.Achievements
         [Test]
         public void Very_Small_Distance_Test()
         {
-            var database = CreateDatabase();
+            var database = new SQLiteDatabaseService();
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using FitBot.Services;
@@ -11,7 +10,7 @@ namespace FitBot.Development
 {
     public class CachedWebRequestDecorator : IWebRequestService
     {
-        private readonly string _cacheDir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "WebCache");
+        private readonly string _cacheDir = Path.GetFullPath("WebCache");
         private readonly IWebRequestService _decorated;
         private NameValueCollection _headers;
 

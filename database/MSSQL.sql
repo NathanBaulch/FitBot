@@ -20,6 +20,7 @@ CREATE TABLE [User] (
   [Id] [bigint] PRIMARY KEY NOT NULL,
   [Username] [nvarchar] (100) NOT NULL,
   [InsertDate] [datetime2] NOT NULL,
+  [UpdateDate] [datetime2],
   UNIQUE([Username])
 )
 GO
@@ -30,6 +31,7 @@ CREATE TABLE [Workout] (
   [Date] [datetime2] NULL,
   [Points] [int] NULL,
   [InsertDate] [datetime2] NOT NULL,
+  [UpdateDate] [datetime2],
   [ActivitiesHash] [int] NOT NULL,
   FOREIGN KEY ([UserId]) REFERENCES [User] ([Id]) ON DELETE CASCADE
 )
@@ -91,6 +93,7 @@ CREATE TABLE [Achievement] (
   [CommentText] [text] NULL,
   [IsPropped] [bit] NOT NULL,
   [InsertDate] [datetime2] NOT NULL,
+  [UpdateDate] [datetime2],
   FOREIGN KEY ([WorkoutId]) REFERENCES [Workout] ([Id]) ON DELETE CASCADE
 )
 GO

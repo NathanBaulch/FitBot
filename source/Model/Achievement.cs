@@ -18,6 +18,7 @@ namespace FitBot.Model
         public string CommentText { get; set; }
         public bool IsPropped { get; set; }
         public DateTime InsertDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
 
         public bool HasChanges(Achievement achievement)
         {
