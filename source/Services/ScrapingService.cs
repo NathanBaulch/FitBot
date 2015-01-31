@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using FitBot.Model;
 using HtmlAgilityPack;
 
@@ -22,7 +23,7 @@ namespace FitBot.Services
 
         public IList<Workout> ExtractWorkouts(Stream content)
         {
-            var doc = new HtmlDocument();
+            var doc = new HtmlDocument {OptionDefaultStreamEncoding = Encoding.UTF8};
             doc.Load(content);
             return doc.DocumentNode
                       .Descendants("div")
@@ -57,7 +58,12 @@ namespace FitBot.Services
                         .Select(span => span.InnerText)
                         .FirstOrDefault();
             int points;
-            if (value == null || !value.EndsWith(" pts") || !int.TryParse(value.Substring(0, value.Length - 4).Replace(".", ","), NumberStyles.Any, CultureInfo.InvariantCulture, out points))
+            if (value == null ||
+                !value.EndsWith(" pts") ||
+                !int.TryParse(value.Substring(0, value.Length - 4)
+                                   .Replace(".", "")
+                                   .Replace(" ", "")
+                                   .Replace("\xa0", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out points))
             {
                 Debug.Fail("TODO: unable to find workout points");
                 points = 0;

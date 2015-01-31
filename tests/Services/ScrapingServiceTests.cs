@@ -45,6 +45,38 @@ namespace FitBot.Test.Services
         }
 
         [Test]
+        public void Points_With_Space_Thousands_Separator_Test()
+        {
+            const string html = @"<html>
+  <div data-ag-type='workout'>
+    <a data-item-id='1' />
+    <a class='action_time gray_link'>2015-01-01</a>
+    <span class='stream_total_points'>1 234 pts</span>
+  </div>
+</html>";
+            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)));
+
+            Assert.That(workouts.Count, Is.EqualTo(1));
+            Assert.That(workouts[0].Points, Is.EqualTo(1234));
+        }
+
+        [Test]
+        public void Points_With_NonBreakingSpace_Thousands_Separator_Test()
+        {
+            const string html = @"<html>
+  <div data-ag-type='workout'>
+    <a data-item-id='1' />
+    <a class='action_time gray_link'>2015-01-01</a>
+    <span class='stream_total_points'>1" + "\xa0" + @"234 pts</span>
+  </div>
+</html>";
+            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)));
+
+            Assert.That(workouts.Count, Is.EqualTo(1));
+            Assert.That(workouts[0].Points, Is.EqualTo(1234));
+        }
+
+        [Test]
         public void Round_Values_To_Two_Decimal_Places_Test()
         {
             const string html = @"<html>
