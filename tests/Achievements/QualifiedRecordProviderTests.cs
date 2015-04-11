@@ -124,5 +124,49 @@ namespace FitBot.Test.Achievements
             Assert.That(achievement.Repetitions, Is.EqualTo(2M));
             Assert.That(achievement.CommentText, Is.EqualTo("Qualified Squats record: 2 reps at 100 lb or more"));
         }
+
+        [Test]
+        public void Duplicate_Record_In_Single_Workout_Test()
+        {
+            var database = new SQLiteDatabaseService();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 100, Repetitions = 1}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Squats")).Returns(ActivityCategory.Weights);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Squats", Sets = new[] {new Set {Weight = 50, Repetitions = 2}}}, new Activity {Sequence = 1, Group = "Squats", Sets = new[] {new Set {Weight = 50, Repetitions = 2}}}}};
+
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+
+            Assert.That(achievements.Count, Is.EqualTo(1));
+            var achievement = achievements[0];
+            Assert.That(achievement.Type, Is.EqualTo("QualifiedRecord"));
+            Assert.That(achievement.Group, Is.EqualTo("Squats"));
+            Assert.That(achievement.Weight, Is.EqualTo(50M));
+            Assert.That(achievement.Repetitions, Is.EqualTo(2M));
+            Assert.That(achievement.CommentText, Is.EqualTo("Qualified Squats record: 2 reps at 50 kg or more"));
+        }
+
+        [Test]
+        public void Duplicate_Record_In_Single_Activity_Test()
+        {
+            var database = new SQLiteDatabaseService();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 100, Repetitions = 1}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Squats")).Returns(ActivityCategory.Weights);
+
+            var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Squats", Sets = new[] {new Set {Weight = 50, Repetitions = 2}, new Set {Sequence = 1, Weight = 50, Repetitions = 2}}}}};
+
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+
+            Assert.That(achievements.Count, Is.EqualTo(1));
+            var achievement = achievements[0];
+            Assert.That(achievement.Type, Is.EqualTo("QualifiedRecord"));
+            Assert.That(achievement.Group, Is.EqualTo("Squats"));
+            Assert.That(achievement.Weight, Is.EqualTo(50M));
+            Assert.That(achievement.Repetitions, Is.EqualTo(2M));
+            Assert.That(achievement.CommentText, Is.EqualTo("Qualified Squats record: 2 reps at 50 kg or more"));
+        }
     }
 }

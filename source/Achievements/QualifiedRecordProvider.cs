@@ -31,22 +31,25 @@ namespace FitBot.Achievements
                 {
                     case ActivityCategory.Cardio:
                         {
-                            var sets = group.SelectMany(activity => activity.Sets)
-                                            .Select(set => new
-                                                {
-                                                    set.Id,
-                                                    set.IsImperial,
-                                                    Speed = set.Speed ?? Round(set.Distance/set.Duration),
-                                                    Distance = Truncate(set.Distance ?? (set.Speed*set.Duration), set.IsImperial ? KilometersPerMile : 0)
-                                                })
+                            var sets = group.SelectMany(activity => activity.Sets
+                                                                            .Select(set => new
+                                                                                {
+                                                                                    ActivitySeq = activity.Sequence,
+                                                                                    SetSeq = set.Sequence,
+                                                                                    set.IsImperial,
+                                                                                    Speed = set.Speed ?? Round(set.Distance/set.Duration),
+                                                                                    Distance = Truncate(set.Distance ?? (set.Speed*set.Duration), set.IsImperial ? KilometersPerMile : 0)
+                                                                                }))
                                             .Where(set => (set.Speed ?? 0) > 0 && (set.Distance ?? 0) >= 1000)
                                             .ToList();
                             foreach (var set in sets)
                             {
                                 if (sets.Any(item => item != set &&
                                                      ((item.Distance >= set.Distance && item.Speed > set.Speed) ||
-                                                      (item.Distance > set.Distance && item.Speed == set.Speed) ||
-                                                      (item.Distance == set.Distance && item.Speed == set.Speed && item.Id > set.Id))))
+                                                      (item.Distance > set.Distance && item.Speed >= set.Speed) ||
+                                                      (item.Distance == set.Distance && item.Speed == set.Speed &&
+                                                       (item.ActivitySeq > set.ActivitySeq ||
+                                                        item.ActivitySeq == set.ActivitySeq && item.SetSeq > set.SetSeq)))))
                                 {
                                     continue;
                                 }
@@ -90,22 +93,25 @@ namespace FitBot.Achievements
                         break;
                     case ActivityCategory.Weights:
                         {
-                            var sets = group.SelectMany(activity => activity.Sets)
-                                            .Select(set => new
-                                                {
-                                                    set.Id,
-                                                    set.IsImperial,
-                                                    set.Repetitions,
-                                                    Weight = Truncate(set.Weight, set.IsImperial ? KilogramsPerPound : 0)
-                                                })
+                            var sets = group.SelectMany(activity => activity.Sets
+                                                                            .Select(set => new
+                                                                                {
+                                                                                    ActivitySeq = activity.Sequence,
+                                                                                    SetSeq = set.Sequence,
+                                                                                    set.IsImperial,
+                                                                                    set.Repetitions,
+                                                                                    Weight = Truncate(set.Weight, set.IsImperial ? KilogramsPerPound : 0)
+                                                                                }))
                                             .Where(set => (set.Repetitions ?? 0) > 0 && (set.Weight ?? 0) >= 1)
                                             .ToList();
                             foreach (var set in sets)
                             {
                                 if (sets.Any(item => item != set &&
                                                      ((item.Weight >= set.Weight && item.Repetitions > set.Repetitions) ||
-                                                      (item.Weight > set.Weight && item.Repetitions == set.Repetitions) ||
-                                                      (item.Weight == set.Weight && item.Repetitions == set.Repetitions && item.Id > set.Id))))
+                                                      (item.Weight > set.Weight && item.Repetitions >= set.Repetitions) ||
+                                                      (item.Weight == set.Weight && item.Repetitions == set.Repetitions &&
+                                                       (item.ActivitySeq > set.ActivitySeq ||
+                                                        item.ActivitySeq == set.ActivitySeq && item.SetSeq > set.SetSeq)))))
                                 {
                                     continue;
                                 }
