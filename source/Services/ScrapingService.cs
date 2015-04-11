@@ -8,8 +8,6 @@ using System.Text;
 using FitBot.Model;
 using HtmlAgilityPack;
 
-//TODO: error/warning handling
-
 namespace FitBot.Services
 {
     public class ScrapingService : IScrapingService

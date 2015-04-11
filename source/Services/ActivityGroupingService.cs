@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -225,7 +226,7 @@ namespace FitBot.Services
                 {
                     if (groups.Count > 1)
                     {
-                        //TODO: warn
+                        Debug.WriteLine("Duplicate groups for activity {0}" + activityName);
                     }
                     groupName = groups[0].Name;
                 }

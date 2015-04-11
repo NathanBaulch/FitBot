@@ -7,8 +7,6 @@ using FitBot.Model;
 using FitBot.Properties;
 using ServiceStack.Text;
 
-//TODO: possible connectivity problems
-
 namespace FitBot.Services
 {
     public class FitocracyService : IFitocracyService

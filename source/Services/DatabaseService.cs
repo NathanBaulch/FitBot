@@ -13,9 +13,6 @@ using DapperExtensions;
 using DapperExtensions.Mapper;
 using FitBot.Model;
 
-//TODO: possible connectivity problems
-//TODO: consider batch insertion
-
 namespace FitBot.Services
 {
     public class DatabaseService : IDatabaseService
@@ -200,7 +197,7 @@ namespace FitBot.Services
             }
             else
             {
-                Debug.WriteLine("Insert achievement {0}", (object) achievement.Type);
+                Debug.WriteLine("Insert achievement " + achievement.Type);
             }
 
             using (var con = OpenConnection())
@@ -223,7 +220,7 @@ namespace FitBot.Services
             }
             else
             {
-                Debug.WriteLine("Update achievement {0}", (object) achievement.Type);
+                Debug.WriteLine("Update achievement " + achievement.Type);
             }
 
             using (var con = OpenConnection())
@@ -246,7 +243,7 @@ namespace FitBot.Services
             }
             else
             {
-                Debug.WriteLine("Delete achievement {0}", (object) achievement.Type);
+                Debug.WriteLine("Delete achievement " + achievement.Type);
             }
 
             using (var con = OpenConnection())
