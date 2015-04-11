@@ -90,6 +90,35 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
+        public void Multiple_Same_Activities_With_Record_Test()
+        {
+            var database = new SQLiteDatabaseService();
+            database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 3000}}}}});
+
+            var activityGrouping = new Mock<IActivityGroupingService>();
+            activityGrouping.Setup(x => x.GetGroupCategory("Cycling")).Returns(ActivityCategory.Cardio);
+
+            var workout = new Workout
+                {
+                    Date = new DateTime(2015, 1, 1),
+                    Activities = new[]
+                        {
+                            new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 2000}}},
+                            new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 2000}}}
+                        }
+                };
+
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+
+            Assert.That(achievements.Count, Is.EqualTo(1));
+            var achievement = achievements[0];
+            Assert.That(achievement.Type, Is.EqualTo("ComebackRecord"));
+            Assert.That(achievement.Activity, Is.EqualTo("Cycling"));
+            Assert.That(achievement.Distance, Is.EqualTo(2000M));
+            Assert.That(achievement.CommentText, Is.EqualTo("1 year Cycling comeback record: 2 km"));
+        }
+
+        [Test]
         public void Normal_Weights_Test()
         {
             var database = new SQLiteDatabaseService();

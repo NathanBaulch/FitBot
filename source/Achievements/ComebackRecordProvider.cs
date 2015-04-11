@@ -22,7 +22,11 @@ namespace FitBot.Achievements
         {
             var achievements = new List<Achievement>();
 
-            foreach (var activity in workout.Activities.Where(activity => activity.Group != null && !activity.Sets.Any(set => set.IsPr)))
+            foreach (var activity in workout.Activities
+                                            .Where(activity => activity.Group != null)
+                                            .GroupBy(activity => new {activity.Group, activity.Name})
+                                            .Select(group => new {group.Key.Group, group.Key.Name, Sets = group.SelectMany(activity => activity.Sets).ToList()})
+                                            .Where(activity => !activity.Sets.Any(set => set.IsPr)))
             {
                 var category = _grouping.GetGroupCategory(activity.Group);
                 if (category == null)
