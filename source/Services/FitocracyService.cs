@@ -39,7 +39,7 @@ namespace FitBot.Services
 
         public async Task<IList<User>> GetFollowers(int pageNum)
         {
-            Debug.WriteLine("Getting followers page " + pageNum);
+            Debug.WriteLine("Get followers page " + pageNum);
             await EnsureAuthenticated();
             using (var stream = await _webRequest.Get("get-user-friends", new {followers = true, user = _username, page = pageNum}, "application/json"))
             {
@@ -49,7 +49,7 @@ namespace FitBot.Services
 
         public async Task<IList<Workout>> GetWorkouts(long userId, int offset)
         {
-            Debug.WriteLine("Getting workouts for user {0} at offset {1}", userId, offset);
+            Debug.WriteLine("Get workouts for user {0} at offset {1}", userId, offset);
             await EnsureAuthenticated();
             using (var stream = await _webRequest.Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html"))
             {
@@ -64,7 +64,7 @@ namespace FitBot.Services
 
         public async Task<IDictionary<long, string>> GetWorkoutComments(long workoutId)
         {
-            Debug.WriteLine("Getting comments for workout " + workoutId);
+            Debug.WriteLine("Get comments for workout " + workoutId);
             await EnsureAuthenticated();
             using (var stream = await _webRequest.Get("entry/" + workoutId, null, "text/html"))
             {
@@ -74,21 +74,21 @@ namespace FitBot.Services
 
         public async Task AddComment(long workoutId, string text)
         {
-            Debug.WriteLine("Adding comment on workout " + workoutId);
+            Debug.WriteLine("Add comment on workout " + workoutId);
             await EnsureAuthenticated();
             await _webRequest.Post("add_comment", new {csrfmiddlewaretoken = _csrfToken, ag = workoutId, comment_text = text});
         }
 
         public async Task DeleteComment(long commentId)
         {
-            Debug.WriteLine("Deleting comment " + commentId);
+            Debug.WriteLine("Delete comment " + commentId);
             await EnsureAuthenticated();
             await _webRequest.Post("delete_comment", new {csrfmiddlewaretoken = _csrfToken, id = commentId});
         }
 
         public async Task GiveProp(long workoutId)
         {
-            Debug.WriteLine("Giving prop on workout " + workoutId);
+            Debug.WriteLine("Give prop on workout " + workoutId);
             await EnsureAuthenticated();
             await _webRequest.Post("give_prop", new {csrfmiddlewaretoken = _csrfToken, id = workoutId});
         }

@@ -78,7 +78,7 @@ namespace FitBot.Services
 
         public void Insert(User user)
         {
-            Debug.WriteLine("Inserting user " + user.Id);
+            Debug.WriteLine("Insert user {0} ({1})", user.Id, user.Username);
             using (var con = OpenConnection())
             {
                 _userInsertDateProp.Include();
@@ -89,7 +89,7 @@ namespace FitBot.Services
 
         public void Update(User user)
         {
-            Debug.WriteLine("Updating user " + user.Id);
+            Debug.WriteLine("Update user {0} ({1})", user.Id, user.Username);
             using (var con = OpenConnection())
             {
                 _userInsertDateProp.Ignore();
@@ -100,7 +100,7 @@ namespace FitBot.Services
 
         public void Delete(User user)
         {
-            Debug.WriteLine("Deleting user " + user.Id);
+            Debug.WriteLine("Delete user {0} ({1})", user.Id, user.Username);
             using (var con = OpenConnection())
             {
                 con.Delete(user);
@@ -120,7 +120,7 @@ namespace FitBot.Services
 
         public void DeleteWorkoutsBefore(long userId, DateTime date)
         {
-            Debug.WriteLine("Deleting workouts for user {0} before {1}", userId, date);
+            Debug.WriteLine("Delete workouts for user {0} before {1}", userId, date);
             using (var con = OpenConnection())
             {
                 con.Execute(
@@ -132,7 +132,7 @@ namespace FitBot.Services
 
         public void Insert(Workout workout)
         {
-            Debug.WriteLine("Inserting workout " + workout.Id);
+            Debug.WriteLine("Insert workout " + workout.Id);
             using (var con = OpenConnection())
             using (var trans = con.BeginTransaction())
             {
@@ -146,7 +146,7 @@ namespace FitBot.Services
 
         public void Update(Workout workout, bool deep)
         {
-            Debug.WriteLine("Updating workout {0} ({1})", workout.Id, deep ? "deep" : "shallow");
+            Debug.WriteLine("Update workout {0} ({1})", workout.Id, deep ? "deep" : "shallow");
             using (var con = OpenConnection())
             {
                 _workoutInsertDateProp.Ignore();
@@ -172,7 +172,7 @@ namespace FitBot.Services
 
         public void Delete(Workout workout)
         {
-            Debug.WriteLine("Deleting workout " + workout.Id);
+            Debug.WriteLine("Delete workout " + workout.Id);
             using (var con = OpenConnection())
             {
                 con.Delete(workout);
@@ -192,15 +192,15 @@ namespace FitBot.Services
         {
             if (achievement.Group != null)
             {
-                Debug.WriteLine("Inserting achievement {0} for group {1}", achievement.Type, achievement.Group);
+                Debug.WriteLine("Insert achievement {0} for group {1}", achievement.Type, achievement.Group);
             }
             else if (achievement.Activity != null)
             {
-                Debug.WriteLine("Inserting achievement {0} for activity {1}", achievement.Type, achievement.Activity);
+                Debug.WriteLine("Insert achievement {0} for activity {1}", achievement.Type, achievement.Activity);
             }
             else
             {
-                Debug.WriteLine("Inserting achievement {0}", (object) achievement.Type);
+                Debug.WriteLine("Insert achievement {0}", (object) achievement.Type);
             }
 
             using (var con = OpenConnection())
@@ -215,15 +215,15 @@ namespace FitBot.Services
         {
             if (achievement.Group != null)
             {
-                Debug.WriteLine("Updating achievement {0} for group {1}", achievement.Type, achievement.Group);
+                Debug.WriteLine("Update achievement {0} for group {1}", achievement.Type, achievement.Group);
             }
             else if (achievement.Activity != null)
             {
-                Debug.WriteLine("Updating achievement {0} for activity {1}", achievement.Type, achievement.Activity);
+                Debug.WriteLine("Update achievement {0} for activity {1}", achievement.Type, achievement.Activity);
             }
             else
             {
-                Debug.WriteLine("Updating achievement {0}", (object) achievement.Type);
+                Debug.WriteLine("Update achievement {0}", (object) achievement.Type);
             }
 
             using (var con = OpenConnection())
@@ -238,15 +238,15 @@ namespace FitBot.Services
         {
             if (achievement.Group != null)
             {
-                Debug.WriteLine("Deleting achievement {0} for group {1}", achievement.Type, achievement.Group);
+                Debug.WriteLine("Delete achievement {0} for group {1}", achievement.Type, achievement.Group);
             }
             else if (achievement.Activity != null)
             {
-                Debug.WriteLine("Deleting achievement {0} for activity {1}", achievement.Type, achievement.Activity);
+                Debug.WriteLine("Delete achievement {0} for activity {1}", achievement.Type, achievement.Activity);
             }
             else
             {
-                Debug.WriteLine("Deleting achievement {0}", (object) achievement.Type);
+                Debug.WriteLine("Delete achievement {0}", (object) achievement.Type);
             }
 
             using (var con = OpenConnection())
@@ -256,7 +256,7 @@ namespace FitBot.Services
         }
 
         private static IncludablePropertyMap GetPropertyMap<T>(Expression<Func<T, object>> expression)
-            where T: class
+            where T : class
         {
             var member = ReflectionHelper.GetProperty(expression);
             return DapperExtensions.DapperExtensions
