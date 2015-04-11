@@ -55,27 +55,14 @@ namespace FitBot.Achievements
                                 }
 
                                 var previousMax = await _database.Single<decimal?>(
-                                    "select max(a.[Speed]) " +
-                                    "from [Workout] w, [Achievement] a " +
+                                    "select max(coalesce(s.[Speed], s.[Distance]/s.[Duration])) " +
+                                    "from [Workout] w, [Activity] a, [Set] s " +
                                     "where w.[Id] = a.[WorkoutId] " +
+                                    "and a.[Id] = s.[ActivityId] " +
                                     "and w.[UserId] = @UserId " +
                                     "and w.[Date] < @Date " +
-                                    "and a.[Type] = 'QualifiedRecord' " +
                                     "and a.[Group] = @Key " +
-                                    "and a.[Distance] >= @Distance", new {workout.UserId, workout.Date, group.Key, set.Distance});
-                                if (previousMax == null)
-                                {
-                                    previousMax = await _database.Single<decimal?>(
-                                        "select max(coalesce(s.[Speed], s.[Distance]/s.[Duration])) " +
-                                        "from [Workout] w, [Activity] a, [Set] s " +
-                                        "where w.[Id] = a.[WorkoutId] " +
-                                        "and a.[Id] = s.[ActivityId] " +
-                                        "and w.[UserId] = @UserId " +
-                                        "and w.[Date] < @Date " +
-                                        "and a.[Group] = @Key " +
-                                        "and coalesce(s.[Distance], s.[Speed]*s.[Duration]) >= @Distance", new {workout.UserId, workout.Date, group.Key, set.Distance});
-                                }
-
+                                    "and coalesce(s.[Distance], s.[Speed]*s.[Duration]) >= @Distance", new {workout.UserId, workout.Date, group.Key, set.Distance});
                                 if (set.Speed > Round(previousMax))
                                 {
                                     achievements.Add(
@@ -117,27 +104,14 @@ namespace FitBot.Achievements
                                 }
 
                                 var previousMax = await _database.Single<decimal?>(
-                                    "select max(a.[Repetitions]) " +
-                                    "from [Workout] w, [Achievement] a " +
+                                    "select max(s.[Repetitions]) " +
+                                    "from [Workout] w, [Activity] a, [Set] s " +
                                     "where w.[Id] = a.[WorkoutId] " +
+                                    "and a.[Id] = s.[ActivityId] " +
                                     "and w.[UserId] = @UserId " +
                                     "and w.[Date] < @Date " +
-                                    "and a.[Type] = 'QualifiedRecord' " +
                                     "and a.[Group] = @Key " +
-                                    "and a.[Weight] >= @Weight", new {workout.UserId, workout.Date, group.Key, set.Weight});
-                                if (previousMax == null)
-                                {
-                                    previousMax = await _database.Single<decimal?>(
-                                        "select max(s.[Repetitions]) " +
-                                        "from [Workout] w, [Activity] a, [Set] s " +
-                                        "where w.[Id] = a.[WorkoutId] " +
-                                        "and a.[Id] = s.[ActivityId] " +
-                                        "and w.[UserId] = @UserId " +
-                                        "and w.[Date] < @Date " +
-                                        "and a.[Group] = @Key " +
-                                        "and s.[Weight] >= @Weight", new {workout.UserId, workout.Date, group.Key, set.Weight});
-                                }
-
+                                    "and s.[Weight] >= @Weight", new {workout.UserId, workout.Date, group.Key, set.Weight});
                                 if (set.Repetitions > previousMax)
                                 {
                                     achievements.Add(

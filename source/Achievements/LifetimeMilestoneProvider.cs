@@ -158,29 +158,40 @@ namespace FitBot.Achievements
                         break;
                 }
 
-                var sum = await _database.Single<decimal?>(
+                var previousSum = await _database.Single<decimal?>(
                     "select sum([" + column + "]) " +
                     "from [Workout] w, [Activity] a, [Set] s " +
                     "where w.[Id] = a.[WorkoutId] " +
                     "and a.[Id] = s.[ActivityId] " +
                     "and w.[UserId] = @UserId " +
-                    "and w.[Date] <= @Date " +
+                    "and w.[Date] < @Date " +
                     "and a.[Group] = @Key", new {workout.UserId, workout.Date, group.Key});
-                if (sum == null || sum < threshold)
+                if (previousSum == null)
                 {
                     continue;
                 }
 
+                var sum = group.SelectMany(activity => activity.Sets)
+                               .Sum(set =>
+                                   {
+                                       switch (category)
+                                       {
+                                           case ActivityCategory.Cardio:
+                                               return set.Distance;
+                                           case ActivityCategory.Sports:
+                                               return set.Duration;
+                                           default:
+                                               return set.Repetitions;
+                                       }
+                                   }) + previousSum;
+                if (sum < threshold)
+                {
+                    continue;
+                }
+
+                previousSum = Math.Floor(previousSum.Value/threshold)*threshold;
                 sum = Math.Floor(sum.Value/threshold)*threshold;
-                if (await _database.Single<long?>(
-                    "select top 1 a.[Id] " +
-                    "from [Workout] w, [Achievement] a " +
-                    "where w.[Id] = a.[WorkoutId] " +
-                    "and w.[UserId] = @UserId " +
-                    "and w.[Date] < @Date " +
-                    "and a.[Type] = 'LifetimeMilestone' " +
-                    "and a.[Group] = @Key " +
-                    "and a.[" + column + "] = @sum", new {workout.UserId, workout.Date, group.Key, sum}) != null)
+                if (sum == previousSum)
                 {
                     continue;
                 }
