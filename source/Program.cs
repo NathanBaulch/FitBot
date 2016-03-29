@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using FitBot.Achievements;
-using FitBot.Model;
 using FitBot.Services;
 using SimpleInjector;
 
@@ -59,21 +57,14 @@ namespace FitBot
         {
             var userPull = container.GetInstance<IUserPullService>();
             var workoutPull = container.GetInstance<IWorkoutPullService>();
-            var achievements = container.GetInstance<IAchievementService>();
+            var achieveService = container.GetInstance<IAchievementService>();
             var achievementPush = container.GetInstance<IAchievementPushService>();
-            var tasks = new List<Task<IEnumerable<Achievement>>>();
 
             foreach (var user in await userPull.Pull())
             {
                 var workouts = await workoutPull.Pull(user);
-                tasks.Add(achievements.Process(user, workouts));
-            }
-
-            while (tasks.Count > 0)
-            {
-                var task = await Task.WhenAny(tasks);
-                await achievementPush.Push(task.Result);
-                tasks.Remove(task);
+                var achievements = await achieveService.Process(user, workouts);
+                await achievementPush.Push(achievements);
             }
         }
     }
