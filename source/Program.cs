@@ -7,7 +7,6 @@ using FitBot.Achievements;
 using FitBot.Model;
 using FitBot.Services;
 using SimpleInjector;
-using SimpleInjector.Extensions;
 
 namespace FitBot
 {
@@ -17,23 +16,23 @@ namespace FitBot
         {
             var container = new Container();
 
-            container.RegisterSingle<IAchievementPushService, AchievementPushService>();
-            container.RegisterSingle<IAchievementService, AchievementService>();
-            container.RegisterSingle<IActivityGroupingService, ActivityGroupingService>();
-            container.RegisterSingle<IDatabaseService, DatabaseService>();
-            container.RegisterSingle<IFitocracyService, FitocracyService>();
-            container.RegisterSingle<IScrapingService, ScrapingService>();
-            container.RegisterSingle<IUserPullService, UserPullService>();
-            container.RegisterSingle<IWebRequestService, WebRequestService>();
-            container.RegisterSingle<IWorkoutPullService, WorkoutPullService>();
+            container.RegisterSingleton<IAchievementPushService, AchievementPushService>();
+            container.RegisterSingleton<IAchievementService, AchievementService>();
+            container.RegisterSingleton<IActivityGroupingService, ActivityGroupingService>();
+            container.RegisterSingleton<IDatabaseService, DatabaseService>();
+            container.RegisterSingleton<IFitocracyService, FitocracyService>();
+            container.RegisterSingleton<IScrapingService, ScrapingService>();
+            container.RegisterSingleton<IUserPullService, UserPullService>();
+            container.RegisterSingleton<IWebRequestService, WebRequestService>();
+            container.RegisterSingleton<IWorkoutPullService, WorkoutPullService>();
 
-            container.RegisterAll<IAchievementProvider>(
+            container.RegisterCollection<IAchievementProvider>(
                 typeof (Program).Assembly
                                 .GetTypes()
                                 .Where(typeof (IAchievementProvider).IsAssignableFrom)
                                 .Where(type => type.IsClass));
 
-            container.RegisterSingleDecorator(typeof (IWebRequestService), typeof (ThrottledWebRequestDecorator));
+            container.RegisterDecorator<IWebRequestService, ThrottledWebRequestDecorator>(Lifestyle.Singleton);
 
             container.Verify();
 
