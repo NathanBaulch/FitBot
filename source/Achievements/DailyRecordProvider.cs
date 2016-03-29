@@ -105,7 +105,7 @@ namespace FitBot.Achievements
                         formattedValue = sum.FormatRepetitions();
                         break;
                 }
-                achievement.CommentText = string.Format("Daily {0} record: {1}", group.Key, formattedValue);
+                achievement.CommentText = $"Daily {group.Key} record: {formattedValue}";
                 achievements.Add(achievement);
             }
 

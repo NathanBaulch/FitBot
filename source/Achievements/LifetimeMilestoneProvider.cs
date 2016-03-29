@@ -217,7 +217,7 @@ namespace FitBot.Achievements
                         formattedValue = sum.FormatRepetitions();
                         break;
                 }
-                achievement.CommentText = string.Format("Lifetime {0} milestone: {1}", group.Key, formattedValue);
+                achievement.CommentText = $"Lifetime {group.Key} milestone: {formattedValue}";
                 achievements.Add(achievement);
             }
 

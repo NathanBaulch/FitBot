@@ -27,7 +27,7 @@ namespace FitBot.Test
         }
 
         internal SQLiteDatabaseService(string fileName)
-            : this(fileName, "System.Data.SQLite", string.Format("Data Source={0};Version=3", fileName))
+            : this(fileName, "System.Data.SQLite", $"Data Source={fileName};Version=3")
         {
         }
 
@@ -69,28 +69,26 @@ namespace FitBot.Test
             var match = Regex.Match(sql, @"select top ([@\w]+) (.*)", RegexOptions.Multiline | RegexOptions.IgnoreCase);
             if (match.Success)
             {
-                return string.Format("select {0} limit {1}", match.Groups[2].Value, match.Groups[1].Value);
+                return $"select {match.Groups[2].Value} limit {match.Groups[1].Value}";
             }
             match = Regex.Match(sql, @"(.*) offset ([@\w]+) rows fetch next ([@\w]+) rows only", RegexOptions.Multiline | RegexOptions.IgnoreCase);
             if (match.Success)
             {
-                return string.Format("{0} limit {1} offset {2}", match.Groups[1].Value, match.Groups[3].Value, match.Groups[2].Value);
+                return $"{match.Groups[1].Value} limit {match.Groups[3].Value} offset {match.Groups[2].Value}";
             }
             return sql;
         }
 
         private static object TransformParameters(object parameters)
         {
-            return parameters != null
-                       ? parameters.GetType()
-                                   .GetProperties()
-                                   .ToDictionary(prop => prop.Name,
-                                                 prop =>
-                                                     {
-                                                         var value = prop.GetValue(parameters, null);
-                                                         return value is decimal ? Convert.ToDouble(value) : value;
-                                                     })
-                       : null;
+            return parameters?.GetType()
+                              .GetProperties()
+                              .ToDictionary(prop => prop.Name,
+                                  prop =>
+                                      {
+                                          var value = prop.GetValue(parameters, null);
+                                          return value is decimal ? Convert.ToDouble(value) : value;
+                                      });
         }
 
         private static T TransformResult<T>(T result)

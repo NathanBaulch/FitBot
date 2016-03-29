@@ -14,10 +14,7 @@ namespace FitBot.Development
             _decorated = decorated;
         }
 
-        public long SelfUserId
-        {
-            get { return _decorated.SelfUserId; }
-        }
+        public long SelfUserId => _decorated.SelfUserId;
 
         public virtual Task<IList<User>> GetFollowers(int pageNum = 0)
         {

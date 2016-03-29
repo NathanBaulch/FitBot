@@ -38,7 +38,7 @@ namespace FitBot.Achievements
                                                                                     SetSeq = set.Sequence,
                                                                                     set.IsImperial,
                                                                                     Speed = set.Speed ?? Round(set.Distance/set.Duration),
-                                                                                    Distance = Truncate(set.Distance ?? (set.Speed*set.Duration), set.IsImperial ? KilometersPerMile : 0)
+                                                                                    Distance = Truncate(set.Distance ?? set.Speed*set.Duration, set.IsImperial ? KilometersPerMile : 0)
                                                                                 }))
                                             .Where(set => (set.Speed ?? 0) > 0 && (set.Distance ?? 0) >= 1000)
                                             .ToList();
@@ -72,7 +72,7 @@ namespace FitBot.Achievements
                                                 Group = group.Key,
                                                 Speed = set.Speed,
                                                 Distance = set.Distance,
-                                                CommentText = string.Format("Qualified {0} record: {1} for {2} or more", group.Key, set.Speed.FormatSpeed(set.IsImperial), set.Distance.FormatDistance(set.IsImperial))
+                                                CommentText = $"Qualified {group.Key} record: {set.Speed.FormatSpeed(set.IsImperial)} for {set.Distance.FormatDistance(set.IsImperial)} or more"
                                             });
                                 }
                             }
@@ -121,7 +121,7 @@ namespace FitBot.Achievements
                                                 Group = group.Key,
                                                 Repetitions = set.Repetitions,
                                                 Weight = set.Weight,
-                                                CommentText = string.Format("Qualified {0} record: {1} at {2} or more", group.Key, set.Repetitions.FormatRepetitions(), set.Weight.FormatWeight(set.IsImperial))
+                                                CommentText = $"Qualified {group.Key} record: {set.Repetitions.FormatRepetitions()} at {set.Weight.FormatWeight(set.IsImperial)} or more"
                                             });
                                 }
                             }

@@ -92,7 +92,7 @@ namespace FitBot.Services
                 "&",
                 args.GetType()
                     .GetProperties()
-                    .Select(prop => string.Format("{0}={1}", HttpUtility.UrlEncode(prop.Name), HttpUtility.UrlEncode(prop.GetValue(args).ToString()))));
+                    .Select(prop => $"{HttpUtility.UrlEncode(prop.Name)}={HttpUtility.UrlEncode(prop.GetValue(args).ToString())}"));
         }
     }
 }

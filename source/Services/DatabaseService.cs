@@ -318,12 +318,12 @@ namespace FitBot.Services
                 PropertyInfo = map.PropertyInfo;
             }
 
-            public string Name { get; private set; }
-            public string ColumnName { get; private set; }
+            public string Name { get; }
+            public string ColumnName { get; }
             public bool Ignored { get; private set; }
-            public bool IsReadOnly { get; private set; }
+            public bool IsReadOnly { get; }
             public KeyType KeyType { get; private set; }
-            public PropertyInfo PropertyInfo { get; private set; }
+            public PropertyInfo PropertyInfo { get; }
 
             public void Key(KeyType keyType)
             {

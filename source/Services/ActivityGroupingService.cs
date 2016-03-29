@@ -226,7 +226,7 @@ namespace FitBot.Services
                 {
                     if (groups.Count > 1)
                     {
-                        Debug.WriteLine("Duplicate groups for activity {0}" + activityName);
+                        Debug.WriteLine("Duplicate groups for activity " + activityName);
                     }
                     groupName = groups[0].Name;
                 }
@@ -303,28 +303,20 @@ namespace FitBot.Services
 
         private class Group
         {
-            private readonly ActivityCategory _category;
-            private readonly string _name;
             private readonly IList<string> _includeStrings;
             private readonly IList<string> _excludeStrings;
 
             public Group(ActivityCategory category, string name, IList<string> includeStrings, IList<string> excludeStrings)
             {
-                _category = category;
-                _name = name;
+                Category = category;
+                Name = name;
                 _includeStrings = includeStrings;
                 _excludeStrings = excludeStrings ?? new string[0];
             }
 
-            public ActivityCategory Category
-            {
-                get { return _category; }
-            }
+            public ActivityCategory Category { get; }
 
-            public string Name
-            {
-                get { return _name; }
-            }
+            public string Name { get; }
 
             public bool Includes(string activityName)
             {

@@ -83,7 +83,7 @@ namespace FitBot.Achievements
                         {
                             Type = "ComebackRecord",
                             Activity = activity.Name,
-                            CommentText = string.Format("1 year {0} comeback record: ", activity.Name)
+                            CommentText = $"1 year {activity.Name} comeback record: "
                         };
                     if (max.Weight == null)
                     {
@@ -137,7 +137,7 @@ namespace FitBot.Achievements
                                           })
                                       .OrderByDescending(set => set.Value)
                                       .FirstOrDefault();
-                    if (max == null || max.Value == null)
+                    if (max?.Value == null)
                     {
                         continue;
                     }
@@ -194,7 +194,7 @@ namespace FitBot.Achievements
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
-                    achievement.CommentText = string.Format("1 year {0} comeback record: {1}", activity.Name, formattedValue);
+                    achievement.CommentText = $"1 year {activity.Name} comeback record: {formattedValue}";
                     achievements.Add(achievement);
                 }
             }
