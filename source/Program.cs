@@ -1,70 +1,66 @@
 ﻿using System;
+using System.Configuration.Install;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using FitBot.Achievements;
-using FitBot.Services;
-using SimpleInjector;
+using System.Reflection;
+using System.ServiceProcess;
 
 namespace FitBot
 {
     internal static class Program
     {
-        private static void Main()
+        private static void Main(string[] args)
         {
-            var container = new Container();
-
-            container.RegisterSingleton<IAchievementPushService, AchievementPushService>();
-            container.RegisterSingleton<IAchievementService, AchievementService>();
-            container.RegisterSingleton<IActivityGroupingService, ActivityGroupingService>();
-            container.RegisterSingleton<IDatabaseService, DatabaseService>();
-            container.RegisterSingleton<IFitocracyService, FitocracyService>();
-            container.RegisterSingleton<IScrapingService, ScrapingService>();
-            container.RegisterSingleton<IUserPullService, UserPullService>();
-            container.RegisterSingleton<IWebRequestService, WebRequestService>();
-            container.RegisterSingleton<IWorkoutPullService, WorkoutPullService>();
-
-            container.RegisterCollection<IAchievementProvider>(
-                typeof (Program).Assembly
-                                .GetTypes()
-                                .Where(typeof (IAchievementProvider).IsAssignableFrom)
-                                .Where(type => type.IsClass));
-
-            container.RegisterDecorator<IWebRequestService, ThrottledWebRequestDecorator>(Lifestyle.Singleton);
-
-            container.Verify();
-
-            var throttler = (ThrottledWebRequestDecorator) container.GetInstance<IWebRequestService>();
-
-            while (true)
+            if (args != null && args.Length == 1)
             {
-                var watch = Stopwatch.StartNew();
-                Execute(container).Wait();
-                var elapsed = watch.Elapsed;
-                Debug.WriteLine("Processing time: " + elapsed);
-                if (elapsed > TimeSpan.FromHours(1))
+                var arg = args[0];
+                if (arg.StartsWith("-", StringComparison.Ordinal) || arg.StartsWith("/", StringComparison.Ordinal))
                 {
-                    throttler.ThrottleFactor--;
+                    var assemblyPath = Assembly.GetExecutingAssembly().Location;
+                    switch (arg.Substring(1).ToLower())
+                    {
+                        case "i":
+                        case "install":
+                            try
+                            {
+                                ManagedInstallerClass.InstallHelper(new[] {assemblyPath});
+                            }
+                            catch
+                            {
+                                Environment.Exit(-1);
+                            }
+                            break;
+                        case "u":
+                        case "uninstall":
+                            try
+                            {
+                                ManagedInstallerClass.InstallHelper(new[] {"/u", assemblyPath});
+                            }
+                            catch
+                            {
+                                Environment.Exit(-1);
+                            }
+                            break;
+                    }
+                }
+            }
+
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) => Trace.TraceError(e.ExceptionObject.ToString());
+
+            using (var service = new WinService())
+            {
+                if (Environment.UserInteractive)
+                {
+                    service.Start();
+                    Console.WriteLine("Press Q to stop the service...");
+                    while (Console.ReadKey(true).Key != ConsoleKey.Q)
+                    {
+                    }
+                    service.Stop();
                 }
                 else
                 {
-                    throttler.ThrottleFactor++;
+                    ServiceBase.Run(service);
                 }
-            }
-        }
-
-        private static async Task Execute(Container container)
-        {
-            var userPull = container.GetInstance<IUserPullService>();
-            var workoutPull = container.GetInstance<IWorkoutPullService>();
-            var achieveService = container.GetInstance<IAchievementService>();
-            var achievementPush = container.GetInstance<IAchievementPushService>();
-
-            foreach (var user in await userPull.Pull())
-            {
-                var workouts = await workoutPull.Pull(user);
-                var achievements = await achieveService.Process(user, workouts);
-                await achievementPush.Push(achievements);
             }
         }
     }

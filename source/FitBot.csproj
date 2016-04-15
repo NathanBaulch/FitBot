@@ -48,8 +48,10 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -100,6 +102,18 @@
     <Compile Include="Services\UserPullService.cs" />
     <Compile Include="Services\WebRequestService.cs" />
     <Compile Include="Services\WorkoutPullService.cs" />
+    <Compile Include="WinInstaller.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="WinInstaller.Designer.cs">
+      <DependentUpon>WinInstaller.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WinService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="WinService.Designer.cs">
+      <DependentUpon>WinService.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -108,6 +122,14 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="WinInstaller.resx">
+      <DependentUpon>WinInstaller.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WinService.resx">
+      <DependentUpon>WinService.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

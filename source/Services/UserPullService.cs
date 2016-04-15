@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FitBot.Model;
@@ -59,7 +60,7 @@ namespace FitBot.Services
                 _database.Delete(staleUser);
             }
 
-            return users;
+            return users.OrderBy(_ => Guid.NewGuid());
         }
     }
 }
