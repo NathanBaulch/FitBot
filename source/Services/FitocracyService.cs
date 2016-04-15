@@ -22,8 +22,8 @@ namespace FitBot.Services
         {
             _webRequest = webRequest;
             _scraper = scraper;
-            _username = Settings.Default.Username;
-            _password = Settings.Default.Password;
+            _username = Settings.Default.FitocracyUsername;
+            _password = Settings.Default.FitocracyPassword;
         }
 
         public long SelfUserId

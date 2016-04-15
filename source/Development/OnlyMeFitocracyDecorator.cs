@@ -18,7 +18,7 @@ namespace FitBot.Development
             var users = new List<User>();
             if (pageNum == 0)
             {
-                users.Add(new User {Id = SelfUserId, Username = Settings.Default.Username});
+                users.Add(new User {Id = SelfUserId, Username = Settings.Default.FitocracyUsername});
             }
             return Task.FromResult<IList<User>>(users);
         }

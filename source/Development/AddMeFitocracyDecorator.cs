@@ -18,7 +18,7 @@ namespace FitBot.Development
             var users = await base.GetFollowers(pageNum);
             if (pageNum == 0)
             {
-                users.Insert(0, new User {Id = SelfUserId, Username = Settings.Default.Username});
+                users.Insert(0, new User {Id = SelfUserId, Username = Settings.Default.FitocracyUsername});
             }
             return users;
         }

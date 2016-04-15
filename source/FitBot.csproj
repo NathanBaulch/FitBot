@@ -71,6 +71,8 @@
     <Compile Include="Development\CachedWebRequestDecorator.cs" />
     <Compile Include="Development\ExtraFollowersFitocracyDecorator.cs" />
     <Compile Include="Development\OnlyMeFitocracyDecorator.cs" />
+    <Compile Include="Diagnostics\ColoredConsoleTraceListener.cs" />
+    <Compile Include="Diagnostics\EmailTraceListener.cs" />
     <Compile Include="Model\Achievement.cs" />
     <Compile Include="Model\Activity.cs" />
     <Compile Include="Model\Set.cs" />
