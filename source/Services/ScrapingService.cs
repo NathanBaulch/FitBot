@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -38,7 +37,7 @@ namespace FitBot.Services
             long workoutId;
             if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out workoutId))
             {
-                throw new InvalidDataException("TODO: unable to find workout ID");
+                throw new InvalidDataException("Unable to find workout ID");
             }
 
             value = node.Descendants("a")
@@ -48,7 +47,7 @@ namespace FitBot.Services
             DateTime date;
             if (value == null || !DateTime.TryParse(value, out date))
             {
-                throw new InvalidDataException("TODO: unable to find workout date");
+                throw new InvalidDataException("Unable to find workout date");
             }
 
             value = node.Descendants("span")
@@ -63,8 +62,7 @@ namespace FitBot.Services
                                    .Replace(" ", "")
                                    .Replace("\xa0", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out points))
             {
-                Debug.Fail("TODO: unable to find workout points");
-                points = 0;
+                throw new InvalidDataException("Unable to find workout points");
             }
 
             return new Workout
@@ -90,7 +88,7 @@ namespace FitBot.Services
                            .FirstOrDefault();
             if (name == null)
             {
-                throw new InvalidDataException("TODO: unable to find activity name");
+                throw new InvalidDataException("Unable to find activity name");
             }
 
             return new Activity
@@ -117,7 +115,7 @@ namespace FitBot.Services
             int points;
             if (!int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out points))
             {
-                Debug.Fail("TODO: unable to find set points");
+                throw new InvalidDataException("Unable to find set points");
             }
 
             var set = new Set
@@ -288,8 +286,7 @@ namespace FitBot.Services
                                     break;
 
                                 default:
-                                    Debug.Fail("TODO: unrecognized set metric: " + metric);
-                                    continue;
+                                    throw new InvalidDataException("Unrecognized set metric: " + metric);
                             }
                         }
                     }
@@ -327,7 +324,7 @@ namespace FitBot.Services
             long commentId;
             if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out commentId))
             {
-                throw new InvalidDataException("TODO: unable to find comment ID");
+                throw new InvalidDataException("Unable to find comment ID");
             }
 
             return new Tuple<long, string>(

@@ -104,7 +104,7 @@ namespace FitBot.Services
             var tokenCookie = _webRequest.Cookies.GetCookies(new Uri("https://www.fitocracy.com"))["csrftoken"];
             if (tokenCookie == null)
             {
-                throw new Exception("TODO: CSRF token not found");
+                throw new ApplicationException("CSRF token not found");
             }
             _csrfToken = tokenCookie.Value;
             var headers = new NameValueCollection();
@@ -112,7 +112,7 @@ namespace FitBot.Services
 
             if (!long.TryParse(headers["X-Fitocracy-User"], out _selfUserId))
             {
-                throw new Exception("TODO: Self user ID not found");
+                throw new ApplicationException("Self user ID not found");
             }
         }
     }

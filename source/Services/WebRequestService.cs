@@ -37,7 +37,7 @@ namespace FitBot.Services
                 expectedContentType != response.ContentType &&
                 new ContentType(expectedContentType).MediaType != new ContentType(response.ContentType).MediaType)
             {
-                throw new Exception("TODO: unexpected content type");
+                throw new ApplicationException("Unexpected content type: " + response.ContentType);
             }
             return response.GetResponseStream();
         }
@@ -62,7 +62,7 @@ namespace FitBot.Services
             {
                 if (response.ContentType != "application/json")
                 {
-                    throw new Exception("TODO: unexpected content type");
+                    throw new ApplicationException("Unexpected content type: " + response.ContentType);
                 }
 
                 JsonObject json;
@@ -73,7 +73,15 @@ namespace FitBot.Services
 
                 if (json != null && json["success"] != "true" && json["result"] != "true")
                 {
-                    throw new Exception("TODO: " + json["error"] + json["reason"]);
+                    if (!string.IsNullOrEmpty(json["error"]))
+                    {
+                        throw new ApplicationException(json["error"]);
+                    }
+                    if (!string.IsNullOrEmpty(json["reason"]))
+                    {
+                        throw new ApplicationException(json["reason"]);
+                    }
+                    throw new ApplicationException("Unknown server failure");
                 }
 
                 if (headers != null)

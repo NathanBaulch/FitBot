@@ -42,18 +42,20 @@ namespace FitBot.Services
                 var commentAchievements = group.Where(achievement => achievement.CommentText != null).ToList();
                 if (commentAchievements.Count > 0)
                 {
-                    var comments = (await _fitocracy.GetWorkoutComments(group.Key))
-                        .ToDictionary(pair => pair.Value, pair => (long?) pair.Key);
+                    var comments = await _fitocracy.GetWorkoutComments(group.Key);
 
                     foreach (var achievement in commentAchievements)
                     {
-                        long? commentId;
-                        if (!comments.TryGetValue(achievement.CommentText, out commentId))
+                        var matchingComments = comments.Where(comment => comment.Value == achievement.CommentText).ToList();
+                        if (matchingComments.Count == 0)
                         {
-                            throw new Exception("TODO: unable to resolve comment ID");
+                            throw new ApplicationException("Comment not found");
                         }
-
-                        achievement.CommentId = commentId;
+                        if (matchingComments.Count > 1)
+                        {
+                            throw new ApplicationException("Duplicate comments found");
+                        }
+                        achievement.CommentId = matchingComments[0].Key;
                         _database.Update(achievement);
                     }
                 }
