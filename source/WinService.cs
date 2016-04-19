@@ -106,12 +106,11 @@ namespace FitBot
             var achieveService = container.GetInstance<IAchievementService>();
             var achievementPush = container.GetInstance<IAchievementPushService>();
 
-            foreach (var user in await userPull.Pull())
+            foreach (var user in await userPull.Pull(_cancelSource.Token))
             {
-                var workouts = await workoutPull.Pull(user);
-                var achievements = await achieveService.Process(user, workouts);
-                await achievementPush.Push(achievements);
-                _cancelSource.Token.ThrowIfCancellationRequested();
+                var workouts = await workoutPull.Pull(user, _cancelSource.Token);
+                var achievements = await achieveService.Process(user, workouts, _cancelSource.Token);
+                await achievementPush.Push(achievements, _cancelSource.Token);
             }
         }
     }

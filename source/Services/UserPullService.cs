@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FitBot.Model;
 
@@ -17,7 +18,7 @@ namespace FitBot.Services
             _fitocracy = fitocracy;
         }
 
-        public async Task<IEnumerable<User>> Pull()
+        public async Task<IEnumerable<User>> Pull(CancellationToken cancel = default(CancellationToken))
         {
             var users = new List<User>();
 
@@ -53,6 +54,7 @@ namespace FitBot.Services
                 }
 
                 users.AddRange(freshUsers);
+                cancel.ThrowIfCancellationRequested();
             }
 
             foreach (var staleUser in staleUsers.Values)

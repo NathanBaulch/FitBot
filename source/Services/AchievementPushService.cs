@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FitBot.Model;
 
@@ -17,7 +18,7 @@ namespace FitBot.Services
             _fitocracy = fitocracy;
         }
 
-        public async Task Push(IEnumerable<Achievement> achievements)
+        public async Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel = default(CancellationToken))
         {
             foreach (var group in achievements.GroupBy(achievement => achievement.WorkoutId))
             {
@@ -59,6 +60,8 @@ namespace FitBot.Services
                         _database.Update(achievement);
                     }
                 }
+
+                cancel.ThrowIfCancellationRequested();
             }
         }
     }

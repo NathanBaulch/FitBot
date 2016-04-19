@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FitBot.Model;
 
@@ -19,7 +20,7 @@ namespace FitBot.Services
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<Workout>> Pull(User user)
+        public async Task<IEnumerable<Workout>> Pull(User user, CancellationToken cancel = default(CancellationToken))
         {
             var changes = Enumerable.Repeat(new {workout = default(Workout), operation = default(byte)}, 0).ToList();
             const byte none = 0;
@@ -87,6 +88,8 @@ namespace FitBot.Services
                 {
                     break;
                 }
+
+                cancel.ThrowIfCancellationRequested();
             }
 
             changes.Reverse();

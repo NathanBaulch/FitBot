@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FitBot.Achievements;
 using FitBot.Model;
@@ -17,7 +18,7 @@ namespace FitBot.Services
             _providers = providers.ToList();
         }
 
-        public async Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts)
+        public async Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel = default(CancellationToken))
         {
             var achievements = new List<Achievement>();
 
@@ -81,6 +82,8 @@ namespace FitBot.Services
                         achievements.Add(staleAchievement);
                     }
                 }
+
+                cancel.ThrowIfCancellationRequested();
             }
 
             return achievements;
