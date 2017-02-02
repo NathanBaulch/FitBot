@@ -23,6 +23,7 @@ namespace FitBot.Services
             var users = new List<User>();
 
             var staleUsers = (await _database.GetUsers()).ToDictionary(user => user.Id);
+            var newUsers = new List<User>();
             var pageNum = 0;
             var processedIds = new HashSet<long>();
             while (true)
@@ -40,7 +41,7 @@ namespace FitBot.Services
                     User staleUser;
                     if (!staleUsers.TryGetValue(freshUser.Id, out staleUser))
                     {
-                        _database.Insert(freshUser);
+                        newUsers.Add(freshUser);
                     }
                     else
                     {
@@ -60,6 +61,11 @@ namespace FitBot.Services
             foreach (var staleUser in staleUsers.Values)
             {
                 _database.Delete(staleUser);
+            }
+
+            foreach (var newUser in newUsers)
+            {
+                _database.Insert(newUser);
             }
 
             return users.OrderBy(_ => Guid.NewGuid());
