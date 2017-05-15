@@ -140,7 +140,7 @@ namespace FitBot.Services
 
         private static void DumpLogFile(WebRequest request, WebResponse response, Action<Stream> writeContent)
         {
-            using (var file = File.OpenWrite(string.Join("_", DateTime.Now.ToString("yyyyMMddHHmmss"), nameof(WebRequestService)) + ".log"))
+            using (var file = File.OpenWrite(string.Join("_", DateTime.UtcNow.ToString("yyyyMMddHHmmss"), nameof(WebRequestService)) + ".log"))
             {
                 using (var writer = new StreamWriter(file))
                 {

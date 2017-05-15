@@ -73,7 +73,7 @@ namespace FitBot.Services
                 catch (InvalidDataException ex)
                 {
                     stream.Seek(0, SeekOrigin.Begin);
-                    using (var file = File.OpenWrite(string.Join("_", DateTime.Now.ToString("yyyyMMddHHmmss"), nameof(FitocracyService), nameof(GetWorkouts), userId, offset) + ".log"))
+                    using (var file = File.OpenWrite(string.Join("_", DateTime.UtcNow.ToString("yyyyMMddHHmmss"), nameof(FitocracyService), nameof(GetWorkouts), userId, offset) + ".log"))
                     {
                         stream.CopyTo(file);
                     }
