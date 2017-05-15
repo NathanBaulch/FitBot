@@ -61,7 +61,6 @@ CREATE TABLE [Set] (
   [Repetitions] REAL NULL,
   [Weight] REAL NULL,
   [HeartRate] REAL NULL,
-  [Incline] REAL NULL,
   [Difficulty] [nvarchar] (100) NULL,
   [IsImperial] [bit] NOT NULL,
   [IsPr] [bit] NOT NULL,
@@ -112,7 +111,7 @@ SELECT u.[Id] [UserId], u.[Username], u.[InsertDate] [UserInsertDate],
        a.[Id] [ActivityId], a.[Sequence] [ActivitySequence], a.[Name], a.[Group], a.[Note],
        s.[Id] [SetId], s.[Sequence] [SetSequence], s.[Points] [SetPoints],
        s.[Distance], s.[Duration], s.[Speed], s.[Repetitions], s.[Weight],
-       s.[HeartRate], s.[Incline], s.[Difficulty], s.[IsImperial], s.[IsPr]
+       s.[HeartRate], s.[Difficulty], s.[IsImperial], s.[IsPr]
 FROM [User] u, [Workout] w, [Activity] a, [Set] s
 WHERE u.[Id] = w.[UserId]
   AND w.[Id] = a.[WorkoutId]
