@@ -12,7 +12,7 @@ namespace FitBot.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "14.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.1.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -43,7 +43,7 @@ namespace FitBot.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("smtp-mail.outlook.com")]
+        [global::System.Configuration.DefaultSettingValueAttribute("TODO")]
         public string SmtpServer {
             get {
                 return ((string)(this["SmtpServer"]));
@@ -52,7 +52,7 @@ namespace FitBot.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("fitbot@outlook.com")]
+        [global::System.Configuration.DefaultSettingValueAttribute("TODO")]
         public string SmtpUsername {
             get {
                 return ((string)(this["SmtpUsername"]));
@@ -61,7 +61,7 @@ namespace FitBot.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5rPbO7b4rVDFJm6J")]
+        [global::System.Configuration.DefaultSettingValueAttribute("TODO")]
         public string SmtpPassword {
             get {
                 return ((string)(this["SmtpPassword"]));
@@ -70,7 +70,7 @@ namespace FitBot.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("fitbot@outlook.com")]
+        [global::System.Configuration.DefaultSettingValueAttribute("TODO")]
         public string NotificationFrom {
             get {
                 return ((string)(this["NotificationFrom"]));
@@ -79,7 +79,7 @@ namespace FitBot.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("nathan.baulch@gmail.com")]
+        [global::System.Configuration.DefaultSettingValueAttribute("TODO")]
         public string NotificationTo {
             get {
                 return ((string)(this["NotificationTo"]));
