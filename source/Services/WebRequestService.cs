@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -29,6 +30,29 @@ namespace FitBot.Services
             {
                 url += "?" + FormatArgs(args);
             }
+
+            try
+            {
+                return await GetInternal(url, expectedContentType);
+            }
+            catch (WebException ex)
+            {
+                if (ex.Status != WebExceptionStatus.Timeout &&
+                    ex.Status != WebExceptionStatus.KeepAliveFailure &&
+                    ex.Response != null &&
+                    ((HttpWebResponse) ex.Response).StatusCode != HttpStatusCode.GatewayTimeout)
+                {
+                    throw;
+                }
+
+                Trace.TraceWarning(ex.Message + ", retrying in 10 seconds");
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                return await GetInternal(url, expectedContentType);
+            }
+        }
+
+        private async Task<Stream> GetInternal(string url, string expectedContentType)
+        {
             var request = (HttpWebRequest) WebRequest.Create(url);
             request.CookieContainer = Cookies;
             request.UserAgent = "FitBot";
