@@ -37,7 +37,7 @@ namespace FitBot.Services
             long workoutId;
             if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out workoutId))
             {
-                throw new InvalidDataException("Unable to find workout ID");
+                throw new InvalidDataException("Workout ID not found");
             }
 
             value = node.Descendants("a")
@@ -47,7 +47,7 @@ namespace FitBot.Services
             DateTime date;
             if (value == null || !DateTime.TryParse(value, out date))
             {
-                throw new InvalidDataException("Unable to find workout date");
+                throw new InvalidDataException("Workout date not found");
             }
 
             value = node.Descendants("span")
@@ -62,7 +62,7 @@ namespace FitBot.Services
                                    .Replace(" ", "")
                                    .Replace("\xa0", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out points))
             {
-                throw new InvalidDataException("Unable to find workout points");
+                throw new InvalidDataException("Workout points not found");
             }
 
             return new Workout
@@ -88,7 +88,7 @@ namespace FitBot.Services
                            .FirstOrDefault();
             if (name == null)
             {
-                throw new InvalidDataException("Unable to find activity name");
+                throw new InvalidDataException("Activity name not found");
             }
 
             return new Activity
@@ -115,7 +115,7 @@ namespace FitBot.Services
             int points;
             if (!int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out points))
             {
-                throw new InvalidDataException("Unable to find set points");
+                throw new InvalidDataException("Set points not found");
             }
 
             var set = new Set
@@ -286,7 +286,7 @@ namespace FitBot.Services
                                     break;
 
                                 default:
-                                    throw new InvalidDataException("Unrecognized set metric: " + metric);
+                                    throw new InvalidDataException($"Set metric '{metric}' not recognized");
                             }
                         }
                     }
@@ -324,7 +324,7 @@ namespace FitBot.Services
             long commentId;
             if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out commentId))
             {
-                throw new InvalidDataException("Unable to find comment ID");
+                throw new InvalidDataException("Comment ID not found");
             }
 
             return new Tuple<long, string>(

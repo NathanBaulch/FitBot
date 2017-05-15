@@ -32,14 +32,11 @@ namespace FitBot.Services
             var request = (HttpWebRequest) WebRequest.Create(url);
             request.CookieContainer = Cookies;
             request.UserAgent = "FitBot";
-            var response = await request.GetResponseAsync();
-            if (expectedContentType != null &&
-                expectedContentType != response.ContentType &&
-                new ContentType(expectedContentType).MediaType != new ContentType(response.ContentType).MediaType)
+            using (var response = await request.GetResponseAsync())
             {
-                throw new ApplicationException("Unexpected content type: " + response.ContentType);
+                AssertResponseContentType(request, response, expectedContentType);
+                return response.GetResponseStream();
             }
-            return response.GetResponseStream();
         }
 
         public async Task Post(string endpoint, object data, NameValueCollection headers)
@@ -60,10 +57,7 @@ namespace FitBot.Services
             }
             using (var response = await request.GetResponseAsync())
             {
-                if (response.ContentType != "application/json")
-                {
-                    throw new ApplicationException("Unexpected content type: " + response.ContentType);
-                }
+                AssertResponseContentType(request, response, "application/json");
 
                 JsonObject json;
                 using (var stream = response.GetResponseStream())
@@ -73,15 +67,17 @@ namespace FitBot.Services
 
                 if (json != null && json["success"] != "true" && json["result"] != "true")
                 {
+                    DumpLogFile(request, response, file => JsonSerializer.SerializeToStream(json, file));
+
                     if (!string.IsNullOrEmpty(json["error"]))
                     {
-                        throw new ApplicationException(json["error"]);
+                        throw new ApplicationException($"Request '{endpoint}' failed: {json["error"]}");
                     }
                     if (!string.IsNullOrEmpty(json["reason"]))
                     {
-                        throw new ApplicationException(json["reason"]);
+                        throw new ApplicationException($"Request '{endpoint}' failed: {json["reason"]}");
                     }
-                    throw new ApplicationException("Unknown server failure");
+                    throw new ApplicationException($"Request '{endpoint}' failed with no reason");
                 }
 
                 if (headers != null)
@@ -101,6 +97,47 @@ namespace FitBot.Services
                 args.GetType()
                     .GetProperties()
                     .Select(prop => $"{HttpUtility.UrlEncode(prop.Name)}={HttpUtility.UrlEncode(prop.GetValue(args).ToString())}"));
+        }
+
+        private static void AssertResponseContentType(WebRequest request, WebResponse response, string expectedContentType)
+        {
+            if (expectedContentType != null &&
+                expectedContentType != response.ContentType &&
+                new ContentType(expectedContentType).MediaType != new ContentType(response.ContentType).MediaType)
+            {
+                using (var stream = response.GetResponseStream())
+                {
+                    DumpLogFile(request, response, stream.CopyTo);
+                }
+
+                throw new ApplicationException($"Unexpected content type '{response.ContentType}' in response from '{request.RequestUri}'");
+            }
+        }
+
+        private static void DumpLogFile(WebRequest request, WebResponse response, Action<Stream> writeContent)
+        {
+            using (var file = File.OpenWrite(string.Join("_", DateTime.Now.ToString("yyyyMMddHHmmss"), nameof(WebRequestService)) + ".log"))
+            {
+                using (var writer = new StreamWriter(file))
+                {
+                    writer.Write(request.Method);
+                    writer.Write(" ");
+                    writer.WriteLine(request.RequestUri);
+                    foreach (string key in request.Headers)
+                    {
+                        writer.WriteLine($"{key}: {request.Headers[key]}");
+                    }
+                    writer.WriteLine();
+
+                    foreach (string key in response.Headers)
+                    {
+                        writer.WriteLine($"{key}: {response.Headers[key]}");
+                    }
+                    writer.WriteLine();
+                }
+
+                writeContent(file);
+            }
         }
     }
 }

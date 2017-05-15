@@ -50,11 +50,11 @@ namespace FitBot.Services
                         var matchingComments = comments.Where(comment => comment.Value == achievement.CommentText).ToList();
                         if (matchingComments.Count == 0)
                         {
-                            throw new ApplicationException("Comment not found");
+                            throw new ApplicationException($"Comment '{achievement.CommentText}' not found on workout {achievement.WorkoutId}");
                         }
                         if (matchingComments.Count > 1)
                         {
-                            throw new ApplicationException("Duplicate comments found");
+                            throw new ApplicationException($"Duplicate comment '{achievement.CommentText}' on workout {achievement.WorkoutId}");
                         }
                         achievement.CommentId = matchingComments[0].Key;
                         _database.Update(achievement);

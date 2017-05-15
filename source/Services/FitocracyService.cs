@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Properties;
@@ -49,15 +50,43 @@ namespace FitBot.Services
         {
             Trace.TraceInformation("Get workouts for user {0} at offset {1}", userId, offset);
             await EnsureAuthenticated();
-            using (var stream = await _webRequest.Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html"))
+
+            IList<Workout> workouts;
+
+            using (var webStream = await _webRequest.Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html"))
             {
-                var workouts = _scraper.ExtractWorkouts(stream);
-                foreach (var workout in workouts)
+                Stream stream;
+                if (webStream.CanSeek)
                 {
-                    workout.UserId = userId;
+                    stream = webStream;
                 }
-                return workouts;
+                else
+                {
+                    stream = new MemoryStream();
+                    webStream.CopyTo(stream);
+                }
+
+                try
+                {
+                    workouts = _scraper.ExtractWorkouts(stream);
+                }
+                catch (InvalidDataException ex)
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                    using (var file = File.OpenWrite(string.Join("_", DateTime.Now.ToString("yyyyMMddHHmmss"), nameof(FitocracyService), nameof(GetWorkouts), userId, offset) + ".log"))
+                    {
+                        stream.CopyTo(file);
+                    }
+
+                    throw new ApplicationException($"Workout extraction failed for user {userId} at offset {offset}: {ex.Message}", ex);
+                }
             }
+
+            foreach (var workout in workouts)
+            {
+                workout.UserId = userId;
+            }
+            return workouts;
         }
 
         public async Task<IDictionary<long, string>> GetWorkoutComments(long workoutId)
