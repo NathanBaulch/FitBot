@@ -44,14 +44,20 @@ namespace FitBot
                 }
             }
 
-            AppDomain.CurrentDomain.UnhandledException += (sender, e) => Trace.TraceError(e.ExceptionObject.ToString());
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+                {
+                    if (Environment.UserInteractive)
+                    {
+                        Console.Beep();
+                    }
+
+                    Trace.TraceError(e.ExceptionObject.ToString());
+                };
 
             using (var service = new WinService())
             {
                 if (Environment.UserInteractive)
                 {
-                    AppDomain.CurrentDomain.UnhandledException += (sender, e) => Console.Beep();
-
                     service.Start();
                     Console.WriteLine(@"Press Q to stop the service...");
                     while (Console.ReadKey(true).Key != ConsoleKey.Q)

@@ -63,6 +63,7 @@ namespace FitBot
         private void Run()
         {
             var throttler = (ThrottledWebRequestDecorator) _container.GetInstance<IWebRequestService>();
+            var errorBackoff = 0;
 
             while (!_cancelSource.IsCancellationRequested)
             {
@@ -71,6 +72,7 @@ namespace FitBot
                 try
                 {
                     Execute(_container).Wait();
+                    errorBackoff = 0;
                 }
                 catch (Exception ex)
                 {
@@ -82,19 +84,32 @@ namespace FitBot
                         {
                             return;
                         }
+
+                        if (Environment.UserInteractive)
+                        {
+                            Console.Beep();
+                        }
+
                         Trace.TraceError(inner.ToString());
                     }
+
+                    Thread.Sleep(TimeSpan.FromSeconds((int) Math.Pow(2, errorBackoff)));
+                    errorBackoff++;
                 }
 
                 var elapsed = watch.Elapsed;
                 Trace.TraceInformation("Processing time: " + elapsed);
-                if (elapsed > TimeSpan.FromHours(8))
+
+                if (errorBackoff == 0)
                 {
-                    throttler.ThrottleFactor--;
-                }
-                else
-                {
-                    throttler.ThrottleFactor++;
+                    if (elapsed > TimeSpan.FromHours(1))
+                    {
+                        throttler.ThrottleFactor--;
+                    }
+                    else
+                    {
+                        throttler.ThrottleFactor++;
+                    }
                 }
             }
         }
