@@ -230,7 +230,7 @@ namespace FitBot.Services
                 {
                     if (groups.Count > 1)
                     {
-                        Debug.WriteLine("Duplicate groups for activity " + activityName);
+                        Trace.TraceWarning("Duplicate groups for activity " + activityName);
                     }
                     groupName = groups[0].Name;
                 }

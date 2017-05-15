@@ -79,7 +79,7 @@ namespace FitBot.Development
             }
             else
             {
-                Debug.WriteLine("Skip POST to " + endpoint);
+                Trace.TraceInformation("Skip POST to " + endpoint);
             }
         }
     }
