@@ -34,7 +34,6 @@ namespace FitBot.Test
         private SQLiteDatabaseService(string fileName, string providerName, string connectionString)
             : base(providerName, connectionString)
         {
-            FileName = fileName;
             File.Delete(fileName);
             var factory = DbProviderFactories.GetFactory(providerName);
 
@@ -51,8 +50,6 @@ namespace FitBot.Test
                 }
             }
         }
-
-        public string FileName { get; private set; }
 
         public override async Task<IEnumerable<T>> Query<T>(string sql, object parameters = null)
         {

@@ -51,7 +51,7 @@ namespace FitBot
                 if (Environment.UserInteractive)
                 {
                     service.Start();
-                    Console.WriteLine("Press Q to stop the service...");
+                    Console.WriteLine(@"Press Q to stop the service...");
                     while (Console.ReadKey(true).Key != ConsoleKey.Q)
                     {
                     }

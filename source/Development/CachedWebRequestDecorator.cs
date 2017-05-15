@@ -22,8 +22,8 @@ namespace FitBot.Development
 
         public CookieContainer Cookies
         {
-            get { return _decorated.Cookies; }
-            set { _decorated.Cookies = value; }
+            get => _decorated.Cookies;
+            set => _decorated.Cookies = value;
         }
 
         public async Task<Stream> Get(string endpoint, object args, string expectedContentType)

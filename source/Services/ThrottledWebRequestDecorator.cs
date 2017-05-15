@@ -20,14 +20,14 @@ namespace FitBot.Services
 
         public int ThrottleFactor
         {
-            get { return _throttleFactor; }
-            set { _throttleFactor = Math.Max(value, 0); }
+            get => _throttleFactor;
+            set => _throttleFactor = Math.Max(value, 0);
         }
 
         public CookieContainer Cookies
         {
-            get { return _decorated.Cookies; }
-            set { _decorated.Cookies = value; }
+            get => _decorated.Cookies;
+            set => _decorated.Cookies = value;
         }
 
         public async Task<Stream> Get(string endpoint, object args, string expectedContentType)
