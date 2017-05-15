@@ -88,7 +88,7 @@ namespace FitBot
 
                 var elapsed = watch.Elapsed;
                 Trace.TraceInformation("Processing time: " + elapsed);
-                if (elapsed > TimeSpan.FromHours(1))
+                if (elapsed > TimeSpan.FromHours(8))
                 {
                     throttler.ThrottleFactor--;
                 }

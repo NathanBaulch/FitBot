@@ -50,6 +50,8 @@ namespace FitBot
             {
                 if (Environment.UserInteractive)
                 {
+                    AppDomain.CurrentDomain.UnhandledException += (sender, e) => Console.Beep();
+
                     service.Start();
                     Console.WriteLine(@"Press Q to stop the service...");
                     while (Console.ReadKey(true).Key != ConsoleKey.Q)
