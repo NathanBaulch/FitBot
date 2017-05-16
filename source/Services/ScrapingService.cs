@@ -34,8 +34,7 @@ namespace FitBot.Services
             var value = node.Descendants("a")
                             .Select(a => a.GetAttributeValue("data-item-id", null))
                             .FirstOrDefault(item => item != null);
-            long workoutId;
-            if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out workoutId))
+            if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var workoutId))
             {
                 throw new InvalidDataException("Workout ID not found");
             }
@@ -44,8 +43,7 @@ namespace FitBot.Services
                         .Where(a => a.GetAttributeValue("class", null) == "action_time gray_link")
                         .Select(a => a.InnerText)
                         .FirstOrDefault();
-            DateTime date;
-            if (value == null || !DateTime.TryParse(value, out date))
+            if (value == null || !DateTime.TryParse(value, out var date))
             {
                 throw new InvalidDataException("Workout date not found");
             }
@@ -54,13 +52,12 @@ namespace FitBot.Services
                         .Where(span => span.GetAttributeValue("class", null) == "stream_total_points")
                         .Select(span => span.InnerText)
                         .FirstOrDefault();
-            int points;
             if (value == null ||
                 !value.EndsWith(" pts") ||
                 !int.TryParse(value.Substring(0, value.Length - 4)
                                    .Replace(".", "")
                                    .Replace(" ", "")
-                                   .Replace("\xa0", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out points))
+                                   .Replace("\xa0", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out var points))
             {
                 throw new InvalidDataException("Workout points not found");
             }
@@ -112,8 +109,7 @@ namespace FitBot.Services
                             .Where(span => span.GetAttributeValue("class", null) == "action_prompt_points")
                             .Select(span => span.InnerText)
                             .FirstOrDefault();
-            int points;
-            if (!int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out points))
+            if (!int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var points))
             {
                 throw new InvalidDataException("Set points not found");
             }
@@ -144,8 +140,7 @@ namespace FitBot.Services
                     var pos = part.IndexOf(' ');
                     if (pos < 0)
                     {
-                        TimeSpan duration;
-                        if (TimeSpan.TryParse(part, out duration))
+                        if (TimeSpan.TryParse(part, out var duration))
                         {
                             if (duration > TimeSpan.Zero)
                             {
@@ -163,131 +158,127 @@ namespace FitBot.Services
                                 continue;
                         }
                     }
-                    else
+                    else if (decimal.TryParse(part.Substring(0, pos), NumberStyles.Any, CultureInfo.InvariantCulture, out var num))
                     {
-                        decimal num;
-                        if (decimal.TryParse(part.Substring(0, pos), NumberStyles.Any, CultureInfo.InvariantCulture, out num))
+                        if (num == 0)
                         {
-                            if (num == 0)
-                            {
+                            continue;
+                        }
+
+                        var metric = part.Substring(pos + 1);
+                        switch (metric.ToLowerInvariant())
+                        {
+                            case "reps":
+                            case "jumps":
+                            case "holes":
+                            case "slams":
+                            case "floors":
+                            case "throws":
+                            case "jumping jacks":
+                                set.Repetitions = (int) num;
                                 continue;
-                            }
 
-                            var metric = part.Substring(pos + 1);
-                            switch (metric.ToLowerInvariant())
-                            {
-                                case "reps":
-                                case "jumps":
-                                case "holes":
-                                case "slams":
-                                case "floors":
-                                case "throws":
-                                case "jumping jacks":
-                                    set.Repetitions = (int) num;
-                                    continue;
+                            case "kg":
+                                weight = (assisted ? -1 : 1)*num;
+                                metricCount++;
+                                continue;
+                            case "lb":
+                                weight = (assisted ? -1 : 1)*num*KilogramsPerPound;
+                                imperialCount++;
+                                continue;
 
-                                case "kg":
-                                    weight = (assisted ? -1 : 1)*num;
-                                    metricCount++;
-                                    continue;
-                                case "lb":
-                                    weight = (assisted ? -1 : 1)*num*KilogramsPerPound;
-                                    imperialCount++;
-                                    continue;
+                            case "m":
+                                distance = num;
+                                metricCount++;
+                                continue;
+                            case "cm":
+                                distance = num*0.01M;
+                                metricCount++;
+                                continue;
+                            case "laps (25m)":
+                                distance = num*25;
+                                metricCount++;
+                                continue;
+                            case "laps (50m)":
+                                distance = num*50;
+                                metricCount++;
+                                continue;
+                            case "km":
+                                distance = num*1000;
+                                metricCount++;
+                                continue;
+                            case "in":
+                                distance = num*MetersPerInch;
+                                imperialCount++;
+                                continue;
+                            case "ft":
+                                distance = num*MetersPerFoot;
+                                imperialCount++;
+                                continue;
+                            case "yd":
+                                distance = num*MetersPerYard;
+                                imperialCount++;
+                                continue;
+                            case "fathoms":
+                                distance = num*MetersPerFathom;
+                                imperialCount++;
+                                continue;
+                            case "mi":
+                                distance = num*MetersPerMile;
+                                imperialCount++;
+                                continue;
 
-                                case "m":
-                                    distance = num;
-                                    metricCount++;
-                                    continue;
-                                case "cm":
-                                    distance = num*0.01M;
-                                    metricCount++;
-                                    continue;
-                                case "laps (25m)":
-                                    distance = num*25;
-                                    metricCount++;
-                                    continue;
-                                case "laps (50m)":
-                                    distance = num*50;
-                                    metricCount++;
-                                    continue;
-                                case "km":
-                                    distance = num*1000;
-                                    metricCount++;
-                                    continue;
-                                case "in":
-                                    distance = num*MetersPerInch;
-                                    imperialCount++;
-                                    continue;
-                                case "ft":
-                                    distance = num*MetersPerFoot;
-                                    imperialCount++;
-                                    continue;
-                                case "yd":
-                                    distance = num*MetersPerYard;
-                                    imperialCount++;
-                                    continue;
-                                case "fathoms":
-                                    distance = num*MetersPerFathom;
-                                    imperialCount++;
-                                    continue;
-                                case "mi":
-                                    distance = num*MetersPerMile;
-                                    imperialCount++;
-                                    continue;
+                            case "m/s":
+                                speed = num;
+                                metricCount++;
+                                continue;
+                            case "km/hr":
+                                speed = num/3.6M;
+                                metricCount++;
+                                continue;
+                            case "fps":
+                                speed = num*MetersPerFoot;
+                                imperialCount++;
+                                continue;
+                            case "mph":
+                                speed = num*MetersPerMile/3600;
+                                imperialCount++;
+                                continue;
+                            case "min/100m":
+                                speed = 5/(3*num);
+                                metricCount++;
+                                continue;
+                            case "split":
+                                speed = 25/(3*num);
+                                metricCount++;
+                                continue;
+                            case "min/km":
+                                speed = 50/(3*num);
+                                metricCount++;
+                                continue;
+                            case "sec/lap (25m)":
+                                speed = 25/num;
+                                metricCount++;
+                                continue;
+                            case "sec/lap (50m)":
+                                speed = 50/num;
+                                metricCount++;
+                                continue;
+                            case "min/mi":
+                                speed = MetersPerMile/(60*num);
+                                imperialCount++;
+                                continue;
 
-                                case "m/s":
-                                    speed = num;
-                                    metricCount++;
-                                    continue;
-                                case "km/hr":
-                                    speed = num/3.6M;
-                                    metricCount++;
-                                    continue;
-                                case "fps":
-                                    speed = num*MetersPerFoot;
-                                    imperialCount++;
-                                    continue;
-                                case "mph":
-                                    speed = num*MetersPerMile/3600;
-                                    imperialCount++;
-                                    continue;
-                                case "min/100m":
-                                    speed = 5/(3*num);
-                                    metricCount++;
-                                    continue;
-                                case "split":
-                                    speed = 25/(3*num);
-                                    metricCount++;
-                                    continue;
-                                case "min/km":
-                                    speed = 50/(3*num);
-                                    metricCount++;
-                                    continue;
-                                case "sec/lap (25m)":
-                                    speed = 25/num;
-                                    metricCount++;
-                                    continue;
-                                case "sec/lap (50m)":
-                                    speed = 50/num;
-                                    metricCount++;
-                                    continue;
-                                case "min/mi":
-                                    speed = MetersPerMile/(60*num);
-                                    imperialCount++;
-                                    continue;
+                            case "bpm":
+                                set.HeartRate = num;
+                                continue;
 
-                                case "bpm":
-                                    set.HeartRate = num;
-                                    continue;
+                            case "%":
+                            case "and 3/4-inch band": //workaround
+                                break;
 
-                                case "%":
-                                case "and 3/4-inch band": //workaround
-                                    break;
-
-                                default:
-                                    throw new InvalidDataException($"Set metric '{metric}' not recognized");
-                            }
+                            default:
+                                throw new InvalidDataException($"Set metric '{metric}' not recognized");
                         }
                     }
 
@@ -321,8 +312,7 @@ namespace FitBot.Services
         private static Tuple<long, string> ExtractComment(HtmlNode node)
         {
             var value = node.GetAttributeValue("data-comment-id", null);
-            long commentId;
-            if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out commentId))
+            if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var commentId))
             {
                 throw new InvalidDataException("Comment ID not found");
             }

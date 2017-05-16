@@ -122,8 +122,7 @@ namespace FitBot.Achievements
                     continue;
                 }
 
-                int threshold;
-                if (!Thresholds.TryGetValue(group.Key, out threshold))
+                if (!Thresholds.TryGetValue(group.Key, out var threshold))
                 {
                     switch (category)
                     {

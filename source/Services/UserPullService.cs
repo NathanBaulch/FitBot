@@ -38,8 +38,7 @@ namespace FitBot.Services
                 freshUsers = freshUsers.Where(user => processedIds.Add(user.Id)).ToList();
                 foreach (var freshUser in freshUsers)
                 {
-                    User staleUser;
-                    if (!staleUsers.TryGetValue(freshUser.Id, out staleUser))
+                    if (!staleUsers.TryGetValue(freshUser.Id, out var staleUser))
                     {
                         newUsers.Add(freshUser);
                     }

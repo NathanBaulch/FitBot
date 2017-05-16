@@ -36,8 +36,7 @@ namespace FitBot.Diagnostics
             }
 
             var oldColor = Console.ForegroundColor;
-            ConsoleColor newColor;
-            Console.ForegroundColor = _eventColor.TryGetValue(eventType, out newColor) ? newColor : oldColor;
+            Console.ForegroundColor = _eventColor.TryGetValue(eventType, out var newColor) ? newColor : oldColor;
             try
             {
                 WriteLine(string.Format(CultureInfo.InvariantCulture, format, args));

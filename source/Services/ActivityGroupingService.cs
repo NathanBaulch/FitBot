@@ -222,8 +222,7 @@ namespace FitBot.Services
 
         public string GetActvityGroup(string activityName)
         {
-            string groupName;
-            if (!_activitiesCache.TryGetValue(activityName, out groupName))
+            if (!_activitiesCache.TryGetValue(activityName, out var groupName))
             {
                 var groups = _groups.Values.Where(group => group.Includes(activityName)).ToList();
                 if (groups.Count > 0)
@@ -242,8 +241,7 @@ namespace FitBot.Services
 
         public ActivityCategory? GetGroupCategory(string groupName)
         {
-            Group group;
-            return _groups.TryGetValue(groupName, out group)
+            return _groups.TryGetValue(groupName, out var group)
                        ? group.Category
                        : (ActivityCategory?) null;
         }
