@@ -64,6 +64,7 @@ namespace FitBot.Services
                 {
                     stream = new MemoryStream();
                     webStream.CopyTo(stream);
+                    stream.Seek(0, SeekOrigin.Begin);
                 }
 
                 try

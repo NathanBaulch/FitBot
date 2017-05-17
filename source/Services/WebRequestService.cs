@@ -56,11 +56,9 @@ namespace FitBot.Services
             var request = (HttpWebRequest) WebRequest.Create(url);
             request.CookieContainer = Cookies;
             request.UserAgent = "FitBot";
-            using (var response = await request.GetResponseAsync())
-            {
-                AssertResponseContentType(request, response, expectedContentType);
-                return response.GetResponseStream();
-            }
+            var response = await request.GetResponseAsync();
+            AssertResponseContentType(request, response, expectedContentType);
+            return response.GetResponseStream();
         }
 
         public async Task Post(string endpoint, object data, NameValueCollection headers)
@@ -79,37 +77,36 @@ namespace FitBot.Services
                     await stream.WriteAsync(bytes, 0, bytes.Length);
                 }
             }
-            using (var response = await request.GetResponseAsync())
+
+            var response = await request.GetResponseAsync();
+            AssertResponseContentType(request, response, "application/json");
+
+            JsonObject json;
+            using (var stream = response.GetResponseStream())
             {
-                AssertResponseContentType(request, response, "application/json");
+                json = JsonSerializer.DeserializeFromStream<JsonObject>(stream);
+            }
 
-                JsonObject json;
-                using (var stream = response.GetResponseStream())
+            if (json != null && json["success"] != "true" && json["result"] != "true")
+            {
+                DumpLogFile(request, response, file => JsonSerializer.SerializeToStream(json, file));
+
+                if (!string.IsNullOrEmpty(json["error"]))
                 {
-                    json = JsonSerializer.DeserializeFromStream<JsonObject>(stream);
+                    throw new ApplicationException($"Request '{endpoint}' failed: {json["error"]}");
                 }
-
-                if (json != null && json["success"] != "true" && json["result"] != "true")
+                if (!string.IsNullOrEmpty(json["reason"]))
                 {
-                    DumpLogFile(request, response, file => JsonSerializer.SerializeToStream(json, file));
-
-                    if (!string.IsNullOrEmpty(json["error"]))
-                    {
-                        throw new ApplicationException($"Request '{endpoint}' failed: {json["error"]}");
-                    }
-                    if (!string.IsNullOrEmpty(json["reason"]))
-                    {
-                        throw new ApplicationException($"Request '{endpoint}' failed: {json["reason"]}");
-                    }
-                    throw new ApplicationException($"Request '{endpoint}' failed with no reason");
+                    throw new ApplicationException($"Request '{endpoint}' failed: {json["reason"]}");
                 }
+                throw new ApplicationException($"Request '{endpoint}' failed with no reason");
+            }
 
-                if (headers != null)
+            if (headers != null)
+            {
+                foreach (string key in response.Headers)
                 {
-                    foreach (string key in response.Headers)
-                    {
-                        headers[key] = response.Headers[key];
-                    }
+                    headers[key] = response.Headers[key];
                 }
             }
         }
@@ -158,9 +155,10 @@ namespace FitBot.Services
                         writer.WriteLine($"{key}: {response.Headers[key]}");
                     }
                     writer.WriteLine();
-                }
 
-                writeContent(file);
+                    writer.Flush();
+                    writeContent(file);
+                }
             }
         }
     }
