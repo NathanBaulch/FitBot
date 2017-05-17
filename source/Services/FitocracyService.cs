@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Properties;
@@ -51,8 +52,6 @@ namespace FitBot.Services
             Trace.TraceInformation("Get workouts for user {0} at offset {1}", userId, offset);
             await EnsureAuthenticated();
 
-            IList<Workout> workouts;
-
             using (var webStream = await _webRequest.Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html"))
             {
                 Stream stream;
@@ -69,7 +68,7 @@ namespace FitBot.Services
 
                 try
                 {
-                    workouts = _scraper.ExtractWorkouts(stream);
+                    return _scraper.ExtractWorkouts(stream, _selfUserId);
                 }
                 catch (InvalidDataException ex)
                 {
@@ -82,21 +81,55 @@ namespace FitBot.Services
                     throw new ApplicationException($"Workout extraction failed for user {userId} at offset {offset}: {ex.Message}", ex);
                 }
             }
-
-            foreach (var workout in workouts)
-            {
-                workout.UserId = userId;
-            }
-            return workouts;
         }
 
-        public async Task<IDictionary<long, string>> GetWorkoutComments(long workoutId)
+        public async Task<Workout> GetWorkout(long workoutId)
         {
-            Trace.TraceInformation("Get comments for workout " + workoutId);
+            Trace.TraceInformation("Get workout " + workoutId);
             await EnsureAuthenticated();
-            using (var stream = await _webRequest.Get("entry/" + workoutId, null, "text/html"))
+
+            Workout workout;
+
+            using (var webStream = await _webRequest.Get("entry/" + workoutId, null, "text/html"))
             {
-                return _scraper.ExtractWorkoutComments(stream, SelfUserId);
+                Stream stream;
+                if (webStream.CanSeek)
+                {
+                    stream = webStream;
+                }
+                else
+                {
+                    stream = new MemoryStream();
+                    webStream.CopyTo(stream);
+                    stream.Seek(0, SeekOrigin.Begin);
+                }
+
+                try
+                {
+                    workout = _scraper.ExtractWorkouts(stream, _selfUserId).FirstOrDefault();
+                }
+                catch (InvalidDataException ex)
+                {
+                    DumpLogFile(stream, workoutId);
+                    throw new ApplicationException($"Workout extraction failed for workout {workoutId}: {ex.Message}", ex);
+                }
+
+                if (workout == null)
+                {
+                    DumpLogFile(stream, workoutId);
+                    throw new ApplicationException($"Workout extraction failed for workout {workoutId}");
+                }
+            }
+
+            return workout;
+        }
+
+        private static void DumpLogFile(Stream stream, long workoutId)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            using (var file = File.OpenWrite(string.Join("_", DateTime.UtcNow.ToString("yyyyMMddHHmmss"), nameof(FitocracyService), nameof(GetWorkout), workoutId) + ".log"))
+            {
+                stream.CopyTo(file);
             }
         }
 

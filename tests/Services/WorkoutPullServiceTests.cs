@@ -149,7 +149,7 @@ namespace FitBot.Test.Services
             var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User()).Result;
 
             Assert.That(workouts, Is.Empty);
-            database.Verify(x => x.DeleteWorkoutsBefore(0, DateTime.MaxValue));
+            database.Verify(x => x.DeleteWorkouts(0, DateTime.MaxValue));
             database.Verify(x => x.Insert(It.IsAny<Workout>()), Times.Never);
             database.Verify(x => x.Update(It.IsAny<Workout>(), It.IsAny<bool>()), Times.Never);
             database.Verify(x => x.Delete(It.IsAny<Workout>()), Times.Never);

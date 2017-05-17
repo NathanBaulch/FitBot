@@ -15,15 +15,17 @@ namespace FitBot.Test.Services
             const string html = @"<html>
   <div data-ag-type='workout'>
     <a data-item-id='123' />
+    <span ag-user-id='456' />
     <a class='action_time gray_link'>2015-01-01</a>
     <span class='stream_total_points'>321 pts</span>
   </div>
 </html>";
-            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)));
+            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)), 0);
 
             Assert.That(workouts.Count, Is.EqualTo(1));
             var workout = workouts[0];
             Assert.That(workout.Id, Is.EqualTo(123));
+            Assert.That(workout.UserId, Is.EqualTo(456));
             Assert.That(workout.Date, Is.EqualTo(new DateTime(2015, 1, 1)));
             Assert.That(workout.Points, Is.EqualTo(321));
         }
@@ -34,11 +36,12 @@ namespace FitBot.Test.Services
             const string html = @"<html>
   <div data-ag-type='workout'>
     <a data-item-id='1' />
+    <span ag-user-id='1' />
     <a class='action_time gray_link'>2015-01-01</a>
     <span class='stream_total_points'>1.234 pts</span>
   </div>
 </html>";
-            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)));
+            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)), 0);
 
             Assert.That(workouts.Count, Is.EqualTo(1));
             Assert.That(workouts[0].Points, Is.EqualTo(1234));
@@ -50,11 +53,12 @@ namespace FitBot.Test.Services
             const string html = @"<html>
   <div data-ag-type='workout'>
     <a data-item-id='1' />
+    <span ag-user-id='1' />
     <a class='action_time gray_link'>2015-01-01</a>
     <span class='stream_total_points'>1 234 pts</span>
   </div>
 </html>";
-            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)));
+            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)), 0);
 
             Assert.That(workouts.Count, Is.EqualTo(1));
             Assert.That(workouts[0].Points, Is.EqualTo(1234));
@@ -66,11 +70,12 @@ namespace FitBot.Test.Services
             const string html = @"<html>
   <div data-ag-type='workout'>
     <a data-item-id='1' />
+    <span ag-user-id='1' />
     <a class='action_time gray_link'>2015-01-01</a>
     <span class='stream_total_points'>1" + "\xa0" + @"234 pts</span>
   </div>
 </html>";
-            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)));
+            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)), 0);
 
             Assert.That(workouts.Count, Is.EqualTo(1));
             Assert.That(workouts[0].Points, Is.EqualTo(1234));
@@ -81,7 +86,8 @@ namespace FitBot.Test.Services
         {
             const string html = @"<html>
   <div data-ag-type='workout'>
-    <a data-item-id='123' />
+    <a data-item-id='1' />
+    <span ag-user-id='1' />
     <a class='action_time gray_link'>2015-01-01</a>
     <span class='stream_total_points'>4 pts</span>
     <ul class='action_detail'>
@@ -92,7 +98,7 @@ namespace FitBot.Test.Services
     </ul>
   </div>
 </html>";
-            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)));
+            var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)), 0);
 
             Assert.That(workouts.Count, Is.EqualTo(1));
             var workout = workouts[0];

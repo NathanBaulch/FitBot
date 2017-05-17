@@ -22,12 +22,7 @@ namespace FitBot.Services
 
         public async Task<IEnumerable<Workout>> Pull(User user, CancellationToken cancel = default(CancellationToken))
         {
-            var changes = Enumerable.Repeat(new {workout = default(Workout), operation = default(byte)}, 0).ToList();
-            const byte none = 0;
-            const byte insert = 1;
-            const byte updateDeep = 2;
-            const byte updateShallow = 3;
-            const byte delete = 4;
+            var workouts = new List<Workout>();
 
             var offset = 0;
             var processedIds = new HashSet<long>();
@@ -40,12 +35,13 @@ namespace FitBot.Services
 
                 foreach (var workout in deletedWorkouts.Where(workout => !freshLookup[workout.Id].Any()))
                 {
-                    changes.Add(new {workout, operation = delete});
+                    workout.State = WorkoutState.Deleted;
+                    workouts.Add(workout);
                 }
 
                 if (freshWorkouts.Count == 0)
                 {
-                    _database.DeleteWorkoutsBefore(user.Id, toDate);
+                    _database.DeleteWorkouts(user.Id, toDate);
                     break;
                 }
                 offset += freshWorkouts.Count;
@@ -58,33 +54,30 @@ namespace FitBot.Services
 
                 var fromDate = freshWorkouts.Min(workout => workout.Date);
                 var staleWorkouts = (await _database.GetWorkouts(user.Id, fromDate, toDate)).ToList();
+                var staleLookup = staleWorkouts.ToLookup(workout => workout.Id);
                 toDate = fromDate;
 
-                var staleLookup = staleWorkouts.ToLookup(workout => workout.Id);
-                changes.AddRange(freshWorkouts
-                                     .Select(workout =>
-                                         {
-                                             workout.ActivitiesHash = ComputeActivitiesHashCode(workout.Activities);
-                                             foreach (var activity in workout.Activities)
-                                             {
-                                                 activity.Group = _grouping.GetActvityGroup(activity.Name);
-                                             }
-                                             var staleWorkout = staleLookup[workout.Id].FirstOrDefault() ?? deletedWorkouts.FirstOrDefault(item => item.Id == workout.Id);
-                                             return new
-                                                 {
-                                                     workout,
-                                                     operation = staleWorkout != null
-                                                                     ? workout.HasChanges(staleWorkout)
-                                                                           ? staleWorkout.ActivitiesHash != workout.ActivitiesHash
-                                                                                 ? updateDeep
-                                                                                 : updateShallow
-                                                                           : none
-                                                                     : insert
-                                                 };
-                                         }));
-                deletedWorkouts = staleWorkouts.Where(workout => !freshLookup[workout.Id].Any()).ToList();
+                foreach (var workout in freshWorkouts)
+                {
+                    workout.ActivitiesHash = ComputeActivitiesHashCode(workout.Activities);
+                    foreach (var activity in workout.Activities)
+                    {
+                        activity.Group = _grouping.GetActvityGroup(activity.Name);
+                    }
 
-                if (deletedWorkouts.Count == 0 && changes[changes.Count - 1].operation == none)
+                    var staleWorkout = staleLookup[workout.Id].FirstOrDefault() ?? deletedWorkouts.FirstOrDefault(item => item.Id == workout.Id);
+                    workout.State = staleWorkout != null
+                                        ? workout.HasChanges(staleWorkout)
+                                              ? staleWorkout.ActivitiesHash != workout.ActivitiesHash
+                                                    ? WorkoutState.UpdatedDeep
+                                                    : WorkoutState.Updated
+                                              : WorkoutState.Unchanged
+                                        : WorkoutState.Added;
+                    workouts.Add(workout);
+                }
+
+                deletedWorkouts = staleWorkouts.Where(workout => !freshLookup[workout.Id].Any()).ToList();
+                if (deletedWorkouts.Count == 0 && workouts[workouts.Count - 1].State == WorkoutState.Unchanged)
                 {
                     break;
                 }
@@ -92,30 +85,51 @@ namespace FitBot.Services
                 cancel.ThrowIfCancellationRequested();
             }
 
-            changes.Reverse();
-            changes.Sort((left, right) => left.workout.Date.CompareTo(right.workout.Date));
+            workouts.Reverse();
+            var unresolvedIds = (await _database.GetUnresolvedWorkoutIds(user.Id, user.InsertDate.AddDays(-7))).ToList();
 
-            foreach (var item in changes)
+            foreach (var workout in workouts.ToList())
             {
-                switch (item.operation)
+                switch (workout.State)
                 {
-                    case insert:
-                        _database.Insert(item.workout);
+                    case WorkoutState.Added:
+                        _database.Insert(workout);
                         break;
-                    case updateDeep:
-                    case updateShallow:
-                        _database.Update(item.workout, item.operation == updateDeep);
+                    case WorkoutState.UpdatedDeep:
+                        _database.Update(workout, true);
+                        unresolvedIds.Remove(workout.Id);
                         break;
-                    case delete:
-                        _database.Delete(item.workout);
+                    case WorkoutState.Updated:
+                        _database.Update(workout);
+                        unresolvedIds.Remove(workout.Id);
+                        break;
+                    case WorkoutState.Deleted:
+                        _database.Delete(workout);
+                        workouts.Remove(workout);
+                        unresolvedIds.Remove(workout.Id);
+                        break;
+                    case WorkoutState.Unchanged:
+                        if (unresolvedIds.Remove(workout.Id))
+                        {
+                            workout.State = WorkoutState.Unresolved;
+                        }
                         break;
                 }
             }
 
-            return changes.Where(item => item.operation != delete)
-                          .SkipWhile(item => item.operation == none)
-                          .Select(item => item.workout)
-                          .ToList();
+            while (workouts.Count > 0 && workouts[0].State == WorkoutState.Unchanged)
+            {
+                workouts.RemoveAt(0);
+            }
+
+            foreach (var id in unresolvedIds)
+            {
+                var workout = await _fitocracy.GetWorkout(id);
+                workout.State = WorkoutState.Unresolved;
+                workouts.Add(workout);
+            }
+
+            return workouts.OrderBy(workout => workout.Date).ToList();
         }
 
         private static int ComputeActivitiesHashCode(IEnumerable<Activity> activities)

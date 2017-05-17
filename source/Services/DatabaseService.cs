@@ -42,7 +42,9 @@ namespace FitBot.Services
             DapperExtensions.DapperExtensions.DefaultMapper = typeof (IncludableClassMapper<>);
             GetPropertyMap<User>(x => x.Id).Key(KeyType.Assigned);
             GetPropertyMap<Workout>(x => x.Id).Key(KeyType.Assigned);
+            GetPropertyMap<Workout>(x => x.State).Ignore();
             GetPropertyMap<Workout>(x => x.Activities).Ignore();
+            GetPropertyMap<Workout>(x => x.Comments).Ignore();
             GetPropertyMap<Activity>(x => x.Sets).Ignore();
             _userInsertDateProp = GetPropertyMap<User>(x => x.InsertDate);
             _workoutInsertDateProp = GetPropertyMap<Workout>(x => x.InsertDate);
@@ -115,15 +117,30 @@ namespace FitBot.Services
                 "order by [Date], [Id]", new {userId, fromDate, toDate});
         }
 
-        public void DeleteWorkoutsBefore(long userId, DateTime date)
+        public async Task<IEnumerable<long>> GetUnresolvedWorkoutIds(long userId, DateTime after)
         {
-            Trace.TraceInformation("Delete workouts for user {0} before {1}", userId, date);
+            return await Query<long>(
+                "select [Id] " +
+                "from [Workout] " +
+                "where [UserId] = @userId " +
+                "and [Date] > @after " +
+                "and [Id] in (" +
+                "  select [WorkoutId] " +
+                "  from [Achievement] " +
+                "  where [CommentText] is not null " +
+                "  and [CommentId] is null)" +
+                "order by [Id]", new {userId, after});
+        }
+
+        public void DeleteWorkouts(long userId, DateTime before)
+        {
+            Trace.TraceInformation("Delete workouts for user {0} before {1}", userId, before);
             using (var con = OpenConnection())
             {
                 con.Execute(
                     "delete from [Workout] " +
                     "where [UserId] = @userId " +
-                    "and [Date] < @date", new {userId, date});
+                    "and [Date] < @before", new {userId, before });
             }
         }
 
@@ -228,6 +245,18 @@ namespace FitBot.Services
                 _achievementInsertDateProp.Ignore();
                 achievement.UpdateDate = DateTime.UtcNow;
                 con.Update(achievement);
+            }
+        }
+
+        public void UpdateCommentId(long achievementId, long commentId)
+        {
+            Trace.TraceInformation("Update comment ID on achievement {0}", achievementId);
+            using (var con = OpenConnection())
+            {
+                con.Execute(
+                    "update [Achievement] " +
+                    "set [CommentId] = @commentId " +
+                    "where [Id] = @achievementId", new {commentId, achievementId});
             }
         }
 

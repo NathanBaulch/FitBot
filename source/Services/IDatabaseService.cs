@@ -16,7 +16,8 @@ namespace FitBot.Services
         void Delete(User user);
 
         Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime fromDate, DateTime toDate);
-        void DeleteWorkoutsBefore(long userId, DateTime date);
+        Task<IEnumerable<long>> GetUnresolvedWorkoutIds(long userId, DateTime after);
+        void DeleteWorkouts(long userId, DateTime before);
         void Insert(Workout workout);
         void Update(Workout workout, bool deep = false);
         void Delete(Workout workout);
@@ -24,6 +25,7 @@ namespace FitBot.Services
         Task<IEnumerable<Achievement>> GetAchievements(long workoutId);
         void Insert(Achievement achievement);
         void Update(Achievement achievement);
+        void UpdateCommentId(long achievementId, long commentId);
         void Delete(Achievement achievement);
     }
 }

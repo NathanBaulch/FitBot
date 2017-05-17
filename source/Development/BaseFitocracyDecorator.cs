@@ -26,9 +26,9 @@ namespace FitBot.Development
             return _decorated.GetWorkouts(userId, offset);
         }
 
-        public virtual Task<IDictionary<long, string>> GetWorkoutComments(long workoutId)
+        public virtual Task<Workout> GetWorkout(long workoutId)
         {
-            return _decorated.GetWorkoutComments(workoutId);
+            return _decorated.GetWorkout(workoutId);
         }
 
         public virtual Task AddComment(long workoutId, string text)

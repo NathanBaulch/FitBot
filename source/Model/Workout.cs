@@ -13,6 +13,8 @@ namespace FitBot.Model
         public DateTime? UpdateDate { get; set; }
         public int ActivitiesHash { get; set; }
         public IList<Activity> Activities { get; set; }
+        public WorkoutState State { get; set; }
+        public IList<Comment> Comments { get; set; }
 
         public bool HasChanges(Workout workout)
         {
@@ -20,5 +22,21 @@ namespace FitBot.Model
                    Points != workout.Points ||
                    ActivitiesHash != workout.ActivitiesHash;
         }
+    }
+
+    public enum WorkoutState
+    {
+        Unchanged,
+        Added,
+        Updated,
+        UpdatedDeep,
+        Deleted,
+        Unresolved
+    }
+
+    public class Comment
+    {
+        public long Id { get; set; }
+        public string Text { get; set; }
     }
 }
