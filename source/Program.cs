@@ -44,15 +44,7 @@ namespace FitBot
                 }
             }
 
-            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
-                {
-                    if (Environment.UserInteractive)
-                    {
-                        Console.Beep();
-                    }
-
-                    Trace.TraceError(e.ExceptionObject.ToString());
-                };
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) => Trace.TraceError(e.ExceptionObject.ToString());
 
             using (var service = new WinService())
             {

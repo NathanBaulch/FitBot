@@ -85,11 +85,6 @@ namespace FitBot
                             return;
                         }
 
-                        if (Environment.UserInteractive)
-                        {
-                            Console.Beep();
-                        }
-
                         Trace.TraceError(inner.ToString());
                     }
 
