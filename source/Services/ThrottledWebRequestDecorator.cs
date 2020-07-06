@@ -2,7 +2,7 @@
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace FitBot.Services
 {
@@ -30,21 +30,21 @@ namespace FitBot.Services
             set => _decorated.Cookies = value;
         }
 
-        public async Task<Stream> Get(string endpoint, object args, string expectedContentType)
+        public Stream Get(string endpoint, object args, string expectedContentType)
         {
-            await Delay();
-            return await _decorated.Get(endpoint, args, expectedContentType);
+            Delay();
+            return _decorated.Get(endpoint, args, expectedContentType);
         }
 
-        public async Task Post(string endpoint, object data, NameValueCollection headers)
+        public void Post(string endpoint, object data, NameValueCollection headers)
         {
-            await Delay();
-            await _decorated.Post(endpoint, data, headers);
+            Delay();
+            _decorated.Post(endpoint, data, headers);
         }
 
-        private Task Delay()
+        private void Delay()
         {
-            return Task.Delay((int) ((1 << ThrottleFactor)*(1 + _random.NextDouble())));
+            Thread.Sleep((int) ((1 << ThrottleFactor) * (1 + _random.NextDouble())));
         }
     }
 }

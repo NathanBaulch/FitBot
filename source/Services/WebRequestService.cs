@@ -6,7 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Mime;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Web;
 using ServiceStack.Text;
 
@@ -23,7 +23,7 @@ namespace FitBot.Services
 
         public CookieContainer Cookies { get; set; }
 
-        public async Task<Stream> Get(string endpoint, object args, string expectedContentType)
+        public Stream Get(string endpoint, object args, string expectedContentType)
         {
             var url = RootUrl + endpoint + "/";
             if (args != null)
@@ -33,7 +33,7 @@ namespace FitBot.Services
 
             try
             {
-                return await GetInternal(url, expectedContentType);
+                return GetInternal(url, expectedContentType);
             }
             catch (WebException ex)
             {
@@ -46,22 +46,22 @@ namespace FitBot.Services
                 }
 
                 Trace.TraceWarning(ex.Message + ", retrying in 10 seconds");
-                await Task.Delay(TimeSpan.FromSeconds(10));
-                return await GetInternal(url, expectedContentType);
+                Thread.Sleep(TimeSpan.FromSeconds(10));
+                return GetInternal(url, expectedContentType);
             }
         }
 
-        private async Task<Stream> GetInternal(string url, string expectedContentType)
+        private Stream GetInternal(string url, string expectedContentType)
         {
             var request = (HttpWebRequest) WebRequest.Create(url);
             request.CookieContainer = Cookies;
             request.UserAgent = "FitBot";
-            var response = await request.GetResponseAsync();
+            var response = request.GetResponse();
             AssertResponseContentType(request, response, expectedContentType);
             return response.GetResponseStream();
         }
 
-        public async Task Post(string endpoint, object data, NameValueCollection headers)
+        public void Post(string endpoint, object data, NameValueCollection headers)
         {
             var url = RootUrl + endpoint + "/";
             var request = (HttpWebRequest) WebRequest.Create(url);
@@ -71,14 +71,14 @@ namespace FitBot.Services
             request.UserAgent = "FitBot";
             if (data != null)
             {
-                using (var stream = await request.GetRequestStreamAsync())
+                using (var stream = request.GetRequestStream())
                 {
                     var bytes = Encoding.UTF8.GetBytes(FormatArgs(data));
-                    await stream.WriteAsync(bytes, 0, bytes.Length);
+                    stream.Write(bytes, 0, bytes.Length);
                 }
             }
 
-            var response = await request.GetResponseAsync();
+            var response = request.GetResponse();
             AssertResponseContentType(request, response, "application/json");
 
             JsonObject json;

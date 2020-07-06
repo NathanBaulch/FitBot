@@ -51,14 +51,14 @@ namespace FitBot.Test
             }
         }
 
-        public override async Task<IEnumerable<T>> Query<T>(string sql, object parameters = null)
+        public override IEnumerable<T> Query<T>(string sql, object parameters = null)
         {
-            return (await base.Query<T>(TransformSql(sql), TransformParameters(parameters))).Select(TransformResult);
+            return base.Query<T>(TransformSql(sql), TransformParameters(parameters)).Select(TransformResult);
         }
 
-        public override async Task<T> Single<T>(string sql, object parameters)
+        public override T Single<T>(string sql, object parameters)
         {
-            return TransformResult(await base.Single<T>(TransformSql(sql), TransformParameters(parameters)));
+            return TransformResult(base.Single<T>(TransformSql(sql), TransformParameters(parameters)));
         }
 
         private static string TransformSql(string sql)

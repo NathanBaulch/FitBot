@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using FitBot.Model;
 
 namespace FitBot.Services
@@ -20,7 +19,7 @@ namespace FitBot.Services
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<Workout>> Pull(User user, CancellationToken cancel = default)
+        public IEnumerable<Workout> Pull(User user, CancellationToken cancel = default)
         {
             var workouts = new List<Workout>();
 
@@ -30,7 +29,7 @@ namespace FitBot.Services
             var deletedWorkouts = new List<Workout>();
             while (true)
             {
-                var freshWorkouts = await _fitocracy.GetWorkouts(user.Id, offset);
+                var freshWorkouts = _fitocracy.GetWorkouts(user.Id, offset);
                 var freshLookup = freshWorkouts.ToLookup(workout => workout.Id);
 
                 foreach (var workout in deletedWorkouts.Where(workout => !freshLookup[workout.Id].Any()))
@@ -53,7 +52,7 @@ namespace FitBot.Services
                 }
 
                 var fromDate = freshWorkouts.Min(workout => workout.Date);
-                var staleWorkouts = (await _database.GetWorkouts(user.Id, fromDate, toDate)).ToList();
+                var staleWorkouts = _database.GetWorkouts(user.Id, fromDate, toDate).ToList();
                 var staleLookup = staleWorkouts.ToLookup(workout => workout.Id);
                 toDate = fromDate;
 
@@ -86,7 +85,7 @@ namespace FitBot.Services
             }
 
             workouts.Reverse();
-            var unresolvedIds = (await _database.GetUnresolvedWorkoutIds(user.Id, user.InsertDate.AddDays(-7))).ToList();
+            var unresolvedIds = _database.GetUnresolvedWorkoutIds(user.Id, user.InsertDate.AddDays(-7)).ToList();
 
             foreach (var workout in workouts.ToList())
             {
@@ -124,7 +123,7 @@ namespace FitBot.Services
 
             foreach (var id in unresolvedIds)
             {
-                var workout = await _fitocracy.GetWorkout(id);
+                var workout = _fitocracy.GetWorkout(id);
                 workout.State = WorkoutState.Unresolved;
                 workouts.Add(workout);
             }

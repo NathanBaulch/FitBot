@@ -23,7 +23,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -45,7 +45,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 3000}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -62,7 +62,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -84,7 +84,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -108,7 +108,7 @@ namespace FitBot.Test.Achievements
                         }
                 };
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -130,7 +130,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 2}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -152,7 +152,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 3}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -169,7 +169,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 2}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -191,7 +191,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 1}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -208,7 +208,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 2, Repetitions = 3}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -230,7 +230,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 2, Repetitions = 1}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -247,7 +247,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -269,7 +269,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 3}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -286,7 +286,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -308,7 +308,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }

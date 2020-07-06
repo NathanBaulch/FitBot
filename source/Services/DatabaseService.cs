@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using Dapper;
 using DapperExtensions;
 using DapperExtensions.Mapper;
@@ -51,23 +50,23 @@ namespace FitBot.Services
             _achievementInsertDateProp = GetPropertyMap<Achievement>(x => x.InsertDate);
         }
 
-        public virtual async Task<IEnumerable<T>> Query<T>(string sql, object parameters = null)
+        public virtual IEnumerable<T> Query<T>(string sql, object parameters = null)
         {
             using (var con = OpenConnection())
             {
-                return await con.QueryAsync<T>(sql, parameters);
+                return con.Query<T>(sql, parameters);
             }
         }
 
-        public virtual async Task<T> Single<T>(string sql, object parameters)
+        public virtual T Single<T>(string sql, object parameters)
         {
             using (var con = OpenConnection())
             {
-                return (await con.QueryAsync<T>(sql, parameters)).SingleOrDefault();
+                return con.Query<T>(sql, parameters).SingleOrDefault();
             }
         }
 
-        public Task<IEnumerable<User>> GetUsers()
+        public IEnumerable<User> GetUsers()
         {
             return Query<User>(
                 "select * " +
@@ -106,9 +105,9 @@ namespace FitBot.Services
             }
         }
 
-        public async Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime fromDate, DateTime toDate)
+        public IEnumerable<Workout> GetWorkouts(long userId, DateTime fromDate, DateTime toDate)
         {
-            return await Query<Workout>(
+            return Query<Workout>(
                 "select * " +
                 "from [Workout] " +
                 "where [UserId] = @userId " +
@@ -117,9 +116,9 @@ namespace FitBot.Services
                 "order by [Date], [Id]", new {userId, fromDate, toDate});
         }
 
-        public async Task<IEnumerable<long>> GetUnresolvedWorkoutIds(long userId, DateTime after)
+        public IEnumerable<long> GetUnresolvedWorkoutIds(long userId, DateTime after)
         {
-            return await Query<long>(
+            return Query<long>(
                 "select [Id] " +
                 "from [Workout] " +
                 "where [UserId] = @userId " +
@@ -193,9 +192,9 @@ namespace FitBot.Services
             }
         }
 
-        public async Task<IEnumerable<Achievement>> GetAchievements(long workoutId)
+        public IEnumerable<Achievement> GetAchievements(long workoutId)
         {
-            return await Query<Achievement>(
+            return Query<Achievement>(
                 "select * " +
                 "from [Achievement] " +
                 "where [WorkoutId] = @workoutId " +

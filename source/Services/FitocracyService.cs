@@ -4,7 +4,6 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Properties;
 using ServiceStack.Text;
@@ -32,27 +31,27 @@ namespace FitBot.Services
         {
             get
             {
-                EnsureAuthenticated().Wait();
+                EnsureAuthenticated();
                 return _selfUserId;
             }
         }
 
-        public async Task<IList<User>> GetFollowers(int pageNum)
+        public IList<User> GetFollowers(int pageNum)
         {
             Trace.TraceInformation("Get followers page " + pageNum);
-            await EnsureAuthenticated();
-            using (var stream = await _webRequest.Get("get-user-friends", new {followers = true, user = _username, page = pageNum}, "application/json"))
+            EnsureAuthenticated();
+            using (var stream = _webRequest.Get("get-user-friends", new {followers = true, user = _username, page = pageNum}, "application/json"))
             {
                 return JsonSerializer.DeserializeFromStream<IList<User>>(stream);
             }
         }
 
-        public async Task<IList<Workout>> GetWorkouts(long userId, int offset)
+        public IList<Workout> GetWorkouts(long userId, int offset)
         {
             Trace.TraceInformation("Get workouts for user {0} at offset {1}", userId, offset);
-            await EnsureAuthenticated();
+            EnsureAuthenticated();
 
-            using (var webStream = await _webRequest.Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html"))
+            using (var webStream = _webRequest.Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html"))
             {
                 Stream stream;
                 if (webStream.CanSeek)
@@ -83,14 +82,14 @@ namespace FitBot.Services
             }
         }
 
-        public async Task<Workout> GetWorkout(long workoutId)
+        public Workout GetWorkout(long workoutId)
         {
             Trace.TraceInformation("Get workout " + workoutId);
-            await EnsureAuthenticated();
+            EnsureAuthenticated();
 
             Workout workout;
 
-            using (var webStream = await _webRequest.Get("entry/" + workoutId, null, "text/html"))
+            using (var webStream = _webRequest.Get("entry/" + workoutId, null, "text/html"))
             {
                 Stream stream;
                 if (webStream.CanSeek)
@@ -133,35 +132,35 @@ namespace FitBot.Services
             }
         }
 
-        public async Task AddComment(long workoutId, string text)
+        public void AddComment(long workoutId, string text)
         {
             Trace.TraceInformation("Add comment on workout " + workoutId);
-            await EnsureAuthenticated();
-            await _webRequest.Post("add_comment", new {csrfmiddlewaretoken = _csrfToken, ag = workoutId, comment_text = text});
+            EnsureAuthenticated();
+            _webRequest.Post("add_comment", new {csrfmiddlewaretoken = _csrfToken, ag = workoutId, comment_text = text});
         }
 
-        public async Task DeleteComment(long commentId)
+        public void DeleteComment(long commentId)
         {
             Trace.TraceInformation("Delete comment " + commentId);
-            await EnsureAuthenticated();
-            await _webRequest.Post("delete_comment", new {csrfmiddlewaretoken = _csrfToken, id = commentId});
+            EnsureAuthenticated();
+            _webRequest.Post("delete_comment", new {csrfmiddlewaretoken = _csrfToken, id = commentId});
         }
 
-        public async Task GiveProp(long workoutId)
+        public void GiveProp(long workoutId)
         {
             Trace.TraceInformation("Give prop on workout " + workoutId);
-            await EnsureAuthenticated();
-            await _webRequest.Post("give_prop", new {csrfmiddlewaretoken = _csrfToken, id = workoutId});
+            EnsureAuthenticated();
+            _webRequest.Post("give_prop", new {csrfmiddlewaretoken = _csrfToken, id = workoutId});
         }
 
-        private async Task EnsureAuthenticated()
+        private void EnsureAuthenticated()
         {
             if (_csrfToken != null)
             {
                 return;
             }
 
-            using (await _webRequest.Get("accounts/login"))
+            using (_webRequest.Get("accounts/login"))
             {
             }
             var tokenCookie = _webRequest.Cookies.GetCookies(new Uri("https://www.fitocracy.com"))["csrftoken"];
@@ -171,7 +170,7 @@ namespace FitBot.Services
             }
             _csrfToken = tokenCookie.Value;
             var headers = new NameValueCollection();
-            await _webRequest.Post("accounts/login", new {csrfmiddlewaretoken = _csrfToken, username = _username, password = _password, json = 1, is_username = 1}, headers);
+            _webRequest.Post("accounts/login", new {csrfmiddlewaretoken = _csrfToken, username = _username, password = _password, json = 1, is_username = 1}, headers);
 
             if (!long.TryParse(headers["X-Fitocracy-User"], out _selfUserId))
             {

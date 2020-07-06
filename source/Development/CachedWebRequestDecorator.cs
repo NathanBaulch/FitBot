@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading.Tasks;
 using FitBot.Services;
 
 namespace FitBot.Development
@@ -26,7 +25,7 @@ namespace FitBot.Development
             set => _decorated.Cookies = value;
         }
 
-        public async Task<Stream> Get(string endpoint, object args, string expectedContentType)
+        public Stream Get(string endpoint, object args, string expectedContentType)
         {
             var cacheFileName = Path.Combine(_cacheDir, string.Concat((endpoint + "_" + args).Replace(" ", "").Split(Path.GetInvalidFileNameChars())));
             if (endpoint == "accounts/login")
@@ -41,11 +40,11 @@ namespace FitBot.Development
                     }
                     return Stream.Null;
                 }
-                return await _decorated.Get(endpoint, args, expectedContentType);
+                return _decorated.Get(endpoint, args, expectedContentType);
             }
             if (!File.Exists(cacheFileName))
             {
-                using (var source = await _decorated.Get(endpoint, args, expectedContentType))
+                using (var source = _decorated.Get(endpoint, args, expectedContentType))
                 using (var destination = File.OpenWrite(cacheFileName))
                 {
                     source.CopyTo(destination);
@@ -54,14 +53,14 @@ namespace FitBot.Development
             return File.OpenRead(Path.Combine(_cacheDir, cacheFileName));
         }
 
-        public async Task Post(string endpoint, object data, NameValueCollection headers)
+        public void Post(string endpoint, object data, NameValueCollection headers)
         {
             if (endpoint == "accounts/login")
             {
                 var cacheFileName = Path.Combine(_cacheDir, "accountslogin_");
                 if (!File.Exists(cacheFileName))
                 {
-                    await _decorated.Post(endpoint, data, headers);
+                    _decorated.Post(endpoint, data, headers);
                     using (var stream = File.OpenWrite(cacheFileName))
                     {
                         var formatter = new BinaryFormatter();

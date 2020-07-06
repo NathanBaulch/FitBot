@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using FitBot.Model;
 
 namespace FitBot.Services
@@ -18,17 +17,17 @@ namespace FitBot.Services
             _fitocracy = fitocracy;
         }
 
-        public async Task<IEnumerable<User>> Pull(CancellationToken cancel = default)
+        public IEnumerable<User> Pull(CancellationToken cancel = default)
         {
             var users = new List<User>();
 
-            var staleUsers = (await _database.GetUsers()).ToDictionary(user => user.Id);
+            var staleUsers = _database.GetUsers().ToDictionary(user => user.Id);
             var newUsers = new List<User>();
             var pageNum = 0;
             var processedIds = new HashSet<long>();
             while (true)
             {
-                var freshUsers = await _fitocracy.GetFollowers(pageNum);
+                var freshUsers = _fitocracy.GetFollowers(pageNum);
                 if (freshUsers.Count == 0)
                 {
                     break;

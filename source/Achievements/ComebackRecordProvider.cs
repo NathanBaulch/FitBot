@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Services;
 
@@ -18,7 +17,7 @@ namespace FitBot.Achievements
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<Achievement>> Execute(Workout workout)
+        public IEnumerable<Achievement> Execute(Workout workout)
         {
             var achievements = new List<Achievement>();
 
@@ -40,13 +39,13 @@ namespace FitBot.Achievements
                                       .OrderByDescending(set => set.Weight)
                                       .ThenByDescending(set => set.Repetitions)
                                       .FirstOrDefault();
-                    if (max == null || (max.Weight == null && max.Repetitions == null))
+                    if (max == null || max.Weight == null && max.Repetitions == null)
                     {
                         continue;
                     }
 
                     var fromDate = workout.Date.AddYears(-1);
-                    var lastYearMax = await _database.Single<dynamic>(
+                    var lastYearMax = _database.Single<dynamic>(
                         "select top 1 s.[Weight], s.[Repetitions] " +
                         "from [Workout] w, [Activity] a, [Set] s " +
                         "where w.[Id] = a.[WorkoutId] " +
@@ -57,13 +56,13 @@ namespace FitBot.Achievements
                         "order by s.[Weight] desc, s.[Repetitions] desc", new {workout.UserId, fromDate, activity.Name});
                     if (lastYearMax == null ||
                         max.Weight > lastYearMax.Weight ||
-                        (max.Weight == lastYearMax.Weight && max.Repetitions > lastYearMax.Repetitions) ||
+                        max.Weight == lastYearMax.Weight && max.Repetitions > lastYearMax.Repetitions ||
                         max.Weight*2 <= lastYearMax.Weight)
                     {
                         continue;
                     }
 
-                    var thisYearMax = await _database.Single<dynamic>(
+                    var thisYearMax = _database.Single<dynamic>(
                         "select top 1 s.[Weight], s.[Repetitions] " +
                         "from [Workout] w, [Activity] a, [Set] s " +
                         "where w.[Id] = a.[WorkoutId] " +
@@ -143,7 +142,7 @@ namespace FitBot.Achievements
                     }
 
                     var fromDate = workout.Date.AddYears(-1);
-                    var lastYearMax = await _database.Single<decimal?>(
+                    var lastYearMax = _database.Single<decimal?>(
                         "select max(s.[" + column + "]) " +
                         "from [Workout] w, [Activity] a, [Set] s " +
                         "where w.[Id] = a.[WorkoutId] " +
@@ -156,7 +155,7 @@ namespace FitBot.Achievements
                         continue;
                     }
 
-                    var thisYearCount = await _database.Single<int>(
+                    var thisYearCount = _database.Single<int>(
                         "select count(*) " +
                         "from [Workout] w, [Activity] a, [Set] s " +
                         "where w.[Id] = a.[WorkoutId] " +

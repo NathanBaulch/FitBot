@@ -22,7 +22,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 2000}}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -42,7 +42,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -57,7 +57,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set(), new Set()}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -72,7 +72,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 1000}}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -88,7 +88,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 1000}}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -105,7 +105,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 2000}, new Set {Distance = 2000}}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
@@ -120,7 +120,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 400}, new Set {Distance = 400}}}}};
 
-            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }

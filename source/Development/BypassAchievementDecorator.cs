@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Services;
 
@@ -13,9 +12,9 @@ namespace FitBot.Development
         {
         }
 
-        public Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel = default)
+        public IEnumerable<Achievement> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel = default)
         {
-            return Task.FromResult(Enumerable.Empty<Achievement>());
+            return Enumerable.Empty<Achievement>();
         }
     }
 }

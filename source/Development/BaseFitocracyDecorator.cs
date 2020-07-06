@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Services;
 
@@ -16,34 +15,34 @@ namespace FitBot.Development
 
         public long SelfUserId => _decorated.SelfUserId;
 
-        public virtual Task<IList<User>> GetFollowers(int pageNum = 0)
+        public virtual IList<User> GetFollowers(int pageNum = 0)
         {
             return _decorated.GetFollowers(pageNum);
         }
 
-        public virtual Task<IList<Workout>> GetWorkouts(long userId, int offset = 0)
+        public virtual IList<Workout> GetWorkouts(long userId, int offset = 0)
         {
             return _decorated.GetWorkouts(userId, offset);
         }
 
-        public virtual Task<Workout> GetWorkout(long workoutId)
+        public virtual Workout GetWorkout(long workoutId)
         {
             return _decorated.GetWorkout(workoutId);
         }
 
-        public virtual Task AddComment(long workoutId, string text)
+        public virtual void AddComment(long workoutId, string text)
         {
-            return _decorated.AddComment(workoutId, text);
+            _decorated.AddComment(workoutId, text);
         }
 
-        public virtual Task DeleteComment(long commentId)
+        public virtual void DeleteComment(long commentId)
         {
-            return _decorated.DeleteComment(commentId);
+            _decorated.DeleteComment(commentId);
         }
 
-        public virtual Task GiveProp(long workoutId)
+        public virtual void GiveProp(long workoutId)
         {
-            return _decorated.GiveProp(workoutId);
+            _decorated.GiveProp(workoutId);
         }
     }
 }

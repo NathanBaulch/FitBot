@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Services;
 
@@ -17,15 +16,15 @@ namespace FitBot.Achievements
             _database = database;
         }
 
-        public async Task<IEnumerable<Achievement>> Execute(Workout workout)
+        public IEnumerable<Achievement> Execute(Workout workout)
         {
-            var offset = (int) (await _database.Single<int>(
+            var offset = (int) (_database.Single<int>(
                 "select count(*) " +
                 "from [Workout] " +
                 "where [UserId] = @UserId", new {workout.UserId})*Percentile);
             if (offset > 0)
             {
-                var threshold = await _database.Single<int>(
+                var threshold = _database.Single<int>(
                     "select [Points] " +
                     "from [Workout] " +
                     "where [UserId] = @UserId " +

@@ -22,7 +22,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 100000}}}}};
 
-            var achievements = new LifetimeMilestoneProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new LifetimeMilestoneProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -42,7 +42,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 100000}}}}};
 
-            var achievements = new LifetimeMilestoneProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new LifetimeMilestoneProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements, Is.Empty);
         }
@@ -58,7 +58,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 100000}}}}};
 
-            var achievements = new LifetimeMilestoneProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new LifetimeMilestoneProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements, Is.Empty);
         }
@@ -74,7 +74,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 100000}}}}};
 
-            var achievements = new LifetimeMilestoneProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = new LifetimeMilestoneProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements, Is.Empty);
         }

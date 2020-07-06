@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.ServiceProcess;
 using System.Threading;
-using System.Threading.Tasks;
 using FitBot.Achievements;
 using FitBot.Services;
 using SimpleInjector;
@@ -14,7 +13,6 @@ namespace FitBot
     {
         private Container _container;
         private CancellationTokenSource _cancelSource;
-        private Task _task;
 
         public void Start()
         {
@@ -45,19 +43,12 @@ namespace FitBot
             _container.Verify();
 
             _cancelSource = new CancellationTokenSource();
-            _task = Task.Factory.StartNew(Run, _cancelSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            Run();
         }
 
         protected override void OnStop()
         {
             _cancelSource.Cancel();
-            try
-            {
-                _task.Wait();
-            }
-            catch
-            {
-            }
         }
 
         private void Run()
@@ -71,7 +62,7 @@ namespace FitBot
 
                 try
                 {
-                    Execute(_container).Wait();
+                    Execute(_container);
                     errorBackoff = 0;
                 }
                 catch (Exception ex)
@@ -109,18 +100,18 @@ namespace FitBot
             }
         }
 
-        private async Task Execute(Container container)
+        private void Execute(Container container)
         {
             var userPull = container.GetInstance<IUserPullService>();
             var workoutPull = container.GetInstance<IWorkoutPullService>();
             var achieveService = container.GetInstance<IAchievementService>();
             var achievementPush = container.GetInstance<IAchievementPushService>();
 
-            foreach (var user in await userPull.Pull(_cancelSource.Token))
+            foreach (var user in userPull.Pull(_cancelSource.Token))
             {
-                var workouts = await workoutPull.Pull(user, _cancelSource.Token);
-                var achievements = await achieveService.Process(user, workouts, _cancelSource.Token);
-                await achievementPush.Push(achievements, _cancelSource.Token);
+                var workouts = workoutPull.Pull(user, _cancelSource.Token);
+                var achievements = achieveService.Process(user, workouts, _cancelSource.Token);
+                achievementPush.Push(achievements, _cancelSource.Token);
             }
         }
     }

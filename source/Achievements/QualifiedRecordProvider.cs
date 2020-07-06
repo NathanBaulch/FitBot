@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Services;
 
@@ -21,7 +20,7 @@ namespace FitBot.Achievements
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<Achievement>> Execute(Workout workout)
+        public IEnumerable<Achievement> Execute(Workout workout)
         {
             var achievements = new List<Achievement>();
 
@@ -45,16 +44,16 @@ namespace FitBot.Achievements
                             foreach (var set in sets)
                             {
                                 if (sets.Any(item => item != set &&
-                                                     ((item.Distance >= set.Distance && item.Speed > set.Speed) ||
-                                                      (item.Distance > set.Distance && item.Speed >= set.Speed) ||
-                                                      (item.Distance == set.Distance && item.Speed == set.Speed &&
-                                                       (item.ActivitySeq > set.ActivitySeq ||
-                                                        item.ActivitySeq == set.ActivitySeq && item.SetSeq > set.SetSeq)))))
+                                                     (item.Distance >= set.Distance && item.Speed > set.Speed ||
+                                                      item.Distance > set.Distance && item.Speed >= set.Speed ||
+                                                      item.Distance == set.Distance && item.Speed == set.Speed &&
+                                                      (item.ActivitySeq > set.ActivitySeq ||
+                                                       item.ActivitySeq == set.ActivitySeq && item.SetSeq > set.SetSeq))))
                                 {
                                     continue;
                                 }
 
-                                var previousMax = await _database.Single<decimal?>(
+                                var previousMax = _database.Single<decimal?>(
                                     "select max(coalesce(s.[Speed], s.[Distance]/s.[Duration])) " +
                                     "from [Workout] w, [Activity] a, [Set] s " +
                                     "where w.[Id] = a.[WorkoutId] " +
@@ -94,16 +93,16 @@ namespace FitBot.Achievements
                             foreach (var set in sets)
                             {
                                 if (sets.Any(item => item != set &&
-                                                     ((item.Weight >= set.Weight && item.Repetitions > set.Repetitions) ||
-                                                      (item.Weight > set.Weight && item.Repetitions >= set.Repetitions) ||
-                                                      (item.Weight == set.Weight && item.Repetitions == set.Repetitions &&
-                                                       (item.ActivitySeq > set.ActivitySeq ||
-                                                        item.ActivitySeq == set.ActivitySeq && item.SetSeq > set.SetSeq)))))
+                                                     (item.Weight >= set.Weight && item.Repetitions > set.Repetitions ||
+                                                      item.Weight > set.Weight && item.Repetitions >= set.Repetitions ||
+                                                      item.Weight == set.Weight && item.Repetitions == set.Repetitions &&
+                                                      (item.ActivitySeq > set.ActivitySeq ||
+                                                       item.ActivitySeq == set.ActivitySeq && item.SetSeq > set.SetSeq))))
                                 {
                                     continue;
                                 }
 
-                                var previousMax = await _database.Single<decimal?>(
+                                var previousMax = _database.Single<decimal?>(
                                     "select max(s.[Repetitions]) " +
                                     "from [Workout] w, [Activity] a, [Set] s " +
                                     "where w.[Id] = a.[WorkoutId] " +
