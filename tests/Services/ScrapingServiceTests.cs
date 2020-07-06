@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using FitBot.Services;
 using NUnit.Framework;
@@ -23,7 +24,7 @@ namespace FitBot.Test.Services
             var workouts = new ScrapingService().ExtractWorkouts(new MemoryStream(Encoding.UTF8.GetBytes(html)), 0);
 
             Assert.That(workouts.Count, Is.EqualTo(1));
-            var workout = workouts[0];
+            var workout = workouts.First();
             Assert.That(workout.Id, Is.EqualTo(123));
             Assert.That(workout.UserId, Is.EqualTo(456));
             Assert.That(workout.Date, Is.EqualTo(new DateTime(2015, 1, 1)));

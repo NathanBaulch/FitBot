@@ -12,7 +12,7 @@ namespace FitBot.Development
         {
         }
 
-        public Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel = default(CancellationToken))
+        public Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel = default)
         {
             return Task.FromResult<object>(null);
         }

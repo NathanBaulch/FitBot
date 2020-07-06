@@ -7,6 +7,6 @@ namespace FitBot.Services
 {
     public interface IAchievementPushService
     {
-        Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel = default(CancellationToken));
+        Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel = default);
     }
 }

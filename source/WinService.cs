@@ -35,7 +35,7 @@ namespace FitBot
             _container.RegisterSingleton<IWebRequestService, WebRequestService>();
             _container.RegisterSingleton<IWorkoutPullService, WorkoutPullService>();
 
-            _container.RegisterCollection<IAchievementProvider>(
+            _container.Collection.Register<IAchievementProvider>(
                 GetType().Assembly.GetTypes()
                          .Where(typeof (IAchievementProvider).IsAssignableFrom)
                          .Where(type => type.IsClass));

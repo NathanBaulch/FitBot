@@ -20,7 +20,7 @@ namespace FitBot.Services
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<Workout>> Pull(User user, CancellationToken cancel = default(CancellationToken))
+        public async Task<IEnumerable<Workout>> Pull(User user, CancellationToken cancel = default)
         {
             var workouts = new List<Workout>();
 

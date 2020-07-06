@@ -14,7 +14,7 @@ namespace FitBot.Services
             _fitocracy = fitocracy;
         }
 
-        public async Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel = default(CancellationToken))
+        public async Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel = default)
         {
             foreach (var achievement in achievements)
             {

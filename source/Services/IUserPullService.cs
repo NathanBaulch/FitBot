@@ -7,6 +7,6 @@ namespace FitBot.Services
 {
     public interface IUserPullService
     {
-        Task<IEnumerable<User>> Pull(CancellationToken cancel = default(CancellationToken));
+        Task<IEnumerable<User>> Pull(CancellationToken cancel = default);
     }
 }

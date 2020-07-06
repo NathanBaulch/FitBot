@@ -20,7 +20,7 @@ namespace FitBot.Services
             _providers = providers.ToList();
         }
 
-        public async Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel = default(CancellationToken))
+        public async Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel = default)
         {
             var achievements = new List<Achievement>();
 

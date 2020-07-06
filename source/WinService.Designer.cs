@@ -32,7 +32,6 @@
             // WinService
             // 
             this.ServiceName = "FitBot";
-
         }
 
         #endregion

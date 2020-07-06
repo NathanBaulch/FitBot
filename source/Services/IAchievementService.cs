@@ -7,6 +7,6 @@ namespace FitBot.Services
 {
     public interface IAchievementService
     {
-        Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel = default(CancellationToken));
+        Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel = default);
     }
 }
