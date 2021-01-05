@@ -33,25 +33,21 @@ namespace FitBot.Development
             {
                 if (File.Exists(cacheFileName))
                 {
-                    using (var stream = File.OpenRead(cacheFileName))
-                    {
-                        var formatter = new BinaryFormatter();
+                    await using var stream = File.OpenRead(cacheFileName);
+                    var formatter = new BinaryFormatter();
 #pragma warning disable 618,SYSLIB0011
-                        Cookies = (CookieContainer) formatter.Deserialize(stream);
-                        _headers = (NameValueCollection) formatter.Deserialize(stream);
+                    Cookies = (CookieContainer) formatter.Deserialize(stream);
+                    _headers = (NameValueCollection) formatter.Deserialize(stream);
 #pragma warning restore 618,SYSLIB0011
-                    }
                     return Stream.Null;
                 }
                 return await _decorated.Get(endpoint, args, expectedContentType);
             }
             if (!File.Exists(cacheFileName))
             {
-                using (var source = await _decorated.Get(endpoint, args, expectedContentType))
-                using (var destination = File.OpenWrite(cacheFileName))
-                {
-                    source.CopyTo(destination);
-                }
+                await using var source = await _decorated.Get(endpoint, args, expectedContentType);
+                await using var destination = File.OpenWrite(cacheFileName);
+                await source.CopyToAsync(destination);
             }
             return File.OpenRead(Path.Combine(_cacheDir, cacheFileName));
         }
@@ -64,14 +60,12 @@ namespace FitBot.Development
                 if (!File.Exists(cacheFileName))
                 {
                     await _decorated.Post(endpoint, data, headers);
-                    using (var stream = File.OpenWrite(cacheFileName))
-                    {
-                        var formatter = new BinaryFormatter();
+                    await using var stream = File.OpenWrite(cacheFileName);
+                    var formatter = new BinaryFormatter();
 #pragma warning disable 618,SYSLIB0011
-                        formatter.Serialize(stream, Cookies);
-                        formatter.Serialize(stream, headers);
+                    formatter.Serialize(stream, Cookies);
+                    formatter.Serialize(stream, headers);
 #pragma warning restore 618,SYSLIB0011
-                    }
                 }
                 else if (headers != null)
                 {

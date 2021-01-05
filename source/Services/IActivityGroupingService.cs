@@ -2,7 +2,7 @@
 {
     public interface IActivityGroupingService
     {
-        string GetActvityGroup(string activityName);
+        string GetActivityGroup(string activityName);
         ActivityCategory? GetGroupCategory(string groupName);
     }
 

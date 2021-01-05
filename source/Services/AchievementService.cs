@@ -20,15 +20,15 @@ namespace FitBot.Services
             _providers = providers.ToList();
         }
 
-        public async Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel = default)
+        public async Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel)
         {
             var achievements = new List<Achievement>();
 
             foreach (var workout in workouts)
             {
                 var latestAchievements = await (workout.State == WorkoutState.Unresolved
-                                                    ? _database.GetAchievements(workout.Id)
-                                                    : ProcessAchievements(workout));
+                    ? _database.GetAchievements(workout.Id)
+                    : ProcessAchievements(workout));
                 latestAchievements = ProcessComments(workout, latestAchievements).ToList();
 
                 if (workout.Date > user.InsertDate.AddDays(-7) && workout.Date > DateTime.UtcNow.AddDays(-30))
@@ -71,6 +71,10 @@ namespace FitBot.Services
                         achievement.Id = staleAchievement.Id;
                         _database.Update(achievement);
                     }
+                    else
+                    {
+                        achievement.Id = staleAchievement.Id;
+                    }
 
                     staleAchievements.Remove(staleAchievement);
                 }
@@ -103,7 +107,7 @@ namespace FitBot.Services
                     }
                     else
                     {
-                        Trace.TraceInformation($"Comment {achievement.CommentId} missing on workout {workout.Id}");
+                        Trace.TraceInformation("Comment {0} missing on workout {1}", achievement.CommentId, workout.Id);
                     }
                 }
                 else

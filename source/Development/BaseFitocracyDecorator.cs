@@ -9,41 +9,20 @@ namespace FitBot.Development
     {
         private readonly IFitocracyService _decorated;
 
-        protected BaseFitocracyDecorator(IFitocracyService decorated)
-        {
-            _decorated = decorated;
-        }
+        protected BaseFitocracyDecorator(IFitocracyService decorated) => _decorated = decorated;
 
         public long SelfUserId => _decorated.SelfUserId;
 
-        public virtual Task<IList<User>> GetFollowers(int pageNum = 0)
-        {
-            return _decorated.GetFollowers(pageNum);
-        }
+        public virtual Task<IList<User>> GetFollowers(int pageNum) => _decorated.GetFollowers(pageNum);
 
-        public virtual Task<IList<Workout>> GetWorkouts(long userId, int offset = 0)
-        {
-            return _decorated.GetWorkouts(userId, offset);
-        }
+        public virtual Task<IList<Workout>> GetWorkouts(long userId, int offset) => _decorated.GetWorkouts(userId, offset);
 
-        public virtual Task<Workout> GetWorkout(long workoutId)
-        {
-            return _decorated.GetWorkout(workoutId);
-        }
+        public virtual Task<Workout> GetWorkout(long workoutId) => _decorated.GetWorkout(workoutId);
 
-        public virtual Task AddComment(long workoutId, string text)
-        {
-            return _decorated.AddComment(workoutId, text);
-        }
+        public virtual Task AddComment(long workoutId, string text) => _decorated.AddComment(workoutId, text);
 
-        public virtual Task DeleteComment(long commentId)
-        {
-            return _decorated.DeleteComment(commentId);
-        }
+        public virtual Task DeleteComment(long commentId) => _decorated.DeleteComment(commentId);
 
-        public virtual Task GiveProp(long workoutId)
-        {
-            return _decorated.GiveProp(workoutId);
-        }
+        public virtual Task GiveProp(long workoutId) => _decorated.GiveProp(workoutId);
     }
 }

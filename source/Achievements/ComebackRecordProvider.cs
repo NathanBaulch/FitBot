@@ -23,10 +23,10 @@ namespace FitBot.Achievements
             var achievements = new List<Achievement>();
 
             foreach (var activity in workout.Activities
-                                            .Where(activity => activity.Group != null)
-                                            .GroupBy(activity => new {activity.Group, activity.Name})
-                                            .Select(group => new {group.Key.Group, group.Key.Name, Sets = group.SelectMany(activity => activity.Sets).ToList()})
-                                            .Where(activity => !activity.Sets.Any(set => set.IsPr)))
+                .Where(activity => activity.Group != null)
+                .GroupBy(activity => new {activity.Group, activity.Name})
+                .Select(group => new {group.Key.Group, group.Key.Name, Sets = group.SelectMany(activity => activity.Sets).ToList()})
+                .Where(activity => !activity.Sets.Any(set => set.IsPr)))
             {
                 var category = _grouping.GetGroupCategory(activity.Group);
                 if (category == null)
@@ -37,9 +37,9 @@ namespace FitBot.Achievements
                 if (category == ActivityCategory.Weights)
                 {
                     var max = activity.Sets
-                                      .OrderByDescending(set => set.Weight)
-                                      .ThenByDescending(set => set.Repetitions)
-                                      .FirstOrDefault();
+                        .OrderByDescending(set => set.Weight)
+                        .ThenByDescending(set => set.Repetitions)
+                        .FirstOrDefault();
                     if (max == null || (max.Weight == null && max.Repetitions == null))
                     {
                         continue;
@@ -58,7 +58,7 @@ namespace FitBot.Achievements
                     if (lastYearMax == null ||
                         max.Weight > lastYearMax.Weight ||
                         (max.Weight == lastYearMax.Weight && max.Repetitions > lastYearMax.Repetitions) ||
-                        max.Weight*2 <= lastYearMax.Weight)
+                        max.Weight * 2 <= lastYearMax.Weight)
                     {
                         continue;
                     }
@@ -104,39 +104,24 @@ namespace FitBot.Achievements
                 }
                 else
                 {
-                    string column;
-                    switch (category)
-                    {
-                        case ActivityCategory.Cardio:
-                            column = "Distance";
-                            break;
-                        case ActivityCategory.Bodyweight:
-                            column = "Repetitions";
-                            break;
-                        case ActivityCategory.Sports:
-                            column = "Duration";
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+                    var column = category switch
+                        {
+                            ActivityCategory.Cardio => "Distance",
+                            ActivityCategory.Bodyweight => "Repetitions",
+                            ActivityCategory.Sports => "Duration",
+                            _ => throw new ArgumentOutOfRangeException()
+                        };
 
                     var max = activity.Sets
-                                      .Select(set =>
-                                          {
-                                              switch (category)
-                                              {
-                                                  case ActivityCategory.Cardio:
-                                                      return new {Value = set.Distance, set.IsImperial};
-                                                  case ActivityCategory.Bodyweight:
-                                                      return new {Value = set.Repetitions, set.IsImperial};
-                                                  case ActivityCategory.Sports:
-                                                      return new {Value = set.Duration, set.IsImperial};
-                                                  default:
-                                                      throw new ArgumentOutOfRangeException();
-                                              }
-                                          })
-                                      .OrderByDescending(set => set.Value)
-                                      .FirstOrDefault();
+                        .Select(set => category switch
+                            {
+                                ActivityCategory.Cardio => new {Value = set.Distance, set.IsImperial},
+                                ActivityCategory.Bodyweight => new {Value = set.Repetitions, set.IsImperial},
+                                ActivityCategory.Sports => new {Value = set.Duration, set.IsImperial},
+                                _ => throw new ArgumentOutOfRangeException()
+                            })
+                        .OrderByDescending(set => set.Value)
+                        .FirstOrDefault();
                     if (max?.Value == null)
                     {
                         continue;
@@ -151,7 +136,7 @@ namespace FitBot.Achievements
                         "and w.[UserId] = @UserId " +
                         "and w.[Date] < @fromDate " +
                         "and a.[Name] = @Name", new {workout.UserId, fromDate, activity.Name});
-                    if (lastYearMax == null || max.Value > lastYearMax || max.Value*2 <= lastYearMax)
+                    if (lastYearMax == null || max.Value > lastYearMax || max.Value * 2 <= lastYearMax)
                     {
                         continue;
                     }

@@ -14,7 +14,7 @@ namespace FitBot.Development
 
         public IEnumerable<User> Users { get; set; }
 
-        public override Task<IList<User>> GetFollowers(int pageNum = 0)
+        public override Task<IList<User>> GetFollowers(int pageNum)
         {
             var users = new List<User>();
             if (pageNum == 0)

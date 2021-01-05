@@ -10,12 +10,9 @@ namespace FitBot.Development
         private readonly string _username;
 
         public OnlyMeFitocracyDecorator(IFitocracyService decorated, string username)
-            : base(decorated)
-        {
-            _username = username;
-        }
+            : base(decorated) => _username = username;
 
-        public override Task<IList<User>> GetFollowers(int pageNum = 0)
+        public override Task<IList<User>> GetFollowers(int pageNum)
         {
             var users = new List<User>();
             if (pageNum == 0)

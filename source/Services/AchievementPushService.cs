@@ -9,12 +9,9 @@ namespace FitBot.Services
     {
         private readonly IFitocracyService _fitocracy;
 
-        public AchievementPushService(IFitocracyService fitocracy)
-        {
-            _fitocracy = fitocracy;
-        }
+        public AchievementPushService(IFitocracyService fitocracy) => _fitocracy = fitocracy;
 
-        public async Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel = default)
+        public async Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel)
         {
             foreach (var achievement in achievements)
             {

@@ -8,13 +8,10 @@ namespace FitBot.Development
 {
     public class BypassAchievementPushDecorator : IAchievementPushService
     {
-        public BypassAchievementPushDecorator(IAchievementPushService decorated)
+        public BypassAchievementPushDecorator(IAchievementPushService _)
         {
         }
 
-        public Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel = default)
-        {
-            return Task.FromResult<object>(null);
-        }
+        public Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel) => Task.CompletedTask;
     }
 }

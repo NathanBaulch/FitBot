@@ -12,7 +12,7 @@ namespace FitBot.Development
         {
         }
 
-        public override async Task<IList<User>> GetFollowers(int pageNum = 0)
+        public override async Task<IList<User>> GetFollowers(int pageNum)
         {
             var users = await base.GetFollowers(pageNum);
             if (pageNum == 0)

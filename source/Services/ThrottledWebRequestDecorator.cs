@@ -8,15 +8,11 @@ namespace FitBot.Services
 {
     public class ThrottledWebRequestDecorator : IWebRequestService
     {
-        private readonly Random _random = new Random();
+        private readonly Random _random = new();
         private readonly IWebRequestService _decorated;
-        private int _throttleFactor;
+        private int _throttleFactor = 10;
 
-        public ThrottledWebRequestDecorator(IWebRequestService decorated)
-        {
-            _decorated = decorated;
-            ThrottleFactor = 10;
-        }
+        public ThrottledWebRequestDecorator(IWebRequestService decorated) => _decorated = decorated;
 
         public int ThrottleFactor
         {
@@ -42,9 +38,6 @@ namespace FitBot.Services
             await _decorated.Post(endpoint, data, headers);
         }
 
-        private Task Delay()
-        {
-            return Task.Delay((int) ((1 << ThrottleFactor)*(1 + _random.NextDouble())));
-        }
+        private Task Delay() => Task.Delay((int) ((1 << ThrottleFactor) * (1 + _random.NextDouble())));
     }
 }

@@ -16,12 +16,10 @@ namespace FitBot.Model
         public WorkoutState State { get; set; }
         public IList<Comment> Comments { get; set; }
 
-        public bool HasChanges(Workout workout)
-        {
-            return Date != workout.Date ||
-                   Points != workout.Points ||
-                   ActivitiesHash != workout.ActivitiesHash;
-        }
+        public bool HasChanges(Workout workout) =>
+            Date != workout.Date ||
+            Points != workout.Points ||
+            ActivitiesHash != workout.ActivitiesHash;
     }
 
     public enum WorkoutState

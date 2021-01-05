@@ -16,12 +16,7 @@ namespace FitBot.Services
     {
         private const string RootUrl = "https://www.fitocracy.com/";
 
-        public WebRequestService()
-        {
-            Cookies = new CookieContainer();
-        }
-
-        public CookieContainer Cookies { get; set; }
+        public CookieContainer Cookies { get; set; } = new();
 
         public async Task<Stream> Get(string endpoint, object args, string expectedContentType)
         {
@@ -35,16 +30,10 @@ namespace FitBot.Services
             {
                 return await GetInternal(url, expectedContentType);
             }
-            catch (WebException ex)
+            catch (WebException ex) when (ex.Status == WebExceptionStatus.Timeout ||
+                                          ex.Status == WebExceptionStatus.KeepAliveFailure ||
+                                          ((HttpWebResponse) ex.Response)?.StatusCode == HttpStatusCode.GatewayTimeout)
             {
-                if (ex.Status != WebExceptionStatus.Timeout &&
-                    ex.Status != WebExceptionStatus.KeepAliveFailure &&
-                    ex.Response != null &&
-                    ((HttpWebResponse) ex.Response).StatusCode != HttpStatusCode.GatewayTimeout)
-                {
-                    throw;
-                }
-
                 Trace.TraceWarning(ex.Message + ", retrying in 10 seconds");
                 await Task.Delay(TimeSpan.FromSeconds(10));
                 return await GetInternal(url, expectedContentType);
@@ -53,43 +42,45 @@ namespace FitBot.Services
 
         private async Task<Stream> GetInternal(string url, string expectedContentType)
         {
-            var request = (HttpWebRequest) WebRequest.Create(url);
+            var request = WebRequest.CreateHttp(url);
             request.CookieContainer = Cookies;
             request.UserAgent = "FitBot";
             var response = await request.GetResponseAsync();
-            AssertResponseContentType(request, response, expectedContentType);
+            await AssertResponseContentType(request, response, expectedContentType);
             return response.GetResponseStream();
         }
 
         public async Task Post(string endpoint, object data, NameValueCollection headers)
         {
             var url = RootUrl + endpoint + "/";
-            var request = (HttpWebRequest) WebRequest.Create(url);
+            var request = WebRequest.CreateHttp(url);
             request.CookieContainer = Cookies;
             request.Method = "POST";
             request.Referer = url;
             request.UserAgent = "FitBot";
             if (data != null)
             {
-                using (var stream = await request.GetRequestStreamAsync())
-                {
-                    var bytes = Encoding.UTF8.GetBytes(FormatArgs(data));
-                    await stream.WriteAsync(bytes, 0, bytes.Length);
-                }
+                await using var stream = await request.GetRequestStreamAsync();
+                var bytes = Encoding.UTF8.GetBytes(FormatArgs(data));
+                await stream.WriteAsync(bytes.AsMemory(0, bytes.Length));
             }
 
             var response = await request.GetResponseAsync();
-            AssertResponseContentType(request, response, "application/json");
+            await AssertResponseContentType(request, response, "application/json");
 
             JsonObject json;
-            using (var stream = response.GetResponseStream())
+            await using (var stream = response.GetResponseStream())
             {
                 json = JsonSerializer.DeserializeFromStream<JsonObject>(stream);
             }
 
             if (json != null && json["success"] != "true" && json["result"] != "true")
             {
-                DumpLogFile(request, response, file => JsonSerializer.SerializeToStream(json, file));
+                await DumpLogFile(request, response, file =>
+                {
+                    JsonSerializer.SerializeToStream(json, file);
+                    return Task.CompletedTask;
+                });
 
                 if (!string.IsNullOrEmpty(json["error"]))
                 {
@@ -120,46 +111,40 @@ namespace FitBot.Services
                     .Select(prop => $"{HttpUtility.UrlEncode(prop.Name)}={HttpUtility.UrlEncode(prop.GetValue(args).ToString())}"));
         }
 
-        private static void AssertResponseContentType(WebRequest request, WebResponse response, string expectedContentType)
+        private static async Task AssertResponseContentType(WebRequest request, WebResponse response, string expectedContentType)
         {
             if (expectedContentType != null &&
                 expectedContentType != response.ContentType &&
                 new ContentType(expectedContentType).MediaType != new ContentType(response.ContentType).MediaType)
             {
-                using (var stream = response.GetResponseStream())
-                {
-                    DumpLogFile(request, response, stream.CopyTo);
-                }
+                await using var stream = response.GetResponseStream();
+                await DumpLogFile(request, response, stream.CopyToAsync);
 
                 throw new ApplicationException($"Unexpected content type '{response.ContentType}' in response from '{request.RequestUri}'");
             }
         }
 
-        private static void DumpLogFile(WebRequest request, WebResponse response, Action<Stream> writeContent)
+        private static async Task DumpLogFile(WebRequest request, WebResponse response, Func<Stream, Task> writeContent)
         {
-            using (var file = File.OpenWrite(string.Join("_", DateTime.UtcNow.ToString("yyyyMMddHHmmss"), nameof(WebRequestService)) + ".log"))
+            await using var file = File.OpenWrite(string.Join("_", DateTime.UtcNow.ToString("yyyyMMddHHmmss"), nameof(WebRequestService)) + ".log");
+            await using var writer = new StreamWriter(file);
+            await writer.WriteAsync(request.Method);
+            await writer.WriteAsync(" ");
+            writer.WriteLine(request.RequestUri);
+            foreach (string key in request.Headers)
             {
-                using (var writer = new StreamWriter(file))
-                {
-                    writer.Write(request.Method);
-                    writer.Write(" ");
-                    writer.WriteLine(request.RequestUri);
-                    foreach (string key in request.Headers)
-                    {
-                        writer.WriteLine($"{key}: {request.Headers[key]}");
-                    }
-                    writer.WriteLine();
-
-                    foreach (string key in response.Headers)
-                    {
-                        writer.WriteLine($"{key}: {response.Headers[key]}");
-                    }
-                    writer.WriteLine();
-
-                    writer.Flush();
-                    writeContent(file);
-                }
+                await writer.WriteLineAsync($"{key}: {request.Headers[key]}");
             }
+            await writer.WriteLineAsync();
+
+            foreach (string key in response.Headers)
+            {
+                await writer.WriteLineAsync($"{key}: {response.Headers[key]}");
+            }
+            await writer.WriteLineAsync();
+
+            await writer.FlushAsync();
+            await writeContent(file);
         }
     }
 }
