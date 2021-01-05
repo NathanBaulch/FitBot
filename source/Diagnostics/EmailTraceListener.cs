@@ -2,12 +2,17 @@
 using System.IO;
 using System.Net;
 using System.Net.Mail;
-using FitBot.Properties;
 
 namespace FitBot.Diagnostics
 {
     public class EmailTraceListener : TraceListener
     {
+        public string Server { get; init; }
+        public string Username { get; init; }
+        public string Password { get; init; }
+        public string From { get; init; }
+        public string To { get; init; }
+
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
         {
             TraceEvent(eventCache, source, eventType, id, message, new object[0]);
@@ -20,9 +25,9 @@ namespace FitBot.Diagnostics
                 return;
             }
 
-            var client = new SmtpClient(Settings.Default.SmtpServer)
+            var client = new SmtpClient(Server)
                 {
-                    Credentials = new NetworkCredential(Settings.Default.SmtpUsername, Settings.Default.SmtpPassword),
+                    Credentials = new NetworkCredential(Username, Password),
                     EnableSsl = true
                 };
             var body = string.Format(format, args);
@@ -33,8 +38,8 @@ namespace FitBot.Diagnostics
             }
             var msg = new MailMessage
                 {
-                    From = new MailAddress(Settings.Default.NotificationFrom, "FitBot"),
-                    To = {Settings.Default.NotificationTo},
+                    From = new MailAddress(From, "FitBot"),
+                    To = {To},
                     Subject = $"{eventType} - {firstLine}",
                     Body = body
                 };

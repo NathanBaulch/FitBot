@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -12,9 +11,16 @@ using Dapper;
 using DapperExtensions;
 using DapperExtensions.Mapper;
 using FitBot.Model;
+using Activity = FitBot.Model.Activity;
 
 namespace FitBot.Services
 {
+    public record DatabaseOptions
+    {
+        public string ProviderName { get; init; }
+        public string ConnectionString { get; init; }
+    }
+
     public class DatabaseService : IDatabaseService
     {
         private readonly DbProviderFactory _factory;
@@ -24,20 +30,10 @@ namespace FitBot.Services
         private readonly IncludablePropertyMap _workoutInsertDateProp;
         private readonly IncludablePropertyMap _achievementInsertDateProp;
 
-        public DatabaseService()
-            : this(ConfigurationManager.ConnectionStrings["Default"])
+        public DatabaseService(DatabaseOptions options)
         {
-        }
-
-        private DatabaseService(ConnectionStringSettings setting)
-            : this(setting.ProviderName, setting.ConnectionString)
-        {
-        }
-
-        protected DatabaseService(string providerName, string connectionString)
-        {
-            _factory = DbProviderFactories.GetFactory(providerName);
-            _connectionString = connectionString;
+            _factory = DbProviderFactories.GetFactory(options.ProviderName);
+            _connectionString = options.ConnectionString;
 
             DapperExtensions.DapperExtensions.DefaultMapper = typeof (IncludableClassMapper<>);
             GetPropertyMap<User>(x => x.Id).Key(KeyType.Assigned);

@@ -94,7 +94,9 @@ namespace FitBot.Test.Services
     <ul class='action_detail'>
       <li>
         <div class='action_prompt'>Dummy</div>
-        <li> 1 lb | 1 yd | 1 mph <span class='action_prompt_points'>1</span></li>
+        <ul>
+          <li> 1 lb | 1 yd | 1 mph <span class='action_prompt_points'>1</span></li>
+        </ul>
       </li>
     </ul>
   </div>

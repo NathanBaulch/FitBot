@@ -6,11 +6,16 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FitBot.Model;
-using FitBot.Properties;
 using ServiceStack.Text;
 
 namespace FitBot.Services
 {
+    public record FitocracyOptions
+    {
+        public string Username { get; init; }
+        public string Password { get; init; }
+    }
+
     public class FitocracyService : IFitocracyService
     {
         private readonly IWebRequestService _webRequest;
@@ -20,12 +25,12 @@ namespace FitBot.Services
         private string _csrfToken;
         private long _selfUserId;
 
-        public FitocracyService(IWebRequestService webRequest, IScrapingService scraper)
+        public FitocracyService(IWebRequestService webRequest, IScrapingService scraper, FitocracyOptions options)
         {
             _webRequest = webRequest;
             _scraper = scraper;
-            _username = Settings.Default.FitocracyUsername;
-            _password = Settings.Default.FitocracyPassword;
+            _username = options.Username;
+            _password = options.Password;
         }
 
         public long SelfUserId

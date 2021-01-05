@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,6 +17,8 @@ namespace FitBot.Test
     {
         static SQLiteDatabaseService()
         {
+            DbProviderFactories.RegisterFactory("System.Data.SQLite", SQLiteFactory.Instance);
+
             SqlMapper.AddTypeHandler(new DecimalTypeHandler());
             SqlMapper.AddTypeHandler(new Int32TypeHandler());
             DapperExtensions.DapperExtensions.SqlDialect = new QuotedSqliteDialect();
@@ -32,7 +35,7 @@ namespace FitBot.Test
         }
 
         private SQLiteDatabaseService(string fileName, string providerName, string connectionString)
-            : base(providerName, connectionString)
+            : base(new DatabaseOptions {ProviderName = providerName, ConnectionString = connectionString})
         {
             File.Delete(fileName);
             var factory = DbProviderFactories.GetFactory(providerName);

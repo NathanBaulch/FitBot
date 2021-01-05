@@ -36,8 +36,10 @@ namespace FitBot.Development
                     using (var stream = File.OpenRead(cacheFileName))
                     {
                         var formatter = new BinaryFormatter();
+#pragma warning disable 618,SYSLIB0011
                         Cookies = (CookieContainer) formatter.Deserialize(stream);
                         _headers = (NameValueCollection) formatter.Deserialize(stream);
+#pragma warning restore 618,SYSLIB0011
                     }
                     return Stream.Null;
                 }
@@ -65,8 +67,10 @@ namespace FitBot.Development
                     using (var stream = File.OpenWrite(cacheFileName))
                     {
                         var formatter = new BinaryFormatter();
+#pragma warning disable 618,SYSLIB0011
                         formatter.Serialize(stream, Cookies);
                         formatter.Serialize(stream, headers);
+#pragma warning restore 618,SYSLIB0011
                     }
                 }
                 else if (headers != null)
