@@ -9,9 +9,6 @@ namespace FitBot.Model
         public DateTime InsertDate { get; set; }
         public DateTime? UpdateDate { get; set; }
 
-        public bool HasChanges(User user)
-        {
-            return Username != user.Username;
-        }
+        public bool HasChanges(User user) => Username != user.Username;
     }
 }

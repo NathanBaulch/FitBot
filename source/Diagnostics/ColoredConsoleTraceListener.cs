@@ -7,26 +7,19 @@ namespace FitBot.Diagnostics
 {
     public class ColoredConsoleTraceListener : ConsoleTraceListener
     {
-        private readonly Dictionary<TraceEventType, ConsoleColor> _eventColor;
+        private readonly Dictionary<TraceEventType, ConsoleColor> _eventColor = new()
+            {
+                {TraceEventType.Verbose, ConsoleColor.DarkGray},
+                {TraceEventType.Information, ConsoleColor.Gray},
+                {TraceEventType.Warning, ConsoleColor.Yellow},
+                {TraceEventType.Error, ConsoleColor.DarkRed},
+                {TraceEventType.Critical, ConsoleColor.Red},
+                {TraceEventType.Start, ConsoleColor.DarkCyan},
+                {TraceEventType.Stop, ConsoleColor.DarkCyan}
+            };
 
-        public ColoredConsoleTraceListener()
-        {
-            _eventColor = new Dictionary<TraceEventType, ConsoleColor>
-                {
-                    {TraceEventType.Verbose, ConsoleColor.DarkGray},
-                    {TraceEventType.Information, ConsoleColor.Gray},
-                    {TraceEventType.Warning, ConsoleColor.Yellow},
-                    {TraceEventType.Error, ConsoleColor.DarkRed},
-                    {TraceEventType.Critical, ConsoleColor.Red},
-                    {TraceEventType.Start, ConsoleColor.DarkCyan},
-                    {TraceEventType.Stop, ConsoleColor.DarkCyan}
-                };
-        }
-
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
-        {
-            TraceEvent(eventCache, source, eventType, id, message, new object[0]);
-        }
+        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message) =>
+            TraceEvent(eventCache, source, eventType, id, message, Array.Empty<object>());
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
         {

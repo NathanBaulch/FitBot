@@ -20,15 +20,13 @@ namespace FitBot.Model
         public DateTime InsertDate { get; set; }
         public DateTime? UpdateDate { get; set; }
 
-        public bool HasChanges(Achievement achievement)
-        {
-            return Distance != achievement.Distance ||
-                   Duration != achievement.Duration ||
-                   Speed != achievement.Speed ||
-                   Repetitions != achievement.Repetitions ||
-                   Weight != achievement.Weight ||
-                   CommentText != achievement.CommentText ||
-                   IsPropped != achievement.IsPropped;
-        }
+        public bool HasChanges(Achievement achievement) =>
+            Distance != achievement.Distance ||
+            Duration != achievement.Duration ||
+            Speed != achievement.Speed ||
+            Repetitions != achievement.Repetitions ||
+            Weight != achievement.Weight ||
+            CommentText != achievement.CommentText ||
+            IsPropped != achievement.IsPropped;
     }
 }

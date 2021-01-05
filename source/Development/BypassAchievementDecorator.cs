@@ -8,13 +8,10 @@ namespace FitBot.Development
 {
     public class BypassAchievementDecorator : IAchievementService
     {
-        public BypassAchievementDecorator(IAchievementService decorated)
+        public BypassAchievementDecorator(IAchievementService _)
         {
         }
 
-        public IEnumerable<Achievement> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel = default)
-        {
-            return Enumerable.Empty<Achievement>();
-        }
+        public IEnumerable<Achievement> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel) => Enumerable.Empty<Achievement>();
     }
 }

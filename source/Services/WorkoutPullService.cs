@@ -61,22 +61,22 @@ namespace FitBot.Services
                     workout.ActivitiesHash = ComputeActivitiesHashCode(workout.Activities);
                     foreach (var activity in workout.Activities)
                     {
-                        activity.Group = _grouping.GetActvityGroup(activity.Name);
+                        activity.Group = _grouping.GetActivityGroup(activity.Name);
                     }
 
                     var staleWorkout = staleLookup[workout.Id].FirstOrDefault() ?? deletedWorkouts.FirstOrDefault(item => item.Id == workout.Id);
                     workout.State = staleWorkout != null
-                                        ? workout.HasChanges(staleWorkout)
-                                              ? staleWorkout.ActivitiesHash != workout.ActivitiesHash
-                                                    ? WorkoutState.UpdatedDeep
-                                                    : WorkoutState.Updated
-                                              : WorkoutState.Unchanged
-                                        : WorkoutState.Added;
+                        ? workout.HasChanges(staleWorkout)
+                            ? staleWorkout.ActivitiesHash != workout.ActivitiesHash
+                                ? WorkoutState.UpdatedDeep
+                                : WorkoutState.Updated
+                            : WorkoutState.Unchanged
+                        : WorkoutState.Added;
                     workouts.Add(workout);
                 }
 
                 deletedWorkouts = staleWorkouts.Where(workout => !freshLookup[workout.Id].Any()).ToList();
-                if (deletedWorkouts.Count == 0 && workouts[workouts.Count - 1].State == WorkoutState.Unchanged)
+                if (deletedWorkouts.Count == 0 && workouts[^1].State == WorkoutState.Unchanged)
                 {
                     break;
                 }
@@ -121,9 +121,8 @@ namespace FitBot.Services
                 workouts.RemoveAt(0);
             }
 
-            foreach (var id in unresolvedIds)
+            foreach (var workout in unresolvedIds.Select(_fitocracy.GetWorkout))
             {
-                var workout = _fitocracy.GetWorkout(id);
                 workout.State = WorkoutState.Unresolved;
                 workouts.Add(workout);
             }
@@ -138,18 +137,18 @@ namespace FitBot.Services
                 var hash = 0;
                 foreach (var activity in activities)
                 {
-                    hash = (hash*397) ^ activity.Name.GetHashCode();
+                    hash = (hash * 397) ^ activity.Name.GetHashCode();
                     foreach (var set in activity.Sets)
                     {
-                        hash = (hash*397) ^ set.Points;
-                        hash = (hash*397) ^ set.Distance.GetHashCode();
-                        hash = (hash*397) ^ set.Duration.GetHashCode();
-                        hash = (hash*397) ^ set.Speed.GetHashCode();
-                        hash = (hash*397) ^ set.Repetitions.GetHashCode();
-                        hash = (hash*397) ^ set.Weight.GetHashCode();
-                        hash = (hash*397) ^ set.HeartRate.GetHashCode();
-                        hash = (hash*397) ^ (set.Difficulty ?? string.Empty).GetHashCode();
-                        hash = (hash*397) ^ set.IsPr.GetHashCode();
+                        hash = (hash * 397) ^ set.Points;
+                        hash = (hash * 397) ^ set.Distance.GetHashCode();
+                        hash = (hash * 397) ^ set.Duration.GetHashCode();
+                        hash = (hash * 397) ^ set.Speed.GetHashCode();
+                        hash = (hash * 397) ^ set.Repetitions.GetHashCode();
+                        hash = (hash * 397) ^ set.Weight.GetHashCode();
+                        hash = (hash * 397) ^ set.HeartRate.GetHashCode();
+                        hash = (hash * 397) ^ (set.Difficulty ?? string.Empty).GetHashCode();
+                        hash = (hash * 397) ^ set.IsPr.GetHashCode();
                     }
                 }
                 return hash;

@@ -7,31 +7,24 @@ namespace FitBot.Achievements
         private const decimal MilesPerMeter = 0.0006213712M;
         private const decimal PoundsPerKilogram = 2.204624M;
 
-        public static string FormatDistance(this decimal? meters, bool isImperial = false)
-        {
-            return isImperial
-                       ? $"{meters*MilesPerMeter:#,##0.#} mi"
-                       : $"{meters/1000:#,##0.#} km";
-        }
+        public static string FormatDistance(this decimal? meters, bool isImperial = false) =>
+            isImperial
+                ? $"{meters * MilesPerMeter:#,##0.#} mi"
+                : $"{meters / 1000:#,##0.#} km";
 
-        public static string FormatWeight(this decimal? kilograms, bool isImperial = false)
-        {
-            return isImperial
-                       ? $"{kilograms*PoundsPerKilogram:#,##0.#} lb"
-                       : $"{kilograms:#,##0.#} kg";
-        }
+        public static string FormatWeight(this decimal? kilograms, bool isImperial = false) =>
+            isImperial
+                ? $"{kilograms * PoundsPerKilogram:#,##0.#} lb"
+                : $"{kilograms:#,##0.#} kg";
 
         public static string FormatSpeed(this decimal? metersPerSecond, bool isImperial = false)
         {
             return isImperial
-                       ? $"{metersPerSecond*3600M*MilesPerMeter:#,##0.#} mph"
-                       : $"{metersPerSecond*3.6M:#,##0.#} km/h";
+                ? $"{metersPerSecond * 3600M * MilesPerMeter:#,##0.#} mph"
+                : $"{metersPerSecond * 3.6M:#,##0.#} km/h";
         }
 
-        public static string FormatRepetitions(this decimal? reps)
-        {
-            return $"{reps:N0} rep{(reps != 1 ? "s" : null)}";
-        }
+        public static string FormatRepetitions(this decimal? reps) => $"{reps:N0} rep{(reps != 1 ? "s" : null)}";
 
         public static string FormatDuration(this decimal? seconds)
         {

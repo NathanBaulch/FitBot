@@ -10,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace FitBot
 {
-    internal static class Program
+    public static class Program
     {
         private static void Main(string[] args)
         {

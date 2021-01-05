@@ -17,7 +17,7 @@ namespace FitBot.Services
             _fitocracy = fitocracy;
         }
 
-        public IEnumerable<User> Pull(CancellationToken cancel = default)
+        public IEnumerable<User> Pull(CancellationToken cancel)
         {
             var users = new List<User>();
 

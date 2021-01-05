@@ -28,7 +28,7 @@ namespace FitBot.Test
         {
         }
 
-        internal SQLiteDatabaseService(string fileName)
+        private SQLiteDatabaseService(string fileName)
             : this(fileName, "System.Data.SQLite", $"Data Source={fileName};Version=3")
         {
         }
@@ -39,29 +39,19 @@ namespace FitBot.Test
             File.Delete(fileName);
             var factory = DbProviderFactories.GetFactory(providerName);
 
-            using (var con = factory.CreateConnection())
-            {
-                con.ConnectionString = connectionString;
-                con.Open();
+            using var con = factory.CreateConnection();
+            con.ConnectionString = connectionString;
+            con.Open();
 
-                using (var cmd = con.CreateCommand())
-                using (var reader = new StreamReader(GetType().Assembly.GetManifestResourceStream("FitBot.Test.SQLite.sql")))
-                {
-                    cmd.CommandText = reader.ReadToEnd();
-                    cmd.ExecuteNonQuery();
-                }
-            }
+            using var cmd = con.CreateCommand();
+            using var reader = new StreamReader(GetType().Assembly.GetManifestResourceStream("FitBot.Test.SQLite.sql"));
+            cmd.CommandText = reader.ReadToEnd();
+            cmd.ExecuteNonQuery();
         }
 
-        public override IEnumerable<T> Query<T>(string sql, object parameters = null)
-        {
-            return base.Query<T>(TransformSql(sql), TransformParameters(parameters)).Select(TransformResult);
-        }
+        public override IEnumerable<T> Query<T>(string sql, object parameters = null) => base.Query<T>(TransformSql(sql), TransformParameters(parameters)).Select(TransformResult);
 
-        public override T Single<T>(string sql, object parameters)
-        {
-            return TransformResult(base.Single<T>(TransformSql(sql), TransformParameters(parameters)));
-        }
+        public override T Single<T>(string sql, object parameters) => TransformResult(base.Single<T>(TransformSql(sql), TransformParameters(parameters)));
 
         private static string TransformSql(string sql)
         {
@@ -78,28 +68,25 @@ namespace FitBot.Test
             return sql;
         }
 
-        private static object TransformParameters(object parameters)
-        {
-            return parameters?.GetType()
-                              .GetProperties()
-                              .ToDictionary(prop => prop.Name,
-                                  prop =>
-                                      {
-                                          var value = prop.GetValue(parameters, null);
-                                          return value is decimal ? Convert.ToDouble(value) : value;
-                                      });
-        }
+        private static object TransformParameters(object parameters) =>
+            parameters?.GetType()
+                .GetProperties()
+                .ToDictionary(prop => prop.Name,
+                    prop =>
+                    {
+                        var value = prop.GetValue(parameters, null);
+                        return value is decimal ? Convert.ToDouble(value) : value;
+                    });
 
         private static T TransformResult<T>(T result)
         {
-            var dict = result as IDictionary<string, object>;
-            if (dict != null)
+            if (result is IDictionary<string, object> dict)
             {
-                foreach (var pair in dict.ToArray())
+                foreach (var (key, value) in dict.ToArray())
                 {
-                    if (pair.Value is double)
+                    if (value is double)
                     {
-                        dict[pair.Key] = Convert.ToDecimal(pair.Value);
+                        dict[key] = Convert.ToDecimal(value);
                     }
                 }
             }
@@ -110,15 +97,9 @@ namespace FitBot.Test
 
         private class DecimalTypeHandler : SqlMapper.TypeHandler<decimal>
         {
-            public override decimal Parse(object value)
-            {
-                return Convert.ToDecimal(value);
-            }
+            public override decimal Parse(object value) => Convert.ToDecimal(value);
 
-            public override void SetValue(IDbDataParameter parameter, decimal value)
-            {
-                parameter.Value = value;
-            }
+            public override void SetValue(IDbDataParameter parameter, decimal value) => parameter.Value = value;
         }
 
         #endregion
@@ -127,15 +108,9 @@ namespace FitBot.Test
 
         private class Int32TypeHandler : SqlMapper.TypeHandler<int>
         {
-            public override int Parse(object value)
-            {
-                return Convert.ToInt32(value);
-            }
+            public override int Parse(object value) => Convert.ToInt32(value);
 
-            public override void SetValue(IDbDataParameter parameter, int value)
-            {
-                parameter.Value = value;
-            }
+            public override void SetValue(IDbDataParameter parameter, int value) => parameter.Value = value;
         }
 
         #endregion

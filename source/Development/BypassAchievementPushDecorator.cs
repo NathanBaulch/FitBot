@@ -7,11 +7,11 @@ namespace FitBot.Development
 {
     public class BypassAchievementPushDecorator : IAchievementPushService
     {
-        public BypassAchievementPushDecorator(IAchievementPushService decorated)
+        public BypassAchievementPushDecorator(IAchievementPushService _)
         {
         }
 
-        public void Push(IEnumerable<Achievement> achievements, CancellationToken cancel = default)
+        public void Push(IEnumerable<Achievement> achievements, CancellationToken cancel)
         {
         }
     }

@@ -35,35 +35,25 @@ namespace FitBot.Achievements
                 }
 
                 var sum = sets.Sum(set =>
-                    {
-                        switch (category)
+                {
+                    return category switch
                         {
-                            case ActivityCategory.Cardio:
-                                return set.Distance;
-                            case ActivityCategory.Sports:
-                                return set.Duration;
-                            default:
-                                return set.Repetitions;
-                        }
-                    });
+                            ActivityCategory.Cardio => set.Distance,
+                            ActivityCategory.Sports => set.Duration,
+                            _ => set.Repetitions
+                        };
+                });
                 if (sum == 0 || category == ActivityCategory.Cardio && sum < 1000)
                 {
                     continue;
                 }
 
-                string column;
-                switch (category)
-                {
-                    case ActivityCategory.Cardio:
-                        column = "Distance";
-                        break;
-                    case ActivityCategory.Sports:
-                        column = "Duration";
-                        break;
-                    default:
-                        column = "Repetitions";
-                        break;
-                }
+                var column = category switch
+                    {
+                        ActivityCategory.Cardio => "Distance",
+                        ActivityCategory.Sports => "Duration",
+                        _ => "Repetitions"
+                    };
 
                 var previousMax = _database.Single<decimal?>(
                     "select max([Value]) " +

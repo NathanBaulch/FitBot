@@ -11,17 +11,14 @@ namespace FitBot.Achievements
 
         private readonly IDatabaseService _database;
 
-        public TopPercentilePointsProvider(IDatabaseService database)
-        {
-            _database = database;
-        }
+        public TopPercentilePointsProvider(IDatabaseService database) => _database = database;
 
         public IEnumerable<Achievement> Execute(Workout workout)
         {
             var offset = (int) (_database.Single<int>(
                 "select count(*) " +
                 "from [Workout] " +
-                "where [UserId] = @UserId", new {workout.UserId})*Percentile);
+                "where [UserId] = @UserId", new {workout.UserId}) * Percentile);
             if (offset > 0)
             {
                 var threshold = _database.Single<int>(

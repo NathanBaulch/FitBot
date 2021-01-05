@@ -5,10 +5,8 @@ namespace FitBot.Diagnostics
 {
     public class ConsoleBeepTraceListener : TraceListener
     {
-        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
-        {
-            TraceEvent(eventCache, source, eventType, id, message, new object[0]);
-        }
+        public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message) =>
+            TraceEvent(eventCache, source, eventType, id, message, Array.Empty<object>());
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
         {

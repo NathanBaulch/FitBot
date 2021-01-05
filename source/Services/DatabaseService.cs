@@ -34,7 +34,7 @@ namespace FitBot.Services
             _factory = DbProviderFactories.GetFactory(options.ProviderName);
             _connectionString = options.ConnectionString;
 
-            DapperExtensions.DapperExtensions.DefaultMapper = typeof (IncludableClassMapper<>);
+            DapperExtensions.DapperExtensions.DefaultMapper = typeof(IncludableClassMapper<>);
             GetPropertyMap<User>(x => x.Id).Key(KeyType.Assigned);
             GetPropertyMap<Workout>(x => x.Id).Key(KeyType.Assigned);
             GetPropertyMap<Workout>(x => x.State).Ignore();
@@ -48,18 +48,14 @@ namespace FitBot.Services
 
         public virtual IEnumerable<T> Query<T>(string sql, object parameters = null)
         {
-            using (var con = OpenConnection())
-            {
-                return con.Query<T>(sql, parameters);
-            }
+            using var con = OpenConnection();
+            return con.Query<T>(sql, parameters);
         }
 
         public virtual T Single<T>(string sql, object parameters)
         {
-            using (var con = OpenConnection())
-            {
-                return con.Query<T>(sql, parameters).SingleOrDefault();
-            }
+            using var con = OpenConnection();
+            return con.Query<T>(sql, parameters).SingleOrDefault();
         }
 
         public IEnumerable<User> GetUsers()
@@ -73,48 +69,39 @@ namespace FitBot.Services
         public void Insert(User user)
         {
             Trace.TraceInformation("Insert user {0} ({1})", user.Id, user.Username);
-            using (var con = OpenConnection())
-            {
-                _userInsertDateProp.Include();
-                user.InsertDate = DateTime.UtcNow;
-                con.Insert(user);
-            }
+            using var con = OpenConnection();
+            _userInsertDateProp.Include();
+            user.InsertDate = DateTime.UtcNow;
+            con.Insert(user);
         }
 
         public void Update(User user)
         {
             Trace.TraceInformation("Update user {0} ({1})", user.Id, user.Username);
-            using (var con = OpenConnection())
-            {
-                _userInsertDateProp.Ignore();
-                user.UpdateDate = DateTime.UtcNow;
-                con.Update(user);
-            }
+            using var con = OpenConnection();
+            _userInsertDateProp.Ignore();
+            user.UpdateDate = DateTime.UtcNow;
+            con.Update(user);
         }
 
         public void Delete(User user)
         {
             Trace.TraceInformation("Delete user {0} ({1})", user.Id, user.Username);
-            using (var con = OpenConnection())
-            {
-                con.Delete(user);
-            }
+            using var con = OpenConnection();
+            con.Delete(user);
         }
 
-        public IEnumerable<Workout> GetWorkouts(long userId, DateTime fromDate, DateTime toDate)
-        {
-            return Query<Workout>(
+        public IEnumerable<Workout> GetWorkouts(long userId, DateTime fromDate, DateTime toDate) =>
+            Query<Workout>(
                 "select * " +
                 "from [Workout] " +
                 "where [UserId] = @userId " +
                 "and [Date] >= @fromDate " +
                 "and [Date] < @toDate " +
                 "order by [Date], [Id]", new {userId, fromDate, toDate});
-        }
 
-        public IEnumerable<long> GetUnresolvedWorkoutIds(long userId, DateTime after)
-        {
-            return Query<long>(
+        public IEnumerable<long> GetUnresolvedWorkoutIds(long userId, DateTime after) =>
+            Query<long>(
                 "select [Id] " +
                 "from [Workout] " +
                 "where [UserId] = @userId " +
@@ -125,77 +112,64 @@ namespace FitBot.Services
                 "  where [CommentText] is not null " +
                 "  and [CommentId] is null)" +
                 "order by [Id]", new {userId, after});
-        }
 
         public void DeleteWorkouts(long userId, DateTime before)
         {
             Trace.TraceInformation("Delete workouts for user {0} before {1}", userId, before);
-            using (var con = OpenConnection())
-            {
-                con.Execute(
-                    "delete from [Workout] " +
-                    "where [UserId] = @userId " +
-                    "and [Date] < @before", new {userId, before });
-            }
+            using var con = OpenConnection();
+            con.Execute(
+                "delete from [Workout] " +
+                "where [UserId] = @userId " +
+                "and [Date] < @before", new {userId, before});
         }
 
         public void Insert(Workout workout)
         {
             Trace.TraceInformation("Insert workout " + workout.Id);
-            using (var con = OpenConnection())
-            using (var trans = con.BeginTransaction())
-            {
-                _workoutInsertDateProp.Include();
-                workout.InsertDate = DateTime.UtcNow;
-                con.Insert(workout, trans);
-                InsertWorkoutActivities(workout, con, trans);
-                trans.Commit();
-            }
+            using var con = OpenConnection();
+            using var trans = con.BeginTransaction();
+            _workoutInsertDateProp.Include();
+            workout.InsertDate = DateTime.UtcNow;
+            con.Insert(workout, trans);
+            InsertWorkoutActivities(workout, con, trans);
+            trans.Commit();
         }
 
         public void Update(Workout workout, bool deep)
         {
             Trace.TraceInformation("Update workout {0} ({1})", workout.Id, deep ? "deep" : "shallow");
-            using (var con = OpenConnection())
+            using var con = OpenConnection();
+            _workoutInsertDateProp.Ignore();
+            workout.UpdateDate = DateTime.UtcNow;
+            if (deep)
             {
-                _workoutInsertDateProp.Ignore();
-                workout.UpdateDate = DateTime.UtcNow;
-                if (deep)
-                {
-                    using (var trans = con.BeginTransaction())
-                    {
-                        con.Update(workout, trans);
-                        con.Execute(
-                            "delete from [Activity] " +
-                            "where [WorkoutId] = @Id", new {workout.Id}, trans);
-                        InsertWorkoutActivities(workout, con, trans);
-                        trans.Commit();
-                    }
-                }
-                else
-                {
-                    con.Update(workout);
-                }
+                using var trans = con.BeginTransaction();
+                con.Update(workout, trans);
+                con.Execute(
+                    "delete from [Activity] " +
+                    "where [WorkoutId] = @Id", new {workout.Id}, trans);
+                InsertWorkoutActivities(workout, con, trans);
+                trans.Commit();
+            }
+            else
+            {
+                con.Update(workout);
             }
         }
 
         public void Delete(Workout workout)
         {
             Trace.TraceInformation("Delete workout " + workout.Id);
-            using (var con = OpenConnection())
-            {
-                con.Delete(workout);
-            }
+            using var con = OpenConnection();
+            con.Delete(workout);
         }
 
-        public IEnumerable<Achievement> GetAchievements(long workoutId)
-        {
-            return Query<Achievement>(
+        public IEnumerable<Achievement> GetAchievements(long workoutId) =>
+            Query<Achievement>(
                 "select * " +
                 "from [Achievement] " +
                 "where [WorkoutId] = @workoutId " +
                 "order by [Type], [Group], [Id]", new {workoutId});
-        }
 
         public void Insert(Achievement achievement)
         {
@@ -212,12 +186,10 @@ namespace FitBot.Services
                 Trace.TraceInformation("Insert achievement " + achievement.Type);
             }
 
-            using (var con = OpenConnection())
-            {
-                _achievementInsertDateProp.Include();
-                achievement.InsertDate = DateTime.UtcNow;
-                con.Insert(achievement);
-            }
+            using var con = OpenConnection();
+            _achievementInsertDateProp.Include();
+            achievement.InsertDate = DateTime.UtcNow;
+            con.Insert(achievement);
         }
 
         public void Update(Achievement achievement)
@@ -235,24 +207,20 @@ namespace FitBot.Services
                 Trace.TraceInformation("Update achievement " + achievement.Type);
             }
 
-            using (var con = OpenConnection())
-            {
-                _achievementInsertDateProp.Ignore();
-                achievement.UpdateDate = DateTime.UtcNow;
-                con.Update(achievement);
-            }
+            using var con = OpenConnection();
+            _achievementInsertDateProp.Ignore();
+            achievement.UpdateDate = DateTime.UtcNow;
+            con.Update(achievement);
         }
 
         public void UpdateCommentId(long achievementId, long commentId)
         {
             Trace.TraceInformation("Update comment ID on achievement {0}", achievementId);
-            using (var con = OpenConnection())
-            {
-                con.Execute(
-                    "update [Achievement] " +
-                    "set [CommentId] = @commentId " +
-                    "where [Id] = @achievementId", new {commentId, achievementId});
-            }
+            using var con = OpenConnection();
+            con.Execute(
+                "update [Achievement] " +
+                "set [CommentId] = @commentId " +
+                "where [Id] = @achievementId", new {commentId, achievementId});
         }
 
         public void Delete(Achievement achievement)
@@ -270,10 +238,8 @@ namespace FitBot.Services
                 Trace.TraceInformation("Delete achievement " + achievement.Type);
             }
 
-            using (var con = OpenConnection())
-            {
-                con.Delete(achievement);
-            }
+            using var con = OpenConnection();
+            con.Delete(achievement);
         }
 
         private static IncludablePropertyMap GetPropertyMap<T>(Expression<Func<T, object>> expression)
@@ -281,10 +247,10 @@ namespace FitBot.Services
         {
             var member = ReflectionHelper.GetProperty(expression);
             return DapperExtensions.DapperExtensions
-                                   .GetMap<T>()
-                                   .Properties
-                                   .Cast<IncludablePropertyMap>()
-                                   .First(prop => prop.PropertyInfo == member);
+                .GetMap<T>()
+                .Properties
+                .Cast<IncludablePropertyMap>()
+                .First(prop => prop.PropertyInfo == member);
         }
 
         private IDbConnection OpenConnection()
@@ -349,20 +315,11 @@ namespace FitBot.Services
             public KeyType KeyType { get; private set; }
             public PropertyInfo PropertyInfo { get; }
 
-            public void Key(KeyType keyType)
-            {
-                KeyType = keyType;
-            }
+            public void Key(KeyType keyType) => KeyType = keyType;
 
-            public void Include()
-            {
-                Ignored = false;
-            }
+            public void Include() => Ignored = false;
 
-            public void Ignore()
-            {
-                Ignored = true;
-            }
+            public void Ignore() => Ignored = true;
         }
 
         #endregion

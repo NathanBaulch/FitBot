@@ -23,50 +23,49 @@ namespace FitBot.Services
             var doc = new HtmlDocument {OptionDefaultStreamEncoding = Encoding.UTF8};
             doc.Load(content);
             return doc.DocumentNode
-                      .Descendants("div")
-                      .Where(div => div.GetAttributeValue("data-ag-type", null) == "workout")
-                      .Select(div => ExtractWorkout(div, selfUserId))
-                      .ToList();
+                .Descendants("div")
+                .Where(div => div.GetAttributeValue("data-ag-type", null) == "workout")
+                .Select(div => ExtractWorkout(div, selfUserId))
+                .ToList();
         }
 
         private static Workout ExtractWorkout(HtmlNode node, long selfUserId)
         {
             var value = node.Descendants("a")
-                            .Select(a => a.GetAttributeValue("data-item-id", null))
-                            .FirstOrDefault(item => item != null);
+                .Select(a => a.GetAttributeValue("data-item-id", null))
+                .FirstOrDefault(item => item != null);
             if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var workoutId))
             {
                 throw new InvalidDataException("Workout ID not found");
             }
 
             value = node.Descendants("span")
-                        .Select(a => a.GetAttributeValue("ag-user-id", null))
-                        .FirstOrDefault(item => item != null);
-            long userId;
-            if (value == null || !long.TryParse(value, out userId))
+                .Select(a => a.GetAttributeValue("ag-user-id", null))
+                .FirstOrDefault(item => item != null);
+            if (value == null || !long.TryParse(value, out var userId))
             {
                 throw new InvalidDataException("User ID not found");
             }
 
             value = node.Descendants("a")
-                        .Where(a => a.GetAttributeValue("class", null) == "action_time gray_link")
-                        .Select(a => a.InnerText)
-                        .FirstOrDefault();
+                .Where(a => a.GetAttributeValue("class", null) == "action_time gray_link")
+                .Select(a => a.InnerText)
+                .FirstOrDefault();
             if (value == null || !DateTime.TryParse(value, out var date))
             {
                 throw new InvalidDataException("Workout date not found");
             }
 
             value = node.Descendants("span")
-                        .Where(span => span.GetAttributeValue("class", null) == "stream_total_points")
-                        .Select(span => span.InnerText)
-                        .FirstOrDefault();
+                .Where(span => span.GetAttributeValue("class", null) == "stream_total_points")
+                .Select(span => span.InnerText)
+                .FirstOrDefault();
             if (value == null ||
                 !value.EndsWith(" pts") ||
                 !int.TryParse(value.Substring(0, value.Length - 4)
-                                   .Replace(".", "")
-                                   .Replace(" ", "")
-                                   .Replace("\xa0", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out var points))
+                    .Replace(".", "")
+                    .Replace(" ", "")
+                    .Replace("\xa0", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out var points))
             {
                 throw new InvalidDataException("Workout points not found");
             }
@@ -78,25 +77,25 @@ namespace FitBot.Services
                     Date = date,
                     Points = points,
                     Activities = node.Descendants("ul")
-                                     .Where(ul => ul.GetAttributeValue("class", null) == "action_detail")
-                                     .SelectMany(ul => ul.Descendants("li"))
-                                     .Where(li => li.Elements("div").Any(div => div.GetAttributeValue("class", null) == "action_prompt") &&
-                                                  li.Elements("div").All(div => div.GetAttributeValue("class", null) != "group_container"))
-                                     .Select(ExtractActivity)
-                                     .ToList(),
+                        .Where(ul => ul.GetAttributeValue("class", null) == "action_detail")
+                        .SelectMany(ul => ul.Descendants("li"))
+                        .Where(li => li.Elements("div").Any(div => div.GetAttributeValue("class", null) == "action_prompt") &&
+                                     li.Elements("div").All(div => div.GetAttributeValue("class", null) != "group_container"))
+                        .Select(ExtractActivity)
+                        .ToList(),
                     Comments = node.Descendants("li")
-                                   .Where(li => li.GetAttributeValue("data-user-id", null) == selfUserId.ToString(CultureInfo.InvariantCulture))
-                                   .Select(ExtractComment)
-                                   .ToList()
+                        .Where(li => li.GetAttributeValue("data-user-id", null) == selfUserId.ToString(CultureInfo.InvariantCulture))
+                        .Select(ExtractComment)
+                        .ToList()
                 };
         }
 
         private static Activity ExtractActivity(HtmlNode node, int index)
         {
             var name = node.Descendants("div")
-                           .Where(div => div.GetAttributeValue("class", null) == "action_prompt")
-                           .Select(div => HtmlEntity.DeEntitize(div.InnerText).Trim().Replace("  ", " "))
-                           .FirstOrDefault();
+                .Where(div => div.GetAttributeValue("class", null) == "action_prompt")
+                .Select(div => HtmlEntity.DeEntitize(div.InnerText).Trim().Replace("  ", " "))
+                .FirstOrDefault();
             if (name == null)
             {
                 throw new InvalidDataException("Activity name not found");
@@ -107,22 +106,22 @@ namespace FitBot.Services
                     Sequence = index,
                     Name = name,
                     Note = node.Descendants("li")
-                               .Where(li => li.GetAttributeValue("class", null) == "stream_note")
-                               .Select(li => HtmlEntity.DeEntitize(li.InnerText).Trim())
-                               .FirstOrDefault(),
+                        .Where(li => li.GetAttributeValue("class", null) == "stream_note")
+                        .Select(li => HtmlEntity.DeEntitize(li.InnerText).Trim())
+                        .FirstOrDefault(),
                     Sets = node.Descendants("li")
-                               .Where(li => li.GetAttributeValue("class", null) != "stream_note")
-                               .Select(ExtractSet)
-                               .ToList()
+                        .Where(li => li.GetAttributeValue("class", null) != "stream_note")
+                        .Select(ExtractSet)
+                        .ToList()
                 };
         }
 
         private static Set ExtractSet(HtmlNode node, int index)
         {
             var value = node.Descendants("span")
-                            .Where(span => span.GetAttributeValue("class", null) == "action_prompt_points")
-                            .Select(span => span.InnerText)
-                            .FirstOrDefault();
+                .Where(span => span.GetAttributeValue("class", null) == "action_prompt_points")
+                .Select(span => span.InnerText)
+                .FirstOrDefault();
             if (!int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var points))
             {
                 throw new InvalidDataException("Set points not found");
@@ -193,11 +192,11 @@ namespace FitBot.Services
                                 continue;
 
                             case "kg":
-                                weight = (assisted ? -1 : 1)*num;
+                                weight = (assisted ? -1 : 1) * num;
                                 metricCount++;
                                 continue;
                             case "lb":
-                                weight = (assisted ? -1 : 1)*num*KilogramsPerPound;
+                                weight = (assisted ? -1 : 1) * num * KilogramsPerPound;
                                 imperialCount++;
                                 continue;
 
@@ -206,39 +205,39 @@ namespace FitBot.Services
                                 metricCount++;
                                 continue;
                             case "cm":
-                                distance = num*0.01M;
+                                distance = num * 0.01M;
                                 metricCount++;
                                 continue;
                             case "laps (25m)":
-                                distance = num*25;
+                                distance = num * 25;
                                 metricCount++;
                                 continue;
                             case "laps (50m)":
-                                distance = num*50;
+                                distance = num * 50;
                                 metricCount++;
                                 continue;
                             case "km":
-                                distance = num*1000;
+                                distance = num * 1000;
                                 metricCount++;
                                 continue;
                             case "in":
-                                distance = num*MetersPerInch;
+                                distance = num * MetersPerInch;
                                 imperialCount++;
                                 continue;
                             case "ft":
-                                distance = num*MetersPerFoot;
+                                distance = num * MetersPerFoot;
                                 imperialCount++;
                                 continue;
                             case "yd":
-                                distance = num*MetersPerYard;
+                                distance = num * MetersPerYard;
                                 imperialCount++;
                                 continue;
                             case "fathoms":
-                                distance = num*MetersPerFathom;
+                                distance = num * MetersPerFathom;
                                 imperialCount++;
                                 continue;
                             case "mi":
-                                distance = num*MetersPerMile;
+                                distance = num * MetersPerMile;
                                 imperialCount++;
                                 continue;
 
@@ -247,39 +246,39 @@ namespace FitBot.Services
                                 metricCount++;
                                 continue;
                             case "km/hr":
-                                speed = num/3.6M;
+                                speed = num / 3.6M;
                                 metricCount++;
                                 continue;
                             case "fps":
-                                speed = num*MetersPerFoot;
+                                speed = num * MetersPerFoot;
                                 imperialCount++;
                                 continue;
                             case "mph":
-                                speed = num*MetersPerMile/3600;
+                                speed = num * MetersPerMile / 3600;
                                 imperialCount++;
                                 continue;
                             case "min/100m":
-                                speed = 5/(3*num);
+                                speed = 5 / (3 * num);
                                 metricCount++;
                                 continue;
                             case "split":
-                                speed = 25/(3*num);
+                                speed = 25 / (3 * num);
                                 metricCount++;
                                 continue;
                             case "min/km":
-                                speed = 50/(3*num);
+                                speed = 50 / (3 * num);
                                 metricCount++;
                                 continue;
                             case "sec/lap (25m)":
-                                speed = 25/num;
+                                speed = 25 / num;
                                 metricCount++;
                                 continue;
                             case "sec/lap (50m)":
-                                speed = 50/num;
+                                speed = 50 / num;
                                 metricCount++;
                                 continue;
                             case "min/mi":
-                                speed = MetersPerMile/(60*num);
+                                speed = MetersPerMile / (60 * num);
                                 imperialCount++;
                                 continue;
 
@@ -307,10 +306,7 @@ namespace FitBot.Services
             return set;
         }
 
-        private static decimal? Round(decimal? value)
-        {
-            return value != null ? Math.Round(value.Value, 2, MidpointRounding.AwayFromZero) : (decimal?) null;
-        }
+        private static decimal? Round(decimal? value) => value != null ? Math.Round(value.Value, 2, MidpointRounding.AwayFromZero) : null;
 
         private static Comment ExtractComment(HtmlNode node)
         {
@@ -324,9 +320,9 @@ namespace FitBot.Services
                 {
                     Id = commentId,
                     Text = node.Descendants("span")
-                               .Where(span => span.GetAttributeValue("class", null) == "comment-copy")
-                               .Select(span => HtmlEntity.DeEntitize(span.InnerText).Trim())
-                               .FirstOrDefault()
+                        .Where(span => span.GetAttributeValue("class", null) == "comment-copy")
+                        .Select(span => HtmlEntity.DeEntitize(span.InnerText).Trim())
+                        .FirstOrDefault()
                 };
         }
     }

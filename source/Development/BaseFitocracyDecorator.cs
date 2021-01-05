@@ -8,41 +8,20 @@ namespace FitBot.Development
     {
         private readonly IFitocracyService _decorated;
 
-        protected BaseFitocracyDecorator(IFitocracyService decorated)
-        {
-            _decorated = decorated;
-        }
+        protected BaseFitocracyDecorator(IFitocracyService decorated) => _decorated = decorated;
 
         public long SelfUserId => _decorated.SelfUserId;
 
-        public virtual IList<User> GetFollowers(int pageNum = 0)
-        {
-            return _decorated.GetFollowers(pageNum);
-        }
+        public virtual IList<User> GetFollowers(int pageNum = 0) => _decorated.GetFollowers(pageNum);
 
-        public virtual IList<Workout> GetWorkouts(long userId, int offset = 0)
-        {
-            return _decorated.GetWorkouts(userId, offset);
-        }
+        public virtual IList<Workout> GetWorkouts(long userId, int offset = 0) => _decorated.GetWorkouts(userId, offset);
 
-        public virtual Workout GetWorkout(long workoutId)
-        {
-            return _decorated.GetWorkout(workoutId);
-        }
+        public virtual Workout GetWorkout(long workoutId) => _decorated.GetWorkout(workoutId);
 
-        public virtual void AddComment(long workoutId, string text)
-        {
-            _decorated.AddComment(workoutId, text);
-        }
+        public virtual void AddComment(long workoutId, string text) => _decorated.AddComment(workoutId, text);
 
-        public virtual void DeleteComment(long commentId)
-        {
-            _decorated.DeleteComment(commentId);
-        }
+        public virtual void DeleteComment(long commentId) => _decorated.DeleteComment(commentId);
 
-        public virtual void GiveProp(long workoutId)
-        {
-            _decorated.GiveProp(workoutId);
-        }
+        public virtual void GiveProp(long workoutId) => _decorated.GiveProp(workoutId);
     }
 }

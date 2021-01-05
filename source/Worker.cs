@@ -16,10 +16,7 @@ namespace FitBot
         private readonly IConfiguration _configuration;
         private Container _container;
 
-        public Worker(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
+        public Worker(IConfiguration configuration) => _configuration = configuration;
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -39,8 +36,8 @@ namespace FitBot
 
             _container.Collection.Register<IAchievementProvider>(
                 GetType().Assembly.GetTypes()
-                         .Where(typeof (IAchievementProvider).IsAssignableFrom)
-                         .Where(type => type.IsClass));
+                    .Where(typeof(IAchievementProvider).IsAssignableFrom)
+                    .Where(type => type.IsClass));
 
             _container.RegisterDecorator<IWebRequestService, ThrottledWebRequestDecorator>();
 

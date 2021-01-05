@@ -123,18 +123,12 @@ namespace FitBot.Achievements
 
                 if (!Thresholds.TryGetValue(group.Key, out var threshold))
                 {
-                    switch (category)
-                    {
-                        case ActivityCategory.Cardio:
-                            threshold = 500;
-                            break;
-                        case ActivityCategory.Sports:
-                            threshold = 100;
-                            break;
-                        default:
-                            threshold = 2000;
-                            break;
-                    }
+                    threshold = category switch
+                        {
+                            ActivityCategory.Cardio => 500,
+                            ActivityCategory.Sports => 100,
+                            _ => 2000
+                        };
                 }
 
                 string column;
@@ -167,25 +161,22 @@ namespace FitBot.Achievements
                 }
 
                 var sum = group.SelectMany(activity => activity.Sets)
-                               .Sum(set =>
-                                   {
-                                       switch (category)
-                                       {
-                                           case ActivityCategory.Cardio:
-                                               return set.Distance;
-                                           case ActivityCategory.Sports:
-                                               return set.Duration;
-                                           default:
-                                               return set.Repetitions;
-                                       }
-                                   }) + previousSum;
-                if (sum < threshold)
+                    .Sum(set =>
+                    {
+                        return category switch
+                            {
+                                ActivityCategory.Cardio => set.Distance,
+                                ActivityCategory.Sports => set.Duration,
+                                _ => set.Repetitions
+                            };
+                    }) + previousSum;
+                if (sum == null || sum < threshold)
                 {
                     continue;
                 }
 
-                previousSum = Math.Floor(previousSum.Value/threshold)*threshold;
-                sum = Math.Floor(sum.Value/threshold)*threshold;
+                previousSum = Math.Floor(previousSum.Value / threshold) * threshold;
+                sum = Math.Floor(sum.Value / threshold) * threshold;
                 if (sum == previousSum)
                 {
                     continue;

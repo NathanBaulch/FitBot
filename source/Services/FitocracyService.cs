@@ -45,10 +45,8 @@ namespace FitBot.Services
         {
             Trace.TraceInformation("Get followers page " + pageNum);
             EnsureAuthenticated();
-            using (var stream = _webRequest.Get("get-user-friends", new {followers = true, user = _username, page = pageNum}, "application/json"))
-            {
-                return JsonSerializer.DeserializeFromStream<IList<User>>(stream);
-            }
+            using var stream = _webRequest.Get("get-user-friends", new {followers = true, user = _username, page = pageNum}, "application/json");
+            return JsonSerializer.DeserializeFromStream<IList<User>>(stream);
         }
 
         public IList<Workout> GetWorkouts(long userId, int offset)
@@ -56,34 +54,29 @@ namespace FitBot.Services
             Trace.TraceInformation("Get workouts for user {0} at offset {1}", userId, offset);
             EnsureAuthenticated();
 
-            using (var webStream = _webRequest.Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html"))
+            using var webStream = _webRequest.Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html");
+            Stream stream;
+            if (webStream.CanSeek)
             {
-                Stream stream;
-                if (webStream.CanSeek)
-                {
-                    stream = webStream;
-                }
-                else
-                {
-                    stream = new MemoryStream();
-                    webStream.CopyTo(stream);
-                    stream.Seek(0, SeekOrigin.Begin);
-                }
+                stream = webStream;
+            }
+            else
+            {
+                stream = new MemoryStream();
+                webStream.CopyTo(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+            }
+            try
+            {
+                return _scraper.ExtractWorkouts(stream, _selfUserId);
+            }
+            catch (InvalidDataException ex)
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                using var file = File.OpenWrite(string.Join("_", DateTime.UtcNow.ToString("yyyyMMddHHmmss"), nameof(FitocracyService), nameof(GetWorkouts), userId, offset) + ".log");
+                stream.CopyTo(file);
 
-                try
-                {
-                    return _scraper.ExtractWorkouts(stream, _selfUserId);
-                }
-                catch (InvalidDataException ex)
-                {
-                    stream.Seek(0, SeekOrigin.Begin);
-                    using (var file = File.OpenWrite(string.Join("_", DateTime.UtcNow.ToString("yyyyMMddHHmmss"), nameof(FitocracyService), nameof(GetWorkouts), userId, offset) + ".log"))
-                    {
-                        stream.CopyTo(file);
-                    }
-
-                    throw new ApplicationException($"Workout extraction failed for user {userId} at offset {offset}: {ex.Message}", ex);
-                }
+                throw new ApplicationException($"Workout extraction failed for user {userId} at offset {offset}: {ex.Message}", ex);
             }
         }
 
@@ -94,35 +87,31 @@ namespace FitBot.Services
 
             Workout workout;
 
-            using (var webStream = _webRequest.Get("entry/" + workoutId, null, "text/html"))
+            using var webStream = _webRequest.Get("entry/" + workoutId, null, "text/html");
+            Stream stream;
+            if (webStream.CanSeek)
             {
-                Stream stream;
-                if (webStream.CanSeek)
-                {
-                    stream = webStream;
-                }
-                else
-                {
-                    stream = new MemoryStream();
-                    webStream.CopyTo(stream);
-                    stream.Seek(0, SeekOrigin.Begin);
-                }
-
-                try
-                {
-                    workout = _scraper.ExtractWorkouts(stream, _selfUserId).FirstOrDefault();
-                }
-                catch (InvalidDataException ex)
-                {
-                    DumpLogFile(stream, workoutId);
-                    throw new ApplicationException($"Workout extraction failed for workout {workoutId}: {ex.Message}", ex);
-                }
-
-                if (workout == null)
-                {
-                    DumpLogFile(stream, workoutId);
-                    throw new ApplicationException($"Workout extraction failed for workout {workoutId}");
-                }
+                stream = webStream;
+            }
+            else
+            {
+                stream = new MemoryStream();
+                webStream.CopyTo(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+            }
+            try
+            {
+                workout = _scraper.ExtractWorkouts(stream, _selfUserId).FirstOrDefault();
+            }
+            catch (InvalidDataException ex)
+            {
+                DumpLogFile(stream, workoutId);
+                throw new ApplicationException($"Workout extraction failed for workout {workoutId}: {ex.Message}", ex);
+            }
+            if (workout == null)
+            {
+                DumpLogFile(stream, workoutId);
+                throw new ApplicationException($"Workout extraction failed for workout {workoutId}");
             }
 
             return workout;
@@ -131,10 +120,8 @@ namespace FitBot.Services
         private static void DumpLogFile(Stream stream, long workoutId)
         {
             stream.Seek(0, SeekOrigin.Begin);
-            using (var file = File.OpenWrite(string.Join("_", DateTime.UtcNow.ToString("yyyyMMddHHmmss"), nameof(FitocracyService), nameof(GetWorkout), workoutId) + ".log"))
-            {
-                stream.CopyTo(file);
-            }
+            using var file = File.OpenWrite(string.Join("_", DateTime.UtcNow.ToString("yyyyMMddHHmmss"), nameof(FitocracyService), nameof(GetWorkout), workoutId) + ".log");
+            stream.CopyTo(file);
         }
 
         public void AddComment(long workoutId, string text)
