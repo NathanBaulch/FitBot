@@ -1,8 +1,12 @@
 ﻿using System;
-using System.Configuration.Install;
+using System.Data.Common;
+using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Reflection;
-using System.ServiceProcess;
+using System.Runtime.InteropServices;
+using FitBot.Diagnostics;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace FitBot
 {
@@ -10,58 +14,28 @@ namespace FitBot
     {
         private static void Main(string[] args)
         {
-            if (args != null && args.Length == 1)
+            AppDomain.CurrentDomain.UnhandledException += (_, e) => Trace.TraceError(e.ExceptionObject.ToString());
+
+            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+
+            var host = Host.CreateDefaultBuilder(args)
+                .ConfigureServices(services => { services.AddHostedService<Worker>(); })
+                .Build();
+
+            Trace.Listeners.Add(new ColoredConsoleTraceListener {TraceOutputOptions = TraceOptions.DateTime});
+            Trace.Listeners.Add(new ConsoleBeepTraceListener {Filter = new EventTypeFilter(SourceLevels.Warning)});
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var arg = args[0];
-                if (arg.StartsWith("-", StringComparison.Ordinal) || arg.StartsWith("/", StringComparison.Ordinal))
-                {
-                    var assemblyPath = Assembly.GetExecutingAssembly().Location;
-                    switch (arg.Substring(1).ToLower())
-                    {
-                        case "i":
-                        case "install":
-                            try
-                            {
-                                ManagedInstallerClass.InstallHelper(new[] {assemblyPath});
-                            }
-                            catch
-                            {
-                                Environment.Exit(-1);
-                            }
-                            break;
-                        case "u":
-                        case "uninstall":
-                            try
-                            {
-                                ManagedInstallerClass.InstallHelper(new[] {"/u", assemblyPath});
-                            }
-                            catch
-                            {
-                                Environment.Exit(-1);
-                            }
-                            break;
-                    }
-                }
+                Trace.Listeners.Add(new EventLogTraceListener("FitBot") {Filter = new EventTypeFilter(SourceLevels.Warning)});
             }
 
-            AppDomain.CurrentDomain.UnhandledException += (sender, e) => Trace.TraceError(e.ExceptionObject.ToString());
+            var cfg = host.Services.GetService<IConfiguration>();
+            var emailTracer = cfg != null ? cfg.GetSection("Smtp").Get<EmailTraceListener>() : new EmailTraceListener();
+            emailTracer.Filter = new EventTypeFilter(SourceLevels.Error);
+            Trace.Listeners.Add(emailTracer);
 
-            using (var service = new WinService())
-            {
-                if (Environment.UserInteractive)
-                {
-                    service.Start();
-                    Console.WriteLine(@"Press Q to stop the service...");
-                    while (Console.ReadKey(true).Key != ConsoleKey.Q)
-                    {
-                    }
-                    service.Stop();
-                }
-                else
-                {
-                    ServiceBase.Run(service);
-                }
-            }
+            host.Run();
         }
     }
 }

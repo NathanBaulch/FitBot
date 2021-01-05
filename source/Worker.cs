@@ -1,68 +1,67 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using System.ServiceProcess;
 using System.Threading;
+using System.Threading.Tasks;
 using FitBot.Achievements;
 using FitBot.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using SimpleInjector;
 
 namespace FitBot
 {
-    public partial class WinService : ServiceBase
+    public class Worker : BackgroundService
     {
+        private readonly IConfiguration _configuration;
         private Container _container;
-        private CancellationTokenSource _cancelSource;
 
-        public void Start()
+        public Worker(IConfiguration configuration)
         {
-            OnStart(null);
+            _configuration = configuration;
         }
 
-        protected override void OnStart(string[] args)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _container = new Container();
 
-            _container.RegisterSingleton<IAchievementPushService, AchievementPushService>();
-            _container.RegisterSingleton<IAchievementService, AchievementService>();
-            _container.RegisterSingleton<IActivityGroupingService, ActivityGroupingService>();
-            _container.RegisterSingleton<IDatabaseService, DatabaseService>();
-            _container.RegisterSingleton<IFitocracyService, FitocracyService>();
-            _container.RegisterSingleton<IScrapingService, ScrapingService>();
-            _container.RegisterSingleton<IUserPullService, UserPullService>();
-            _container.RegisterSingleton<IWebRequestService, WebRequestService>();
-            _container.RegisterSingleton<IWorkoutPullService, WorkoutPullService>();
+            _container.Register<IAchievementPushService, AchievementPushService>();
+            _container.Register<IAchievementService, AchievementService>();
+            _container.Register<IActivityGroupingService, ActivityGroupingService>();
+            _container.Register(() => _configuration.GetSection("Database").Get<DatabaseOptions>(), Lifestyle.Singleton);
+            _container.Register<IDatabaseService, DatabaseService>();
+            _container.Register(() => _configuration.GetSection("Fitocracy").Get<FitocracyOptions>(), Lifestyle.Singleton);
+            _container.Register<IFitocracyService, FitocracyService>();
+            _container.Register<IScrapingService, ScrapingService>();
+            _container.Register<IUserPullService, UserPullService>();
+            _container.Register<IWebRequestService, WebRequestService>();
+            _container.Register<IWorkoutPullService, WorkoutPullService>();
 
             _container.Collection.Register<IAchievementProvider>(
                 GetType().Assembly.GetTypes()
                          .Where(typeof (IAchievementProvider).IsAssignableFrom)
                          .Where(type => type.IsClass));
 
-            _container.RegisterDecorator<IWebRequestService, ThrottledWebRequestDecorator>(Lifestyle.Singleton);
+            _container.RegisterDecorator<IWebRequestService, ThrottledWebRequestDecorator>();
 
             _container.Verify();
 
-            _cancelSource = new CancellationTokenSource();
-            Run();
+            Run(stoppingToken);
+            return Task.CompletedTask;
         }
 
-        protected override void OnStop()
-        {
-            _cancelSource.Cancel();
-        }
-
-        private void Run()
+        private void Run(CancellationToken stoppingToken)
         {
             var throttler = (ThrottledWebRequestDecorator) _container.GetInstance<IWebRequestService>();
             var errorBackoff = 0;
 
-            while (!_cancelSource.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested)
             {
                 var watch = Stopwatch.StartNew();
 
                 try
                 {
-                    Execute(_container);
+                    Execute(_container, stoppingToken);
                     errorBackoff = 0;
                 }
                 catch (Exception ex)
@@ -100,18 +99,18 @@ namespace FitBot
             }
         }
 
-        private void Execute(Container container)
+        private static void Execute(Container container, CancellationToken stoppingToken)
         {
             var userPull = container.GetInstance<IUserPullService>();
             var workoutPull = container.GetInstance<IWorkoutPullService>();
             var achieveService = container.GetInstance<IAchievementService>();
             var achievementPush = container.GetInstance<IAchievementPushService>();
 
-            foreach (var user in userPull.Pull(_cancelSource.Token))
+            foreach (var user in userPull.Pull(stoppingToken))
             {
-                var workouts = workoutPull.Pull(user, _cancelSource.Token);
-                var achievements = achieveService.Process(user, workouts, _cancelSource.Token);
-                achievementPush.Push(achievements, _cancelSource.Token);
+                var workouts = workoutPull.Pull(user, stoppingToken);
+                var achievements = achieveService.Process(user, workouts, stoppingToken);
+                achievementPush.Push(achievements, stoppingToken);
             }
         }
     }

@@ -1,15 +1,17 @@
 using System.Collections.Generic;
 using FitBot.Model;
-using FitBot.Properties;
 using FitBot.Services;
 
 namespace FitBot.Development
 {
     public class OnlyMeFitocracyDecorator : BaseFitocracyDecorator
     {
-        public OnlyMeFitocracyDecorator(IFitocracyService decorated)
+        private readonly string _username;
+
+        public OnlyMeFitocracyDecorator(IFitocracyService decorated, string username)
             : base(decorated)
         {
+            _username = username;
         }
 
         public override IList<User> GetFollowers(int pageNum = 0)
@@ -17,7 +19,7 @@ namespace FitBot.Development
             var users = new List<User>();
             if (pageNum == 0)
             {
-                users.Add(new User {Id = SelfUserId, Username = Settings.Default.FitocracyUsername});
+                users.Add(new User {Id = SelfUserId, Username = _username});
             }
             return users;
         }

@@ -1,6 +1,5 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitBot", "source\FitBot.csproj", "{2F4A9781-91F4-4FFD-81EE-3B0C14A0AFD2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitBot.Test", "tests\FitBot.Test.csproj", "{AC24A64A-AC75-457E-808A-BAE9A8BE3402}"
