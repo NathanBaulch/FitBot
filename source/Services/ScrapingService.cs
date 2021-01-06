@@ -22,6 +22,13 @@ namespace FitBot.Services
         {
             var doc = new HtmlDocument {OptionDefaultStreamEncoding = Encoding.UTF8};
             doc.Load(content);
+            if (doc.DocumentNode
+                .Descendants("div")
+                .Any(div => div.GetAttributeValue("class", null) == "stream-inner stream-inner-empty"))
+            {
+                return Array.Empty<Workout>();
+            }
+
             return doc.DocumentNode
                 .Descendants("div")
                 .Where(div => div.GetAttributeValue("data-ag-type", null) == "workout")
@@ -44,7 +51,7 @@ namespace FitBot.Services
                 .FirstOrDefault(item => item != null);
             if (value == null || !long.TryParse(value, out var userId))
             {
-                throw new InvalidDataException("User ID not found");
+                throw new InvalidDataException($"User ID not found in workout {workoutId}");
             }
 
             value = node.Descendants("a")
@@ -53,7 +60,7 @@ namespace FitBot.Services
                 .FirstOrDefault();
             if (value == null || !DateTime.TryParse(value, out var date))
             {
-                throw new InvalidDataException("Workout date not found");
+                throw new InvalidDataException($"Date not found in workout {workoutId}");
             }
 
             value = node.Descendants("span")
@@ -67,7 +74,7 @@ namespace FitBot.Services
                     .Replace(" ", "")
                     .Replace("\xa0", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out var points))
             {
-                throw new InvalidDataException("Workout points not found");
+                throw new InvalidDataException($"Points not found in workout {workoutId}");
             }
 
             return new Workout
@@ -81,16 +88,16 @@ namespace FitBot.Services
                         .SelectMany(ul => ul.Descendants("li"))
                         .Where(li => li.Elements("div").Any(div => div.GetAttributeValue("class", null) == "action_prompt") &&
                                      li.Elements("div").All(div => div.GetAttributeValue("class", null) != "group_container"))
-                        .Select(ExtractActivity)
+                        .Select((li, i) => ExtractActivity(li, workoutId, i))
                         .ToList(),
                     Comments = node.Descendants("li")
                         .Where(li => li.GetAttributeValue("data-user-id", null) == selfUserId.ToString(CultureInfo.InvariantCulture))
-                        .Select(ExtractComment)
+                        .Select(li => ExtractComment(li, workoutId))
                         .ToList()
                 };
         }
 
-        private static Activity ExtractActivity(HtmlNode node, int index)
+        private static Activity ExtractActivity(HtmlNode node, long workoutId, int index)
         {
             var name = node.Descendants("div")
                 .Where(div => div.GetAttributeValue("class", null) == "action_prompt")
@@ -98,7 +105,7 @@ namespace FitBot.Services
                 .FirstOrDefault();
             if (name == null)
             {
-                throw new InvalidDataException("Activity name not found");
+                throw new InvalidDataException($"Name not found in workout {workoutId} activity at index {index}");
             }
 
             return new Activity
@@ -111,12 +118,12 @@ namespace FitBot.Services
                         .FirstOrDefault(),
                     Sets = node.Descendants("li")
                         .Where(li => li.GetAttributeValue("class", null) != "stream_note")
-                        .Select(ExtractSet)
+                        .Select((li, i) => ExtractSet(li, workoutId, i))
                         .ToList()
                 };
         }
 
-        private static Set ExtractSet(HtmlNode node, int index)
+        private static Set ExtractSet(HtmlNode node, long workoutId, int index)
         {
             var value = node.Descendants("span")
                 .Where(span => span.GetAttributeValue("class", null) == "action_prompt_points")
@@ -124,7 +131,7 @@ namespace FitBot.Services
                 .FirstOrDefault();
             if (!int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var points))
             {
-                throw new InvalidDataException("Set points not found");
+                throw new InvalidDataException($"Points not found in workout {workoutId} set at index {index}");
             }
 
             var set = new Set
@@ -291,7 +298,7 @@ namespace FitBot.Services
                                 break;
 
                             default:
-                                throw new InvalidDataException($"Set metric '{metric}' not recognized");
+                                throw new InvalidDataException($"Metric '{metric}' not recognized in workout {workoutId} set at index {index}");
                         }
                     }
 
@@ -308,12 +315,12 @@ namespace FitBot.Services
 
         private static decimal? Round(decimal? value) => value != null ? Math.Round(value.Value, 2, MidpointRounding.AwayFromZero) : null;
 
-        private static Comment ExtractComment(HtmlNode node)
+        private static Comment ExtractComment(HtmlNode node, long workoutId)
         {
             var value = node.GetAttributeValue("data-comment-id", null);
             if (!long.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var commentId))
             {
-                throw new InvalidDataException("Comment ID not found");
+                throw new InvalidDataException($"ID not found in workout {workoutId} comment");
             }
 
             return new Comment
