@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using FitBot.Model;
@@ -27,7 +29,14 @@ namespace FitBot.Services
 
                 if (achievement.CommentText != null)
                 {
-                    await _fitocracy.AddComment(achievement.WorkoutId, achievement.CommentText);
+                    try
+                    {
+                        await _fitocracy.AddComment(achievement.WorkoutId, achievement.CommentText);
+                    }
+                    catch (Exception ex) when (ex.GetBaseException() is ApplicationException {Message: "Can only comment if member of this group"})
+                    {
+                        Trace.TraceWarning(ex.Message);
+                    }
                 }
 
                 cancel.ThrowIfCancellationRequested();
