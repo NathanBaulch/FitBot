@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -10,7 +11,9 @@ using System.Threading.Tasks;
 using Dapper;
 using DapperExtensions;
 using DapperExtensions.Mapper;
+using DapperExtensions.Sql;
 using FitBot.Model;
+using Npgsql;
 using Activity = FitBot.Model.Activity;
 
 namespace FitBot.Services
@@ -32,6 +35,18 @@ namespace FitBot.Services
 
         public DatabaseService(DatabaseOptions options)
         {
+            switch (options.ProviderName)
+            {
+                case "System.Data.SqlClient":
+                    DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+                    DapperExtensions.DapperExtensions.SqlDialect = new SqlServerDialect();
+                    break;
+                case "Npgsql":
+                    DbProviderFactories.RegisterFactory("Npgsql", NpgsqlFactory.Instance);
+                    DapperExtensions.DapperExtensions.SqlDialect = new PostgreSqlDialect();
+                    break;
+            }
+
             _factory = DbProviderFactories.GetFactory(options.ProviderName);
             _connectionString = options.ConnectionString;
 
@@ -50,13 +65,13 @@ namespace FitBot.Services
         public virtual async Task<IEnumerable<T>> Query<T>(string sql, object parameters = null)
         {
             using var con = OpenConnection();
-            return await con.QueryAsync<T>(sql, parameters);
+            return await con.QueryAsync<T>(Quote(sql), parameters);
         }
 
         public virtual async Task<T> Single<T>(string sql, object parameters)
         {
             using var con = OpenConnection();
-            return await con.QuerySingleOrDefaultAsync<T>(sql, parameters);
+            return await con.QuerySingleOrDefaultAsync<T>(Quote(sql), parameters);
         }
 
         public Task<IEnumerable<User>> GetUsers() =>
@@ -116,10 +131,10 @@ namespace FitBot.Services
         {
             Trace.TraceInformation("Delete workouts for user {0} before {1}", userId, before);
             using var con = OpenConnection();
-            con.Execute(
+            con.Execute(Quote(
                 "delete from [Workout] " +
                 "where [UserId] = @userId " +
-                "and [Date] < @before", new {userId, before});
+                "and [Date] < @before"), new {userId, before});
         }
 
         public void Insert(Workout workout)
@@ -144,9 +159,9 @@ namespace FitBot.Services
             {
                 using var trans = con.BeginTransaction();
                 con.Update(workout, trans);
-                con.Execute(
+                con.Execute(Quote(
                     "delete from [Activity] " +
-                    "where [WorkoutId] = @Id", new {workout.Id}, trans);
+                    "where [WorkoutId] = @Id"), new {workout.Id}, trans);
                 InsertWorkoutActivities(workout, con, trans);
                 trans.Commit();
             }
@@ -216,10 +231,10 @@ namespace FitBot.Services
         {
             Trace.TraceInformation("Update comment ID on achievement {0}", achievementId);
             using var con = OpenConnection();
-            con.Execute(
+            con.Execute(Quote(
                 "update [Achievement] " +
                 "set [CommentId] = @commentId " +
-                "where [Id] = @achievementId", new {commentId, achievementId});
+                "where [Id] = @achievementId"), new {commentId, achievementId});
         }
 
         public void Delete(Achievement achievement)
@@ -274,6 +289,21 @@ namespace FitBot.Services
             }
         }
 
+        private static string Quote(string sql)
+        {
+            if (DapperExtensions.DapperExtensions.SqlDialect.OpenQuote != '[')
+            {
+                sql = sql.Replace('[', DapperExtensions.DapperExtensions.SqlDialect.OpenQuote);
+            }
+
+            if (DapperExtensions.DapperExtensions.SqlDialect.CloseQuote != ']')
+            {
+                sql = sql.Replace(']', DapperExtensions.DapperExtensions.SqlDialect.CloseQuote);
+            }
+
+            return sql;
+        }
+
         #region Nested type: IncludableClassMapper
 
         private class IncludableClassMapper<T> : AutoClassMapper<T>
@@ -319,6 +349,27 @@ namespace FitBot.Services
             public void Include() => Ignored = false;
 
             public void Ignore() => Ignored = true;
+        }
+
+        #endregion
+
+        #region Nested type: PostgreSqlDialect
+
+        private class PostgreSqlDialect : SqlDialectBase
+        {
+            public override string GetIdentitySql(string tableName) => "SELECT LASTVAL() AS Id";
+
+            public override string GetPagingSql(string sql, int page, int resultsPerPage, IDictionary<string, object> parameters) => GetSetSql(sql, page * resultsPerPage, resultsPerPage, parameters);
+
+            public override string GetSetSql(string sql, int pageNumber, int maxResults, IDictionary<string, object> parameters)
+            {
+                sql += " LIMIT @maxResults OFFSET @pageStartRowNbr";
+                parameters.Add("@maxResults", maxResults);
+                parameters.Add("@pageStartRowNbr", pageNumber * maxResults);
+                return sql;
+            }
+
+            public override string GetColumnName(string prefix, string columnName, string alias) => base.GetColumnName(null, columnName, alias);
         }
 
         #endregion

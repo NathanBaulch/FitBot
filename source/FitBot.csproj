@@ -9,6 +9,7 @@
         <PackageReference Include="dapperextensions" Version="1.6.3" />
         <PackageReference Include="HtmlAgilityPack" Version="1.11.29" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+        <PackageReference Include="Npgsql" Version="5.0.1.1" />
         <PackageReference Include="ServiceStack.Text" Version="5.10.2" />
         <PackageReference Include="SimpleInjector" Version="5.2.0" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />

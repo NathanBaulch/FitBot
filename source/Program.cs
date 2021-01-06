@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Data.Common;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using FitBot.Diagnostics;
@@ -15,8 +13,6 @@ namespace FitBot
         private static void Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += (_, e) => Trace.TraceError(e.ExceptionObject.ToString());
-
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
 
             var host = Host.CreateDefaultBuilder(args)
                 .ConfigureServices(services => { services.AddHostedService<Worker>(); })

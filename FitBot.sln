@@ -7,6 +7,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{F16D9358-17C1-42C5-8850-D084ABC7FCFE}"
 	ProjectSection(SolutionItems) = preProject
 		database\MSSQL.sql = database\MSSQL.sql
+		database\PostgreSQL.sql = database\PostgreSQL.sql
 		database\SQLite.sql = database\SQLite.sql
 	EndProjectSection
 EndProject
