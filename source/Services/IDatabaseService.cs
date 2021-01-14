@@ -14,7 +14,7 @@ namespace FitBot.Services
         void Update(User user);
         void Delete(User user);
 
-        IEnumerable<Workout> GetWorkouts(long userId, DateTime fromDate, DateTime toDate);
+        IEnumerable<Workout> GetWorkouts(long userId, DateTime? fromDate = null, DateTime? toDate = null);
         IEnumerable<long> GetUnresolvedWorkoutIds(long userId, DateTime after);
         void DeleteWorkouts(long userId, DateTime before);
         void Insert(Workout workout);
