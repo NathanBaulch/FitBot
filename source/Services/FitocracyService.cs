@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using FitBot.Model;
+using Microsoft.Extensions.Logging;
 using ServiceStack.Text;
 
 namespace FitBot.Services
@@ -19,15 +19,17 @@ namespace FitBot.Services
     {
         private readonly IWebRequestService _webRequest;
         private readonly IScrapingService _scraper;
+        private readonly ILogger<FitocracyService> _logger;
         private readonly string _username;
         private readonly string _password;
         private string _csrfToken;
         private long _selfUserId;
 
-        public FitocracyService(IWebRequestService webRequest, IScrapingService scraper, FitocracyOptions options)
+        public FitocracyService(IWebRequestService webRequest, IScrapingService scraper, ILogger<FitocracyService> logger, FitocracyOptions options)
         {
             _webRequest = webRequest;
             _scraper = scraper;
+            _logger = logger;
             _username = options.Username;
             _password = options.Password;
         }
@@ -43,7 +45,7 @@ namespace FitBot.Services
 
         public IList<User> GetFollowers(int pageNum)
         {
-            Trace.TraceInformation("Get followers page " + pageNum);
+            _logger.LogDebug("Get followers page " + pageNum);
             EnsureAuthenticated();
             using var stream = _webRequest.Get("get-user-friends", new {followers = true, user = _username, page = pageNum}, "application/json");
             return JsonSerializer.DeserializeFromStream<IList<User>>(stream);
@@ -51,7 +53,7 @@ namespace FitBot.Services
 
         public IList<Workout> GetWorkouts(long userId, int offset)
         {
-            Trace.TraceInformation("Get workouts for user {0} at offset {1}", userId, offset);
+            _logger.LogDebug("Get workouts for user {0} at offset {1}", userId, offset);
             EnsureAuthenticated();
 
             using var webStream = _webRequest.Get("activity_stream/" + offset, new {user_id = userId, types = "WORKOUT"}, "text/html");
@@ -82,7 +84,7 @@ namespace FitBot.Services
 
         public Workout GetWorkout(long workoutId)
         {
-            Trace.TraceInformation("Get workout " + workoutId);
+            _logger.LogDebug("Get workout " + workoutId);
             EnsureAuthenticated();
 
             Workout workout;
@@ -126,21 +128,21 @@ namespace FitBot.Services
 
         public void AddComment(long workoutId, string text)
         {
-            Trace.TraceInformation("Add comment on workout " + workoutId);
+            _logger.LogDebug("Add comment on workout " + workoutId);
             EnsureAuthenticated();
             _webRequest.Post("add_comment", new {csrfmiddlewaretoken = _csrfToken, ag = workoutId, comment_text = text});
         }
 
         public void DeleteComment(long commentId)
         {
-            Trace.TraceInformation("Delete comment " + commentId);
+            _logger.LogDebug("Delete comment " + commentId);
             EnsureAuthenticated();
             _webRequest.Post("delete_comment", new {csrfmiddlewaretoken = _csrfToken, id = commentId});
         }
 
         public void GiveProp(long workoutId)
         {
-            Trace.TraceInformation("Give prop on workout " + workoutId);
+            _logger.LogDebug("Give prop on workout " + workoutId);
             EnsureAuthenticated();
             _webRequest.Post("give_prop", new {csrfmiddlewaretoken = _csrfToken, id = workoutId});
         }

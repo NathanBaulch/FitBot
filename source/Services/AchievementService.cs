@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using FitBot.Achievements;
 using FitBot.Model;
+using Microsoft.Extensions.Logging;
 
 namespace FitBot.Services
 {
@@ -12,11 +12,13 @@ namespace FitBot.Services
     {
         private readonly IDatabaseService _database;
         private readonly IList<IAchievementProvider> _providers;
+        private readonly ILogger<AchievementService> _logger;
 
-        public AchievementService(IDatabaseService database, IEnumerable<IAchievementProvider> providers)
+        public AchievementService(IDatabaseService database, IEnumerable<IAchievementProvider> providers, ILogger<AchievementService> logger)
         {
             _database = database;
             _providers = providers.ToList();
+            _logger = logger;
         }
 
         public IEnumerable<Achievement> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel)
@@ -104,7 +106,7 @@ namespace FitBot.Services
                     }
                     else
                     {
-                        Trace.TraceInformation("Comment {0} missing on workout {1}", achievement.CommentId, workout.Id);
+                        _logger.LogInformation("Comment {0} missing on workout {1}", achievement.CommentId, workout.Id);
                     }
                 }
                 else

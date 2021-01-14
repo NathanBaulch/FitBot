@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,6 +6,7 @@ using FitBot.Achievements;
 using FitBot.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SimpleInjector;
 
 namespace FitBot
@@ -14,9 +14,14 @@ namespace FitBot
     public class Worker : BackgroundService
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<Worker> _logger;
         private Container _container;
 
-        public Worker(IConfiguration configuration) => _configuration = configuration;
+        public Worker(IConfiguration configuration, ILogger<Worker> logger)
+        {
+            _configuration = configuration;
+            _logger = logger;
+        }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -54,7 +59,7 @@ namespace FitBot
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var watch = Stopwatch.StartNew();
+                var start = DateTime.Now;
 
                 try
                 {
@@ -72,15 +77,15 @@ namespace FitBot
                             return;
                         }
 
-                        Trace.TraceError(inner.ToString());
+                        _logger.LogError(inner.ToString());
                     }
 
                     Thread.Sleep(TimeSpan.FromSeconds((int) Math.Pow(2, errorBackoff)));
                     errorBackoff++;
                 }
 
-                var elapsed = watch.Elapsed;
-                Trace.TraceInformation("Processing time: " + elapsed);
+                var elapsed = DateTime.Now - start;
+                _logger.LogInformation("Processing time: " + elapsed);
 
                 if (errorBackoff == 0)
                 {

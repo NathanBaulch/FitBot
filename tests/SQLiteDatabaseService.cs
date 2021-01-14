@@ -9,6 +9,8 @@ using System.Text.RegularExpressions;
 using Dapper;
 using DapperExtensions.Sql;
 using FitBot.Services;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FitBot.Test
 {
@@ -34,7 +36,7 @@ namespace FitBot.Test
         }
 
         private SQLiteDatabaseService(string fileName, string providerName, string connectionString)
-            : base(new DatabaseOptions {ProviderName = providerName, ConnectionString = connectionString})
+            : base(NullLogger<DatabaseService>.Instance, new DatabaseOptions {ProviderName = providerName, ConnectionString = connectionString})
         {
             File.Delete(fileName);
             var factory = DbProviderFactories.GetFactory(providerName);
