@@ -188,6 +188,25 @@ namespace FitBot.Services
             con.Delete(workout);
         }
 
+        public IEnumerable<Activity> GetActivities(long workoutId)
+        {
+            var activities = Query<Activity>(
+                "select * " +
+                "from [Activity] " +
+                "where [WorkoutId] = @workoutId " +
+                "order by [Sequence]", new {workoutId}).ToList();
+            var sets = Query<Set>(
+                "select * " +
+                "from [Set] " +
+                "where [ActivityId] in (select [Id] from [Activity] where [WorkoutId] = @workoutId) " +
+                "order by [Sequence]", new {workoutId}).ToLookup(s => s.ActivityId);
+            foreach (var activity in activities)
+            {
+                activity.Sets = sets[activity.Id].ToList();
+            }
+            return activities;
+        }
+
         public IEnumerable<Achievement> GetAchievements(long workoutId) =>
             Query<Achievement>(
                 "select * " +
