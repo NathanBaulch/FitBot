@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -13,6 +12,7 @@ using DapperExtensions;
 using DapperExtensions.Mapper;
 using DapperExtensions.Sql;
 using FitBot.Model;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 using Activity = FitBot.Model.Activity;
 
@@ -26,6 +26,7 @@ namespace FitBot.Services
 
     public class DatabaseService : IDatabaseService
     {
+        private readonly ILogger<DatabaseService> _logger;
         private readonly DbProviderFactory _factory;
         private readonly string _connectionString;
 
@@ -33,8 +34,10 @@ namespace FitBot.Services
         private readonly IncludablePropertyMap _workoutInsertDateProp;
         private readonly IncludablePropertyMap _achievementInsertDateProp;
 
-        public DatabaseService(DatabaseOptions options)
+        public DatabaseService(ILogger<DatabaseService> logger, DatabaseOptions options)
         {
+            _logger = logger;
+
             switch (options.ProviderName)
             {
                 case "System.Data.SqlClient":
@@ -82,7 +85,7 @@ namespace FitBot.Services
 
         public void Insert(User user)
         {
-            Trace.TraceInformation("Insert user {0} ({1})", user.Id, user.Username);
+            _logger.LogDebug("Insert user {0} ({1})", user.Id, user.Username);
             using var con = OpenConnection();
             _userInsertDateProp.Include();
             user.InsertDate = DateTime.UtcNow;
@@ -91,7 +94,7 @@ namespace FitBot.Services
 
         public void Update(User user)
         {
-            Trace.TraceInformation("Update user {0} ({1})", user.Id, user.Username);
+            _logger.LogDebug("Update user {0} ({1})", user.Id, user.Username);
             using var con = OpenConnection();
             _userInsertDateProp.Ignore();
             user.UpdateDate = DateTime.UtcNow;
@@ -100,7 +103,7 @@ namespace FitBot.Services
 
         public void Delete(User user)
         {
-            Trace.TraceInformation("Delete user {0} ({1})", user.Id, user.Username);
+            _logger.LogDebug("Delete user {0} ({1})", user.Id, user.Username);
             using var con = OpenConnection();
             con.Delete(user);
         }
@@ -129,7 +132,7 @@ namespace FitBot.Services
 
         public void DeleteWorkouts(long userId, DateTime before)
         {
-            Trace.TraceInformation("Delete workouts for user {0} before {1}", userId, before);
+            _logger.LogDebug("Delete workouts for user {0} before {1}", userId, before);
             using var con = OpenConnection();
             con.Execute(Quote(
                 "delete from [Workout] " +
@@ -139,7 +142,7 @@ namespace FitBot.Services
 
         public void Insert(Workout workout)
         {
-            Trace.TraceInformation("Insert workout " + workout.Id);
+            _logger.LogDebug("Insert workout " + workout.Id);
             using var con = OpenConnection();
             using var trans = con.BeginTransaction();
             _workoutInsertDateProp.Include();
@@ -151,7 +154,7 @@ namespace FitBot.Services
 
         public void Update(Workout workout, bool deep)
         {
-            Trace.TraceInformation("Update workout {0} ({1})", workout.Id, deep ? "deep" : "shallow");
+            _logger.LogDebug("Update workout {0} ({1})", workout.Id, deep ? "deep" : "shallow");
             using var con = OpenConnection();
             _workoutInsertDateProp.Ignore();
             workout.UpdateDate = DateTime.UtcNow;
@@ -173,7 +176,7 @@ namespace FitBot.Services
 
         public void Delete(Workout workout)
         {
-            Trace.TraceInformation("Delete workout " + workout.Id);
+            _logger.LogDebug("Delete workout " + workout.Id);
             using var con = OpenConnection();
             con.Delete(workout);
         }
@@ -189,15 +192,15 @@ namespace FitBot.Services
         {
             if (achievement.Group != null)
             {
-                Trace.TraceInformation("Insert achievement {0} for group {1}", achievement.Type, achievement.Group);
+                _logger.LogDebug("Insert achievement {0} for group {1}", achievement.Type, achievement.Group);
             }
             else if (achievement.Activity != null)
             {
-                Trace.TraceInformation("Insert achievement {0} for activity {1}", achievement.Type, achievement.Activity);
+                _logger.LogDebug("Insert achievement {0} for activity {1}", achievement.Type, achievement.Activity);
             }
             else
             {
-                Trace.TraceInformation("Insert achievement " + achievement.Type);
+                _logger.LogDebug("Insert achievement " + achievement.Type);
             }
 
             using var con = OpenConnection();
@@ -210,15 +213,15 @@ namespace FitBot.Services
         {
             if (achievement.Group != null)
             {
-                Trace.TraceInformation("Update achievement {0} for group {1}", achievement.Type, achievement.Group);
+                _logger.LogDebug("Update achievement {0} for group {1}", achievement.Type, achievement.Group);
             }
             else if (achievement.Activity != null)
             {
-                Trace.TraceInformation("Update achievement {0} for activity {1}", achievement.Type, achievement.Activity);
+                _logger.LogDebug("Update achievement {0} for activity {1}", achievement.Type, achievement.Activity);
             }
             else
             {
-                Trace.TraceInformation("Update achievement " + achievement.Type);
+                _logger.LogDebug("Update achievement " + achievement.Type);
             }
 
             using var con = OpenConnection();
@@ -229,7 +232,7 @@ namespace FitBot.Services
 
         public void UpdateCommentId(long achievementId, long commentId)
         {
-            Trace.TraceInformation("Update comment ID on achievement {0}", achievementId);
+            _logger.LogDebug("Update comment ID on achievement {0}", achievementId);
             using var con = OpenConnection();
             con.Execute(Quote(
                 "update [Achievement] " +
@@ -241,15 +244,15 @@ namespace FitBot.Services
         {
             if (achievement.Group != null)
             {
-                Trace.TraceInformation("Delete achievement {0} for group {1}", achievement.Type, achievement.Group);
+                _logger.LogDebug("Delete achievement {0} for group {1}", achievement.Type, achievement.Group);
             }
             else if (achievement.Activity != null)
             {
-                Trace.TraceInformation("Delete achievement {0} for activity {1}", achievement.Type, achievement.Activity);
+                _logger.LogDebug("Delete achievement {0} for activity {1}", achievement.Type, achievement.Activity);
             }
             else
             {
-                Trace.TraceInformation("Delete achievement " + achievement.Type);
+                _logger.LogDebug("Delete achievement " + achievement.Type);
             }
 
             using var con = OpenConnection();
@@ -357,9 +360,15 @@ namespace FitBot.Services
 
         private class PostgreSqlDialect : SqlDialectBase
         {
-            public override string GetIdentitySql(string tableName) => "SELECT LASTVAL() AS Id";
+            public override string GetIdentitySql(string tableName)
+            {
+                return "SELECT LASTVAL() AS Id";
+            }
 
-            public override string GetPagingSql(string sql, int page, int resultsPerPage, IDictionary<string, object> parameters) => GetSetSql(sql, page * resultsPerPage, resultsPerPage, parameters);
+            public override string GetPagingSql(string sql, int page, int resultsPerPage, IDictionary<string, object> parameters)
+            {
+                return GetSetSql(sql, page * resultsPerPage, resultsPerPage, parameters);
+            }
 
             public override string GetSetSql(string sql, int pageNumber, int maxResults, IDictionary<string, object> parameters)
             {
@@ -369,7 +378,10 @@ namespace FitBot.Services
                 return sql;
             }
 
-            public override string GetColumnName(string prefix, string columnName, string alias) => base.GetColumnName(null, columnName, alias);
+            public override string GetColumnName(string prefix, string columnName, string alias)
+            {
+                return base.GetColumnName(null, columnName, alias);
+            }
         }
 
         #endregion

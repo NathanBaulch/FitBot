@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,6 +7,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.Extensions.Logging;
 using ServiceStack.Text;
 
 namespace FitBot.Services
@@ -15,6 +15,10 @@ namespace FitBot.Services
     public class WebRequestService : IWebRequestService
     {
         private const string RootUrl = "https://www.fitocracy.com/";
+
+        private readonly ILogger<WebRequestService> _logger;
+
+        public WebRequestService(ILogger<WebRequestService> logger) => _logger = logger;
 
         public CookieContainer Cookies { get; set; } = new();
 
@@ -34,7 +38,7 @@ namespace FitBot.Services
                                           ex.Status == WebExceptionStatus.KeepAliveFailure ||
                                           ((HttpWebResponse) ex.Response)?.StatusCode == HttpStatusCode.GatewayTimeout)
             {
-                Trace.TraceWarning(ex.Message + ", retrying in 10 seconds");
+                _logger.LogWarning(ex.Message + ", retrying in 10 seconds");
                 await Task.Delay(TimeSpan.FromSeconds(10));
                 return await GetInternal(url, expectedContentType);
             }

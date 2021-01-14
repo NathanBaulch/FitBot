@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 
 namespace FitBot.Services
 {
     public class ActivityGroupingService : IActivityGroupingService
     {
+        private readonly ILogger<ActivityGroupingService> _logger;
+
         private readonly IDictionary<string, Group> _groups = new[]
                 {
                     Builder.Bodyweight("Ab Wheel").Include("ab wheel"),
@@ -220,6 +222,8 @@ namespace FitBot.Services
 
         private readonly IDictionary<string, string> _activitiesCache = new ConcurrentDictionary<string, string>();
 
+        public ActivityGroupingService(ILogger<ActivityGroupingService> logger) => _logger = logger;
+
         public string GetActivityGroup(string activityName)
         {
             if (!_activitiesCache.TryGetValue(activityName, out var groupName))
@@ -229,7 +233,7 @@ namespace FitBot.Services
                 {
                     if (groups.Count > 1)
                     {
-                        Trace.TraceWarning("Duplicate groups for activity " + activityName);
+                        _logger.LogWarning("Duplicate groups for activity " + activityName);
                     }
                     groupName = groups[0].Name;
                 }

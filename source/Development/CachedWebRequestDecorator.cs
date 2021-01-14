@@ -1,10 +1,10 @@
 ﻿using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using FitBot.Services;
+using Microsoft.Extensions.Logging;
 
 namespace FitBot.Development
 {
@@ -12,11 +12,13 @@ namespace FitBot.Development
     {
         private readonly string _cacheDir = Path.GetFullPath("WebCache");
         private readonly IWebRequestService _decorated;
+        private readonly ILogger<CachedWebRequestDecorator> _logger;
         private NameValueCollection _headers;
 
-        public CachedWebRequestDecorator(IWebRequestService decorated)
+        public CachedWebRequestDecorator(IWebRequestService decorated, ILogger<CachedWebRequestDecorator> logger)
         {
             _decorated = decorated;
+            _logger = logger;
             Directory.CreateDirectory(_cacheDir);
         }
 
@@ -77,7 +79,7 @@ namespace FitBot.Development
             }
             else
             {
-                Trace.TraceInformation("Skip POST to " + endpoint);
+                _logger.LogDebug("Skip POST to " + endpoint);
             }
         }
     }
