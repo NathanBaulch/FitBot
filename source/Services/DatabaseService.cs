@@ -32,7 +32,9 @@ namespace FitBot.Services
 
         private readonly IncludablePropertyMap _userInsertDateProp;
         private readonly IncludablePropertyMap _workoutInsertDateProp;
+        private readonly IncludablePropertyMap _workoutUserIdProp;
         private readonly IncludablePropertyMap _achievementInsertDateProp;
+        private readonly IncludablePropertyMap _achievementWorkoutIdProp;
 
         public DatabaseService(ILogger<DatabaseService> logger, DatabaseOptions options)
         {
@@ -62,7 +64,9 @@ namespace FitBot.Services
             GetPropertyMap<Activity>(x => x.Sets).Ignore();
             _userInsertDateProp = GetPropertyMap<User>(x => x.InsertDate);
             _workoutInsertDateProp = GetPropertyMap<Workout>(x => x.InsertDate);
+            _workoutUserIdProp = GetPropertyMap<Workout>(x => x.UserId);
             _achievementInsertDateProp = GetPropertyMap<Achievement>(x => x.InsertDate);
+            _achievementWorkoutIdProp = GetPropertyMap<Achievement>(x => x.WorkoutId);
         }
 
         public virtual async Task<IEnumerable<T>> Query<T>(string sql, object parameters = null)
@@ -108,13 +112,13 @@ namespace FitBot.Services
             con.Delete(user);
         }
 
-        public Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime fromDate, DateTime toDate) =>
+        public Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime? fromDate, DateTime? toDate) =>
             Query<Workout>(
                 "select * " +
                 "from [Workout] " +
                 "where [UserId] = @userId " +
-                "and [Date] >= @fromDate " +
-                "and [Date] < @toDate " +
+                (fromDate != null ? "and [Date] >= @fromDate " : "") +
+                (toDate != null ? "and [Date] < @toDate " : "") +
                 "order by [Date], [Id]", new {userId, fromDate, toDate});
 
         public Task<IEnumerable<long>> GetUnresolvedWorkoutIds(long userId, DateTime after) =>
@@ -146,6 +150,7 @@ namespace FitBot.Services
             using var con = OpenConnection();
             using var trans = con.BeginTransaction();
             _workoutInsertDateProp.Include();
+            _workoutUserIdProp.Include();
             workout.InsertDate = DateTime.UtcNow;
             con.Insert(workout, trans);
             InsertWorkoutActivities(workout, con, trans);
@@ -157,6 +162,7 @@ namespace FitBot.Services
             _logger.LogDebug("Update workout {0} ({1})", workout.Id, deep ? "deep" : "shallow");
             using var con = OpenConnection();
             _workoutInsertDateProp.Ignore();
+            _workoutUserIdProp.Ignore();
             workout.UpdateDate = DateTime.UtcNow;
             if (deep)
             {
@@ -205,6 +211,7 @@ namespace FitBot.Services
 
             using var con = OpenConnection();
             _achievementInsertDateProp.Include();
+            _achievementWorkoutIdProp.Include();
             achievement.InsertDate = DateTime.UtcNow;
             con.Insert(achievement);
         }
@@ -226,6 +233,7 @@ namespace FitBot.Services
 
             using var con = OpenConnection();
             _achievementInsertDateProp.Ignore();
+            _achievementWorkoutIdProp.Ignore();
             achievement.UpdateDate = DateTime.UtcNow;
             con.Update(achievement);
         }
