@@ -20,8 +20,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 0)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.Empty);
         }
@@ -39,8 +40,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 1)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.Empty);
             database.Verify(x => x.Insert(It.IsAny<Workout>()), Times.Never);
@@ -60,8 +62,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 1)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.EqualTo(new[] {workout}));
             database.Verify(x => x.Insert(workout));
@@ -82,8 +85,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 1)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.EqualTo(new[] {workout1A}));
             database.Verify(x => x.Update(workout1A, false));
@@ -104,8 +108,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 1)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.EqualTo(new[] {workout1A}));
             database.Verify(x => x.Update(workout1A, true));
@@ -127,8 +132,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 1)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.Empty);
             database.Verify(x => x.Delete(workout2));
@@ -145,8 +151,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 0)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.Empty);
             database.Verify(x => x.DeleteWorkouts(0, DateTime.MaxValue));
@@ -168,8 +175,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 2)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.EqualTo(new[] {workout1, workout2}));
             database.Verify(x => x.Insert(workout1));
@@ -192,8 +200,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 2)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.EqualTo(new[] {workout1, workout2}));
             database.Verify(x => x.Insert(workout1));
@@ -214,8 +223,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 2)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.EqualTo(new[] {workout}));
             database.Verify(x => x.Insert(workout));
@@ -237,8 +247,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 3)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.EqualTo(new[] {workout1, workout2}));
             database.Verify(x => x.Insert(workout1));
@@ -261,8 +272,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 4)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.EqualTo(new[] {workout1, workout2}));
             database.Verify(x => x.Insert(workout1));
@@ -287,8 +299,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 4)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.EqualTo(new[] {workout3, workout4}));
             database.Verify(x => x.Insert(workout3));
@@ -310,8 +323,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 1)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.EqualTo(new[] {workout1A}));
             database.Verify(x => x.Update(workout1A, false));
@@ -335,8 +349,9 @@ namespace FitBot.Test.Services
             fitocracy.Setup(x => x.GetWorkouts(0, 2)).Returns(Task.FromResult<IList<Workout>>(Array.Empty<Workout>()));
 
             var activityGrouping = new Mock<IActivityGroupingService>();
+            var activityHasher = new Mock<IActivityHashService>();
 
-            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object).Pull(new User {InsertDate = DateTime.Now}).Result;
+            var workouts = new WorkoutPullService(database.Object, fitocracy.Object, activityGrouping.Object, activityHasher.Object).Pull(new User {InsertDate = DateTime.UtcNow}).Result;
 
             Assert.That(workouts, Is.Empty);
             database.Verify(x => x.Insert(It.IsAny<Workout>()), Times.Never);

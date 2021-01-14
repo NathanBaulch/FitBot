@@ -22,6 +22,8 @@ namespace FitBot.Services
         void Update(Workout workout, bool deep = false);
         void Delete(Workout workout);
 
+        Task<IEnumerable<Activity>> GetActivities(long workoutId);
+
         Task<IEnumerable<Achievement>> GetAchievements(long workoutId);
         void Insert(Achievement achievement);
         void Update(Achievement achievement);

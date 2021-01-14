@@ -12,12 +12,14 @@ namespace FitBot.Services
         private readonly IDatabaseService _database;
         private readonly IFitocracyService _fitocracy;
         private readonly IActivityGroupingService _grouping;
+        private readonly IActivityHashService _hasher;
 
-        public WorkoutPullService(IDatabaseService database, IFitocracyService fitocracy, IActivityGroupingService grouping)
+        public WorkoutPullService(IDatabaseService database, IFitocracyService fitocracy, IActivityGroupingService grouping, IActivityHashService hasher)
         {
             _database = database;
             _fitocracy = fitocracy;
             _grouping = grouping;
+            _hasher = hasher;
         }
 
         public async Task<IEnumerable<Workout>> Pull(User user, CancellationToken cancel = default)
@@ -59,7 +61,7 @@ namespace FitBot.Services
 
                 foreach (var workout in freshWorkouts)
                 {
-                    workout.ActivitiesHash = ComputeActivitiesHashCode(workout.Activities);
+                    workout.ActivitiesHash = _hasher.Hash(workout.Activities);
                     foreach (var activity in workout.Activities)
                     {
                         activity.Group = _grouping.GetActivityGroup(activity.Name);
@@ -130,31 +132,6 @@ namespace FitBot.Services
             }
 
             return workouts.OrderBy(workout => workout.Date).ToList();
-        }
-
-        private static int ComputeActivitiesHashCode(IEnumerable<Activity> activities)
-        {
-            unchecked
-            {
-                var hash = 0;
-                foreach (var activity in activities)
-                {
-                    hash = (hash * 397) ^ activity.Name.GetHashCode();
-                    foreach (var set in activity.Sets)
-                    {
-                        hash = (hash * 397) ^ set.Points;
-                        hash = (hash * 397) ^ set.Distance.GetHashCode();
-                        hash = (hash * 397) ^ set.Duration.GetHashCode();
-                        hash = (hash * 397) ^ set.Speed.GetHashCode();
-                        hash = (hash * 397) ^ set.Repetitions.GetHashCode();
-                        hash = (hash * 397) ^ set.Weight.GetHashCode();
-                        hash = (hash * 397) ^ set.HeartRate.GetHashCode();
-                        hash = (hash * 397) ^ (set.Difficulty ?? string.Empty).GetHashCode();
-                        hash = (hash * 397) ^ set.IsPr.GetHashCode();
-                    }
-                }
-                return hash;
-            }
         }
     }
 }
