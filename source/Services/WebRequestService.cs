@@ -7,7 +7,6 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Web;
-using Microsoft.Extensions.Logging;
 using ServiceStack.Text;
 
 namespace FitBot.Services
@@ -16,13 +15,9 @@ namespace FitBot.Services
     {
         private const string RootUrl = "https://www.fitocracy.com/";
 
-        private readonly ILogger<WebRequestService> _logger;
-
-        public WebRequestService(ILogger<WebRequestService> logger) => _logger = logger;
-
         public CookieContainer Cookies { get; set; } = new();
 
-        public Stream Get(string endpoint, object args, string expectedContentType)
+        public Stream Get(string endpoint, object args, string expectedContentType, CancellationToken cancel)
         {
             var url = RootUrl + endpoint + "/";
             if (args != null)
@@ -30,31 +25,14 @@ namespace FitBot.Services
                 url += "?" + FormatArgs(args);
             }
 
-            try
-            {
-                return GetInternal(url, expectedContentType);
-            }
-            catch (WebException ex) when (ex.Status == WebExceptionStatus.Timeout ||
-                                          ex.Status == WebExceptionStatus.KeepAliveFailure ||
-                                          ((HttpWebResponse) ex.Response)?.StatusCode == HttpStatusCode.GatewayTimeout)
-            {
-                _logger.LogWarning(ex.Message + ", retrying in 10 seconds");
-                Thread.Sleep(TimeSpan.FromSeconds(10));
-                return GetInternal(url, expectedContentType);
-            }
-        }
-
-        private Stream GetInternal(string url, string expectedContentType)
-        {
             var request = WebRequest.CreateHttp(url);
             request.CookieContainer = Cookies;
             request.UserAgent = "FitBot";
-            var response = request.GetResponse();
-            AssertResponseContentType(request, response, expectedContentType);
+            var response = GetResponse(request, expectedContentType, cancel);
             return response.GetResponseStream();
         }
 
-        public void Post(string endpoint, object data, NameValueCollection headers)
+        public void Post(string endpoint, object data, NameValueCollection headers, CancellationToken cancel)
         {
             var url = RootUrl + endpoint + "/";
             var request = WebRequest.CreateHttp(url);
@@ -69,8 +47,7 @@ namespace FitBot.Services
                 stream.Write(bytes, 0, bytes.Length);
             }
 
-            var response = request.GetResponse();
-            AssertResponseContentType(request, response, "application/json");
+            var response = GetResponse(request, "application/json", cancel);
 
             JsonObject json;
             using (var stream = response.GetResponseStream())
@@ -111,16 +88,30 @@ namespace FitBot.Services
                     .Select(prop => $"{HttpUtility.UrlEncode(prop.Name)}={HttpUtility.UrlEncode(prop.GetValue(args).ToString())}"));
         }
 
-        private static void AssertResponseContentType(WebRequest request, WebResponse response, string expectedContentType)
+        private static WebResponse GetResponse(WebRequest request, string expectedContentType, CancellationToken cancel)
         {
-            if (expectedContentType != null &&
-                expectedContentType != response.ContentType &&
-                new ContentType(expectedContentType).MediaType != new ContentType(response.ContentType).MediaType)
+            using (cancel.Register(request.Abort))
             {
-                using var stream = response.GetResponseStream();
-                DumpLogFile(request, response, stream.CopyTo);
+                try
+                {
+                    var response = request.GetResponseAsync().Result;
 
-                throw new ApplicationException($"Unexpected content type '{response.ContentType}' in response from '{request.RequestUri}'");
+                    if (expectedContentType != null &&
+                        expectedContentType != response.ContentType &&
+                        new ContentType(expectedContentType).MediaType != new ContentType(response.ContentType).MediaType)
+                    {
+                        using var stream = response.GetResponseStream();
+                        DumpLogFile(request, response, stream.CopyTo);
+
+                        throw new ApplicationException($"Unexpected content type '{response.ContentType}' in response from '{request.RequestUri}'");
+                    }
+
+                    return response;
+                }
+                catch (Exception ex) when (ex.GetBaseException() is WebException {Status: WebExceptionStatus.RequestCanceled})
+                {
+                    throw new OperationCanceledException(ex.Message, ex, cancel);
+                }
             }
         }
 

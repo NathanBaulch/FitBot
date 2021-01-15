@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 using FitBot.Services;
 using Microsoft.Extensions.Logging;
 
@@ -27,7 +28,7 @@ namespace FitBot.Development
             set => _decorated.Cookies = value;
         }
 
-        public Stream Get(string endpoint, object args, string expectedContentType)
+        public Stream Get(string endpoint, object args, string expectedContentType, CancellationToken cancel)
         {
             var cacheFileName = Path.Combine(_cacheDir, string.Concat((endpoint + "_" + args).Replace(" ", "").Split(Path.GetInvalidFileNameChars())));
             if (endpoint == "accounts/login")
@@ -42,25 +43,25 @@ namespace FitBot.Development
 #pragma warning restore 618,SYSLIB0011
                     return Stream.Null;
                 }
-                return _decorated.Get(endpoint, args, expectedContentType);
+                return _decorated.Get(endpoint, args, expectedContentType, cancel);
             }
             if (!File.Exists(cacheFileName))
             {
-                using var source = _decorated.Get(endpoint, args, expectedContentType);
+                using var source = _decorated.Get(endpoint, args, expectedContentType, cancel);
                 using var destination = File.OpenWrite(cacheFileName);
                 source.CopyTo(destination);
             }
             return File.OpenRead(Path.Combine(_cacheDir, cacheFileName));
         }
 
-        public void Post(string endpoint, object data, NameValueCollection headers)
+        public void Post(string endpoint, object data, NameValueCollection headers, CancellationToken cancel)
         {
             if (endpoint == "accounts/login")
             {
                 var cacheFileName = Path.Combine(_cacheDir, "accountslogin_");
                 if (!File.Exists(cacheFileName))
                 {
-                    _decorated.Post(endpoint, data, headers);
+                    _decorated.Post(endpoint, data, headers, cancel);
                     using var stream = File.OpenWrite(cacheFileName);
                     var formatter = new BinaryFormatter();
 #pragma warning disable 618,SYSLIB0011
