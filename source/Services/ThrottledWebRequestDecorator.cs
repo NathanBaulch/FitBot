@@ -2,7 +2,9 @@
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace FitBot.Services
 {
@@ -10,14 +12,12 @@ namespace FitBot.Services
     {
         private readonly Random _random = new();
         private readonly IWebRequestService _decorated;
-        private int _throttleFactor = 10;
+        private readonly ILogger<ThrottledWebRequestDecorator> _logger;
 
-        public ThrottledWebRequestDecorator(IWebRequestService decorated) => _decorated = decorated;
-
-        public int ThrottleFactor
+        public ThrottledWebRequestDecorator(IWebRequestService decorated, ILogger<ThrottledWebRequestDecorator> logger)
         {
-            get => _throttleFactor;
-            set => _throttleFactor = Math.Max(value, 0);
+            _decorated = decorated;
+            _logger = logger;
         }
 
         public CookieContainer Cookies
@@ -26,18 +26,32 @@ namespace FitBot.Services
             set => _decorated.Cookies = value;
         }
 
-        public async Task<Stream> Get(string endpoint, object args, string expectedContentType)
+        public async Task<Stream> Get(string endpoint, object args, string expectedContentType, CancellationToken cancel)
         {
-            await Delay();
-            return await _decorated.Get(endpoint, args, expectedContentType);
+            await Delay(cancel);
+
+            try
+            {
+                return await _decorated.Get(endpoint, args, expectedContentType, cancel);
+            }
+            catch (Exception ex) when (ex.GetBaseException() is WebException webEx &&
+                                       (webEx.Status == WebExceptionStatus.Timeout ||
+                                        webEx.Status == WebExceptionStatus.KeepAliveFailure ||
+                                        webEx.Status == WebExceptionStatus.NameResolutionFailure ||
+                                        webEx is {Response: HttpWebResponse {StatusCode: HttpStatusCode.GatewayTimeout}}))
+            {
+                _logger.LogWarning(webEx.Message.TrimEnd('.', ',') + ", retrying in 10 seconds");
+                await Task.Delay(TimeSpan.FromSeconds(10), cancel);
+                return await _decorated.Get(endpoint, args, expectedContentType, cancel);
+            }
         }
 
-        public async Task Post(string endpoint, object data, NameValueCollection headers)
+        public async Task Post(string endpoint, object data, NameValueCollection headers, CancellationToken cancel)
         {
-            await Delay();
-            await _decorated.Post(endpoint, data, headers);
+            await Delay(cancel);
+            await _decorated.Post(endpoint, data, headers, cancel);
         }
 
-        private Task Delay() => Task.Delay((int) ((1 << ThrottleFactor) * (1 + _random.NextDouble())));
+        private Task Delay(CancellationToken cancel) => Task.Delay(TimeSpan.FromSeconds(_random.NextDouble() + 0.5), cancel);
     }
 }

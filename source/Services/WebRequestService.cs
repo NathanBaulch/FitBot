@@ -5,9 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Mime;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using Microsoft.Extensions.Logging;
 using ServiceStack.Text;
 
 namespace FitBot.Services
@@ -16,13 +16,9 @@ namespace FitBot.Services
     {
         private const string RootUrl = "https://www.fitocracy.com/";
 
-        private readonly ILogger<WebRequestService> _logger;
-
-        public WebRequestService(ILogger<WebRequestService> logger) => _logger = logger;
-
         public CookieContainer Cookies { get; set; } = new();
 
-        public async Task<Stream> Get(string endpoint, object args, string expectedContentType)
+        public async Task<Stream> Get(string endpoint, object args, string expectedContentType, CancellationToken cancel)
         {
             var url = RootUrl + endpoint + "/";
             if (args != null)
@@ -30,31 +26,14 @@ namespace FitBot.Services
                 url += "?" + FormatArgs(args);
             }
 
-            try
-            {
-                return await GetInternal(url, expectedContentType);
-            }
-            catch (WebException ex) when (ex.Status == WebExceptionStatus.Timeout ||
-                                          ex.Status == WebExceptionStatus.KeepAliveFailure ||
-                                          ((HttpWebResponse) ex.Response)?.StatusCode == HttpStatusCode.GatewayTimeout)
-            {
-                _logger.LogWarning(ex.Message + ", retrying in 10 seconds");
-                await Task.Delay(TimeSpan.FromSeconds(10));
-                return await GetInternal(url, expectedContentType);
-            }
-        }
-
-        private async Task<Stream> GetInternal(string url, string expectedContentType)
-        {
             var request = WebRequest.CreateHttp(url);
             request.CookieContainer = Cookies;
             request.UserAgent = "FitBot";
-            var response = await request.GetResponseAsync();
-            await AssertResponseContentType(request, response, expectedContentType);
+            var response = await GetResponse(request, expectedContentType, cancel);
             return response.GetResponseStream();
         }
 
-        public async Task Post(string endpoint, object data, NameValueCollection headers)
+        public async Task Post(string endpoint, object data, NameValueCollection headers, CancellationToken cancel)
         {
             var url = RootUrl + endpoint + "/";
             var request = WebRequest.CreateHttp(url);
@@ -66,11 +45,10 @@ namespace FitBot.Services
             {
                 await using var stream = await request.GetRequestStreamAsync();
                 var bytes = Encoding.UTF8.GetBytes(FormatArgs(data));
-                await stream.WriteAsync(bytes.AsMemory(0, bytes.Length));
+                await stream.WriteAsync(bytes.AsMemory(0, bytes.Length), cancel);
             }
 
-            var response = await request.GetResponseAsync();
-            await AssertResponseContentType(request, response, "application/json");
+            var response = await GetResponse(request, "application/json", cancel);
 
             JsonObject json;
             await using (var stream = response.GetResponseStream())
@@ -115,16 +93,30 @@ namespace FitBot.Services
                     .Select(prop => $"{HttpUtility.UrlEncode(prop.Name)}={HttpUtility.UrlEncode(prop.GetValue(args).ToString())}"));
         }
 
-        private static async Task AssertResponseContentType(WebRequest request, WebResponse response, string expectedContentType)
+        private static async Task<WebResponse> GetResponse(WebRequest request, string expectedContentType, CancellationToken cancel)
         {
-            if (expectedContentType != null &&
-                expectedContentType != response.ContentType &&
-                new ContentType(expectedContentType).MediaType != new ContentType(response.ContentType).MediaType)
+            await using (cancel.Register(request.Abort))
             {
-                await using var stream = response.GetResponseStream();
-                await DumpLogFile(request, response, stream.CopyToAsync);
+                try
+                {
+                    var response = await request.GetResponseAsync();
 
-                throw new ApplicationException($"Unexpected content type '{response.ContentType}' in response from '{request.RequestUri}'");
+                    if (expectedContentType != null &&
+                        expectedContentType != response.ContentType &&
+                        new ContentType(expectedContentType).MediaType != new ContentType(response.ContentType).MediaType)
+                    {
+                        await using var stream = response.GetResponseStream();
+                        await DumpLogFile(request, response, file => stream.CopyToAsync(file, cancel));
+
+                        throw new ApplicationException($"Unexpected content type '{response.ContentType}' in response from '{request.RequestUri}'");
+                    }
+
+                    return response;
+                }
+                catch (Exception ex) when (ex.GetBaseException() is WebException {Status: WebExceptionStatus.RequestCanceled})
+                {
+                    throw new OperationCanceledException(ex.Message, cancel);
+                }
             }
         }
 

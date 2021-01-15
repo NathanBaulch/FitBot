@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 using System.Threading.Tasks;
 using FitBot.Services;
 using Microsoft.Extensions.Logging;
@@ -28,7 +29,7 @@ namespace FitBot.Development
             set => _decorated.Cookies = value;
         }
 
-        public async Task<Stream> Get(string endpoint, object args, string expectedContentType)
+        public async Task<Stream> Get(string endpoint, object args, string expectedContentType, CancellationToken cancel)
         {
             var cacheFileName = Path.Combine(_cacheDir, string.Concat((endpoint + "_" + args).Replace(" ", "").Split(Path.GetInvalidFileNameChars())));
             if (endpoint == "accounts/login")
@@ -43,25 +44,25 @@ namespace FitBot.Development
 #pragma warning restore 618,SYSLIB0011
                     return Stream.Null;
                 }
-                return await _decorated.Get(endpoint, args, expectedContentType);
+                return await _decorated.Get(endpoint, args, expectedContentType, cancel);
             }
             if (!File.Exists(cacheFileName))
             {
-                await using var source = await _decorated.Get(endpoint, args, expectedContentType);
+                await using var source = await _decorated.Get(endpoint, args, expectedContentType, cancel);
                 await using var destination = File.OpenWrite(cacheFileName);
-                await source.CopyToAsync(destination);
+                await source.CopyToAsync(destination, cancel);
             }
             return File.OpenRead(Path.Combine(_cacheDir, cacheFileName));
         }
 
-        public async Task Post(string endpoint, object data, NameValueCollection headers)
+        public async Task Post(string endpoint, object data, NameValueCollection headers, CancellationToken cancel)
         {
             if (endpoint == "accounts/login")
             {
                 var cacheFileName = Path.Combine(_cacheDir, "accountslogin_");
                 if (!File.Exists(cacheFileName))
                 {
-                    await _decorated.Post(endpoint, data, headers);
+                    await _decorated.Post(endpoint, data, headers, cancel);
                     await using var stream = File.OpenWrite(cacheFileName);
                     var formatter = new BinaryFormatter();
 #pragma warning disable 618,SYSLIB0011
