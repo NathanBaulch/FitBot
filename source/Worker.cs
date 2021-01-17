@@ -34,8 +34,23 @@ namespace FitBot
             while (!stoppingToken.IsCancellationRequested)
             {
                 var start = DateTime.Now;
-                Execute(stoppingToken);
-                _logger.LogInformation("Processing time: " + (DateTime.Now - start));
+                try
+                {
+                    Execute(stoppingToken);
+                    _logger.LogInformation("Processing time: " + (DateTime.Now - start));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInformation("Processing time: " + (DateTime.Now - start));
+
+                    if (ex.GetBaseException() is OperationCanceledException)
+                    {
+                        break;
+                    }
+
+                    _logger.LogError(ex.Message + ", retrying in 10 seconds", ex);
+                    Task.Delay(TimeSpan.FromSeconds(10), stoppingToken).Wait(stoppingToken);
+                }
             }
 
             return Task.CompletedTask;
