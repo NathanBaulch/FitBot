@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FitBot.Model;
 using Microsoft.Extensions.Logging;
-using ServiceStack.Text;
 
 namespace FitBot.Services
 {
@@ -49,7 +49,7 @@ namespace FitBot.Services
             _logger.LogDebug("Get followers page " + pageNum);
             await EnsureAuthenticated();
             await using var stream = await _webRequest.Get("get-user-friends", new {followers = true, user = _username, page = pageNum}, "application/json");
-            return JsonSerializer.DeserializeFromStream<IList<User>>(stream);
+            return await JsonSerializer.DeserializeAsync<IList<User>>(stream, new JsonSerializerOptions {PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
         }
 
         public async Task<IList<Workout>> GetWorkouts(long userId, int offset)

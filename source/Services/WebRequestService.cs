@@ -5,10 +5,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using ServiceStack.Text;
 
 namespace FitBot.Services
 {
@@ -50,29 +50,25 @@ namespace FitBot.Services
 
             var response = await GetResponse(request, "application/json", cancel);
 
-            JsonObject json;
             await using (var stream = response.GetResponseStream())
+            using (var json = await JsonDocument.ParseAsync(stream, default, cancel))
             {
-                json = JsonSerializer.DeserializeFromStream<JsonObject>(stream);
-            }
+                var root = json.RootElement;
+                if ((!root.TryGetProperty("success", out var success) || !success.GetBoolean()) &&
+                    (!root.TryGetProperty("result", out var result) || !result.GetBoolean()))
+                {
+                    await DumpLogFile(request, response, file => JsonSerializer.SerializeAsync(file, json, new JsonSerializerOptions {WriteIndented = true}, cancel));
 
-            if (json != null && json["success"] != "true" && json["result"] != "true")
-            {
-                await DumpLogFile(request, response, file =>
-                {
-                    JsonSerializer.SerializeToStream(json, file);
-                    return Task.CompletedTask;
-                });
-
-                if (!string.IsNullOrEmpty(json["error"]))
-                {
-                    throw new ApplicationException($"Request '{endpoint}' failed: {json["error"]}");
+                    if (root.TryGetProperty("error", out var error) && !string.IsNullOrEmpty(error.GetString()))
+                    {
+                        throw new ApplicationException($"Request '{endpoint}' failed: {error}");
+                    }
+                    if (root.TryGetProperty("reason", out var reason) && !string.IsNullOrEmpty(reason.GetString()))
+                    {
+                        throw new ApplicationException($"Request '{endpoint}' failed: {reason}");
+                    }
+                    throw new ApplicationException($"Request '{endpoint}' failed with no reason");
                 }
-                if (!string.IsNullOrEmpty(json["reason"]))
-                {
-                    throw new ApplicationException($"Request '{endpoint}' failed: {json["reason"]}");
-                }
-                throw new ApplicationException($"Request '{endpoint}' failed with no reason");
             }
 
             if (headers != null)
