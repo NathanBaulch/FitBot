@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using FitBot.Achievements;
 using FitBot.Model;
 using FitBot.Services;
@@ -13,7 +12,7 @@ namespace FitBot.Test.Achievements
     public class QualifiedRecordProviderTests
     {
         [Test]
-        public async Task Normal_Test()
+        public void Normal_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 2000, Speed = 1}}}}});
@@ -23,7 +22,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000, Speed = 2}}}}};
 
-            var achievements = (await new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -35,7 +34,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public async Task Very_Small_Distance_Test()
+        public void Very_Small_Distance_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 2000, Speed = 1}}}}});
@@ -45,13 +44,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 900, Speed = 2}}}}};
 
-            var achievements = await new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout);
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public async Task Very_Small_Weight_Test()
+        public void Very_Small_Weight_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 2, Repetitions = 1}}}}});
@@ -61,13 +60,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Squats", Sets = new[] {new Set {Weight = 0.9M, Repetitions = 2}}}}};
 
-            var achievements = await new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout);
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public async Task Same_As_Previous_Floating_Point_Speed_Test()
+        public void Same_As_Previous_Floating_Point_Speed_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 3200, Duration = 720}}}}});
@@ -77,13 +76,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 3200, Duration = 720}}}}};
 
-            var achievements = await new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout);
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public async Task Imperial_Distance_Test()
+        public void Imperial_Distance_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 20000, Duration = 2000}}}}});
@@ -93,7 +92,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 16100, Duration = 1000, IsImperial = true}}}}};
 
-            var achievements = (await new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -105,7 +104,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public async Task Imperial_Weight_Test()
+        public void Imperial_Weight_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 100, Repetitions = 1}}}}});
@@ -115,7 +114,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Squats", Sets = new[] {new Set {Weight = 46, Repetitions = 2, IsImperial = true}}}}};
 
-            var achievements = (await new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -127,7 +126,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public async Task Duplicate_Record_In_Single_Workout_Test()
+        public void Duplicate_Record_In_Single_Workout_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 100, Repetitions = 1}}}}});
@@ -137,7 +136,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Squats", Sets = new[] {new Set {Weight = 50, Repetitions = 2}}}, new Activity {Sequence = 1, Group = "Squats", Sets = new[] {new Set {Weight = 50, Repetitions = 2}}}}};
 
-            var achievements = (await new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -149,7 +148,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public async Task Duplicate_Record_In_Single_Activity_Test()
+        public void Duplicate_Record_In_Single_Activity_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 100, Repetitions = 1}}}}});
@@ -159,7 +158,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Squats", Sets = new[] {new Set {Weight = 50, Repetitions = 2}, new Set {Sequence = 1, Weight = 50, Repetitions = 2}}}}};
 
-            var achievements = (await new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
+            var achievements = new QualifiedRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];

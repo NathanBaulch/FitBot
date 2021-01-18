@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Services;
 
@@ -17,7 +16,7 @@ namespace FitBot.Achievements
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<Achievement>> Execute(Workout workout)
+        public IEnumerable<Achievement> Execute(Workout workout)
         {
             var achievements = new List<Achievement>();
 
@@ -53,7 +52,7 @@ namespace FitBot.Achievements
                         _ => "Repetitions"
                     };
 
-                var previousMax = await _database.Single<decimal?>(
+                var previousMax = _database.Single<decimal?>(
                     "select max([Value]) " +
                     "from ( " +
                     "  select sum(s.[" + column + "]) [Value] " +

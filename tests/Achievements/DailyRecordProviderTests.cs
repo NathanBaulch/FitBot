@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using FitBot.Achievements;
 using FitBot.Model;
 using FitBot.Services;
@@ -13,7 +12,7 @@ namespace FitBot.Test.Achievements
     public class DailyRecordProviderTests
     {
         [Test]
-        public async Task Normal_Test()
+        public void Normal_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}});
@@ -23,7 +22,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 2000}}}}};
 
-            var achievements = (await new DailyRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -34,7 +33,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public async Task Only_Single_Set_Test()
+        public void Only_Single_Set_Test()
         {
             var database = new SQLiteDatabaseService();
 
@@ -43,13 +42,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}};
 
-            var achievements = await new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public async Task Key_Metric_Not_Specified_Test()
+        public void Key_Metric_Not_Specified_Test()
         {
             var database = new SQLiteDatabaseService();
 
@@ -58,13 +57,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set(), new Set()}}}};
 
-            var achievements = await new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public async Task Activity_Not_Previously_Done_Test()
+        public void Activity_Not_Previously_Done_Test()
         {
             var database = new SQLiteDatabaseService();
 
@@ -73,13 +72,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 1000}}}}};
 
-            var achievements = await new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public async Task Key_Metric_Not_Previously_Specified_Test()
+        public void Key_Metric_Not_Previously_Specified_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 0}}}}});
@@ -89,13 +88,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 1000}}}}};
 
-            var achievements = await new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public async Task Previous_Single_Set_Record_Test()
+        public void Previous_Single_Set_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2014, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 1000}, new Set {Distance = 1000, Sequence = 1}}}}});
@@ -106,13 +105,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 2000}, new Set {Distance = 2000}}}}};
 
-            var achievements = await new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public async Task Very_Small_Distance_Test()
+        public void Very_Small_Distance_Test()
         {
             var database = new SQLiteDatabaseService();
 
@@ -121,7 +120,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Group = "Cycling", Sets = new[] {new Set {Distance = 400}, new Set {Distance = 400}}}}};
 
-            var achievements = await new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
+            var achievements = new DailyRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }

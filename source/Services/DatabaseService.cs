@@ -6,7 +6,6 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using Dapper;
 using DapperExtensions;
 using DapperExtensions.Mapper;
@@ -69,19 +68,19 @@ namespace FitBot.Services
             _achievementWorkoutIdProp = GetPropertyMap<Achievement>(x => x.WorkoutId);
         }
 
-        public virtual async Task<IEnumerable<T>> Query<T>(string sql, object parameters = null)
+        public virtual IEnumerable<T> Query<T>(string sql, object parameters = null)
         {
             using var con = OpenConnection();
-            return await con.QueryAsync<T>(Quote(sql), parameters);
+            return con.Query<T>(Quote(sql), parameters);
         }
 
-        public virtual async Task<T> Single<T>(string sql, object parameters)
+        public virtual T Single<T>(string sql, object parameters)
         {
             using var con = OpenConnection();
-            return await con.QuerySingleOrDefaultAsync<T>(Quote(sql), parameters);
+            return con.QuerySingleOrDefault<T>(Quote(sql), parameters);
         }
 
-        public Task<IEnumerable<User>> GetUsers() =>
+        public IEnumerable<User> GetUsers() =>
             Query<User>(
                 "select * " +
                 "from [User] " +
@@ -112,7 +111,7 @@ namespace FitBot.Services
             con.Delete(user);
         }
 
-        public Task<IEnumerable<Workout>> GetWorkouts(long userId, DateTime? fromDate, DateTime? toDate) =>
+        public IEnumerable<Workout> GetWorkouts(long userId, DateTime? fromDate, DateTime? toDate) =>
             Query<Workout>(
                 "select * " +
                 "from [Workout] " +
@@ -121,7 +120,7 @@ namespace FitBot.Services
                 (toDate != null ? "and [Date] < @toDate " : "") +
                 "order by [Date], [Id]", new {userId, fromDate, toDate});
 
-        public Task<IEnumerable<long>> GetUnresolvedWorkoutIds(long userId, DateTime after) =>
+        public IEnumerable<long> GetUnresolvedWorkoutIds(long userId, DateTime after) =>
             Query<long>(
                 "select [Id] " +
                 "from [Workout] " +
@@ -187,7 +186,7 @@ namespace FitBot.Services
             con.Delete(workout);
         }
 
-        public async Task<IEnumerable<Activity>> GetActivities(long workoutId)
+        public IEnumerable<Activity> GetActivities(long workoutId)
         {
             var sets = Query<Set>(
                     "select * " +
@@ -207,7 +206,7 @@ namespace FitBot.Services
                 });
         }
 
-        public Task<IEnumerable<Achievement>> GetAchievements(long workoutId) =>
+        public IEnumerable<Achievement> GetAchievements(long workoutId) =>
             Query<Achievement>(
                 "select * " +
                 "from [Achievement] " +

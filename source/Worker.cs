@@ -41,7 +41,7 @@ namespace FitBot
                         foreach (var user in await _userPull.Pull(stoppingToken))
                         {
                             var workouts = await _workoutPull.Pull(user, stoppingToken);
-                            var achievements = await _achieveService.Process(user, workouts, stoppingToken);
+                            var achievements = _achieveService.Process(user, workouts);
                             await _achievementPush.Push(achievements, stoppingToken);
                             stoppingToken.ThrowIfCancellationRequested();
                         }

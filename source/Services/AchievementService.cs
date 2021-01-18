@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using FitBot.Achievements;
 using FitBot.Model;
 using Microsoft.Extensions.Logging;
@@ -22,34 +20,30 @@ namespace FitBot.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<Achievement>> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel)
+        public IEnumerable<Achievement> Process(User user, IEnumerable<Workout> workouts)
         {
             var achievements = new List<Achievement>();
 
             foreach (var workout in workouts)
             {
-                var latestAchievements = await (workout.State == WorkoutState.Unresolved
+                var latestAchievements = workout.State == WorkoutState.Unresolved
                     ? _database.GetAchievements(workout.Id)
-                    : ProcessAchievements(workout));
+                    : ProcessAchievements(workout);
                 latestAchievements = ProcessComments(workout, latestAchievements).ToList();
 
                 if (workout.Date > user.InsertDate.AddDays(-7) && workout.Date > DateTime.UtcNow.AddDays(-30))
                 {
                     achievements.AddRange(latestAchievements);
                 }
-
-                cancel.ThrowIfCancellationRequested();
             }
 
             return achievements;
         }
 
-        private async Task<IEnumerable<Achievement>> ProcessAchievements(Workout workout)
+        private IEnumerable<Achievement> ProcessAchievements(Workout workout)
         {
-            var staleAchievements = (await _database.GetAchievements(workout.Id)).ToList();
-            var tasks = _providers.Select(achievement => achievement.Execute(workout)).ToList();
-            await Task.WhenAll(tasks);
-            var freshAchievements = tasks.SelectMany(task => task.Result).ToList();
+            var staleAchievements = _database.GetAchievements(workout.Id).ToList();
+            var freshAchievements = _providers.SelectMany(achievement => achievement.Execute(workout)).ToList();
 
             foreach (var achievement in freshAchievements)
             {

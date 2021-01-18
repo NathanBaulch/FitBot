@@ -55,7 +55,7 @@ namespace FitBot.Services
                 }
 
                 var fromDate = freshWorkouts.Min(workout => workout.Date);
-                var staleWorkouts = (await _database.GetWorkouts(user.Id, fromDate, toDate)).ToList();
+                var staleWorkouts = _database.GetWorkouts(user.Id, fromDate, toDate).ToList();
                 var staleLookup = staleWorkouts.ToLookup(workout => workout.Id);
                 toDate = fromDate;
 
@@ -88,7 +88,7 @@ namespace FitBot.Services
             }
 
             workouts.Reverse();
-            var unresolvedIds = (await _database.GetUnresolvedWorkoutIds(user.Id, user.InsertDate.AddDays(-7))).ToList();
+            var unresolvedIds = _database.GetUnresolvedWorkoutIds(user.Id, user.InsertDate.AddDays(-7)).ToList();
 
             foreach (var workout in workouts.ToList())
             {

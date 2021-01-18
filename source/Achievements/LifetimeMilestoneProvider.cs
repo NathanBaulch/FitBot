@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Services;
 
@@ -110,7 +109,7 @@ namespace FitBot.Achievements
             _grouping = grouping;
         }
 
-        public async Task<IEnumerable<Achievement>> Execute(Workout workout)
+        public IEnumerable<Achievement> Execute(Workout workout)
         {
             var achievements = new List<Achievement>();
 
@@ -148,7 +147,7 @@ namespace FitBot.Achievements
                         break;
                 }
 
-                var previousSum = await _database.Single<decimal?>(
+                var previousSum = _database.Single<decimal?>(
                     "select sum([" + column + "]) " +
                     "from [Workout] w, [Activity] a, [Set] s " +
                     "where w.[Id] = a.[WorkoutId] " +

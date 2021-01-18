@@ -32,7 +32,7 @@ namespace FitBot.Test.Services
             var workout = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
 
             var database = new Mock<IDatabaseService>();
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(new[] {workout});
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(new[] {workout});
 
             var fitocracy = new Mock<IFitocracyService>();
             fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout});
@@ -53,7 +53,7 @@ namespace FitBot.Test.Services
         public async Task Single_Insert_Test()
         {
             var database = new Mock<IDatabaseService>();
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(Array.Empty<Workout>());
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(Array.Empty<Workout>());
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
@@ -76,7 +76,7 @@ namespace FitBot.Test.Services
         {
             var database = new Mock<IDatabaseService>();
             var workout1 = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Points = 1, Activities = Array.Empty<Activity>()};
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(new[] {workout1});
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(new[] {workout1});
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout1A = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Points = 2, Activities = Array.Empty<Activity>()};
@@ -99,7 +99,7 @@ namespace FitBot.Test.Services
         {
             var database = new Mock<IDatabaseService>();
             var workout1 = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>(), ActivitiesHash = 1};
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(new[] {workout1});
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(new[] {workout1});
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout1A = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>(), ActivitiesHash = 2};
@@ -124,7 +124,7 @@ namespace FitBot.Test.Services
             var workout1 = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
 
             var database = new Mock<IDatabaseService>();
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(new[] {workout2, workout1});
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(new[] {workout2, workout1});
 
             var fitocracy = new Mock<IFitocracyService>();
             fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout1});
@@ -165,7 +165,7 @@ namespace FitBot.Test.Services
         public async Task Multiple_Insert_Single_Page_Test()
         {
             var database = new Mock<IDatabaseService>();
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(Array.Empty<Workout>());
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(Array.Empty<Workout>());
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout2 = new Workout {Id = 2, Date = new DateTime(2014, 1, 2), Activities = Array.Empty<Activity>()};
@@ -189,7 +189,7 @@ namespace FitBot.Test.Services
         public async Task Multiple_Insert_Multiple_Page_Test()
         {
             var database = new Mock<IDatabaseService>();
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(Array.Empty<Workout>());
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(Array.Empty<Workout>());
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout2 = new Workout {Id = 2, Date = new DateTime(2014, 1, 2), Activities = Array.Empty<Activity>()};
@@ -214,7 +214,7 @@ namespace FitBot.Test.Services
         public async Task Duplicate_Within_Page_Test()
         {
             var database = new Mock<IDatabaseService>();
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(Array.Empty<Workout>());
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(Array.Empty<Workout>());
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
@@ -236,7 +236,7 @@ namespace FitBot.Test.Services
         public async Task Duplicate_Across_Pages_Test()
         {
             var database = new Mock<IDatabaseService>();
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(Array.Empty<Workout>());
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(Array.Empty<Workout>());
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout2 = new Workout {Id = 2, Date = new DateTime(2014, 1, 2), Activities = Array.Empty<Activity>()};
@@ -261,7 +261,7 @@ namespace FitBot.Test.Services
         public async Task Full_Duplicate_Page_Test()
         {
             var database = new Mock<IDatabaseService>();
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(Array.Empty<Workout>());
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(Array.Empty<Workout>());
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout2 = new Workout {Id = 2, Date = new DateTime(2014, 1, 2), Activities = Array.Empty<Activity>()};
@@ -291,7 +291,7 @@ namespace FitBot.Test.Services
             var workout1 = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
 
             var database = new Mock<IDatabaseService>();
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(new[] {workout1, workout2});
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(new[] {workout1, workout2});
 
             var fitocracy = new Mock<IFitocracyService>();
             fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout4, workout3, workout2, workout1});
@@ -314,7 +314,7 @@ namespace FitBot.Test.Services
         {
             var database = new Mock<IDatabaseService>();
             var workout1 = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Points = 1, Activities = Array.Empty<Activity>()};
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(new[] {workout1});
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(new[] {workout1});
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout1A = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Points = 2, Activities = Array.Empty<Activity>()};
@@ -339,8 +339,8 @@ namespace FitBot.Test.Services
             var workout1 = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
 
             var database = new Mock<IDatabaseService>();
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(new[] {workout2, workout1});
-            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 2), new DateTime(2014, 1, 1))).ReturnsAsync(Array.Empty<Workout>());
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).Returns(new[] {workout2, workout1});
+            database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 2), new DateTime(2014, 1, 1))).Returns(Array.Empty<Workout>());
 
             var fitocracy = new Mock<IFitocracyService>();
             fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout1});

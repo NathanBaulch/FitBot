@@ -20,7 +20,7 @@ namespace FitBot.Tools
 
         public async Task Run(bool gentle, bool dryRun, CancellationToken cancel)
         {
-            var users = (await _database.GetUsers()).ToList();
+            var users = _database.GetUsers().ToList();
             var i = 0;
             var updated = 0;
             var total = 0;
@@ -28,12 +28,12 @@ namespace FitBot.Tools
             await using (cancel.Register(() => progress.Message = $"Rehashing aborted - updated {updated:n0} of {total:n0} workout(s)" + (dryRun ? " (dry-run)" : "")))
             {
                 var start = DateTime.Now;
-                Parallel.ForEach(users, new ParallelOptions {CancellationToken = cancel, MaxDegreeOfParallelism = gentle ? 1 : -1}, async user =>
+                Parallel.ForEach(users, new ParallelOptions {CancellationToken = cancel, MaxDegreeOfParallelism = gentle ? 1 : -1}, user =>
                 {
                     progress.Message = "Rehashing workouts for user " + user.Username + (dryRun ? " (dry-run)" : "");
-                    foreach (var workout in await _database.GetWorkouts(user.Id))
+                    foreach (var workout in _database.GetWorkouts(user.Id))
                     {
-                        var hash = _hasher.Hash(await _database.GetActivities(workout.Id));
+                        var hash = _hasher.Hash(_database.GetActivities(workout.Id));
                         if (workout.ActivitiesHash != hash)
                         {
                             if (!dryRun)

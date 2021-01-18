@@ -22,7 +22,7 @@ namespace FitBot.Services
         {
             var users = new List<User>();
 
-            var staleUsers = (await _database.GetUsers()).ToDictionary(user => user.Id);
+            var staleUsers = _database.GetUsers().ToDictionary(user => user.Id);
             var newUsers = new List<User>();
             var pageNum = 0;
             var processedIds = new HashSet<long>();

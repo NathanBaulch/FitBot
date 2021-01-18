@@ -6,11 +6,9 @@ using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Dapper;
 using DapperExtensions.Sql;
 using FitBot.Services;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FitBot.Test
@@ -52,9 +50,9 @@ namespace FitBot.Test
             cmd.ExecuteNonQuery();
         }
 
-        public override async Task<IEnumerable<T>> Query<T>(string sql, object parameters = null) => (await base.Query<T>(TransformSql(sql), TransformParameters(parameters))).Select(TransformResult);
+        public override IEnumerable<T> Query<T>(string sql, object parameters = null) => base.Query<T>(TransformSql(sql), TransformParameters(parameters)).Select(TransformResult);
 
-        public override async Task<T> Single<T>(string sql, object parameters) => TransformResult(await base.Single<T>(TransformSql(sql), TransformParameters(parameters)));
+        public override T Single<T>(string sql, object parameters) => TransformResult(base.Single<T>(TransformSql(sql), TransformParameters(parameters)));
 
         private static string TransformSql(string sql)
         {
