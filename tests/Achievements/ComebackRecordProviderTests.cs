@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using FitBot.Achievements;
 using FitBot.Model;
 using FitBot.Services;
@@ -12,7 +13,7 @@ namespace FitBot.Test.Achievements
     public class ComebackRecordProviderTests
     {
         [Test]
-        public void Normal_Test()
+        public async Task Normal_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 3000}}}}});
@@ -23,7 +24,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = (await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -34,7 +35,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public void New_Record_Test()
+        public async Task New_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}});
@@ -45,13 +46,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 3000}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public void Equal_To_Old_Record_Test()
+        public async Task Equal_To_Old_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}});
@@ -62,7 +63,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = (await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -73,7 +74,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public void Equal_To_Recent_Record_Test()
+        public async Task Equal_To_Recent_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 2000}}}}});
@@ -84,13 +85,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Group = "Cycling", Sets = new[] {new Set {Distance = 1000}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public void Multiple_Same_Activities_With_Record_Test()
+        public async Task Multiple_Same_Activities_With_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Cycling", Sets = new[] {new Set {Distance = 3000}}}}});
@@ -108,7 +109,7 @@ namespace FitBot.Test.Achievements
                         }
                 };
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = (await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -119,7 +120,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public void Normal_Weights_Test()
+        public async Task Normal_Weights_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 3}}}}});
@@ -130,7 +131,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 2}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = (await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -141,7 +142,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public void New_Weights_Record_Test()
+        public async Task New_Weights_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 2}}}}});
@@ -152,13 +153,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 3}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public void Equal_To_Old_Weights_Record_Test()
+        public async Task Equal_To_Old_Weights_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 2}}}}});
@@ -169,7 +170,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 2}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = (await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -180,7 +181,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public void Equal_To_Recent_Weights_Record_Test()
+        public async Task Equal_To_Recent_Weights_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 2}}}}});
@@ -191,13 +192,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 1}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public void Equal_To_Recent_Weights_Record_With_More_Reps_Test()
+        public async Task Equal_To_Recent_Weights_Record_With_More_Reps_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 3, Repetitions = 1}}}}});
@@ -208,7 +209,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 2, Repetitions = 3}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = (await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -219,7 +220,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public void Equal_To_Recent_Weights_Record_With_Less_Reps_Test()
+        public async Task Equal_To_Recent_Weights_Record_With_Less_Reps_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Weight = 3, Repetitions = 1}}}}});
@@ -230,13 +231,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Weight = 2, Repetitions = 1}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public void Normal_Reps_Test()
+        public async Task Normal_Reps_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 3}}}}});
@@ -247,7 +248,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = (await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -258,7 +259,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public void New_Reps_Record_Test()
+        public async Task New_Reps_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}});
@@ -269,13 +270,13 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 3}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
 
         [Test]
-        public void Equal_To_Old_Reps_Record_Test()
+        public async Task Equal_To_Old_Reps_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}});
@@ -286,7 +287,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result.ToList();
+            var achievements = (await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout)).ToList();
 
             Assert.That(achievements.Count, Is.EqualTo(1));
             var achievement = achievements[0];
@@ -297,7 +298,7 @@ namespace FitBot.Test.Achievements
         }
 
         [Test]
-        public void Equal_To_Recent_Reps_Record_Test()
+        public async Task Equal_To_Recent_Reps_Record_Test()
         {
             var database = new SQLiteDatabaseService();
             database.Insert(new Workout {Id = 0, Date = new DateTime(2013, 1, 1), Activities = new[] {new Activity {Name = "Squats", Sets = new[] {new Set {Repetitions = 2}}}}});
@@ -308,7 +309,7 @@ namespace FitBot.Test.Achievements
 
             var workout = new Workout {Date = new DateTime(2015, 1, 1), Activities = new[] {new Activity {Name = "Squats", Group = "Squats", Sets = new[] {new Set {Repetitions = 1}}}}};
 
-            var achievements = new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout).Result;
+            var achievements = await new ComebackRecordProvider(database, activityGrouping.Object).Execute(workout);
 
             Assert.That(achievements, Is.Empty);
         }
