@@ -24,19 +24,19 @@ namespace FitBot.Services
             {
                 if (achievement.IsPropped)
                 {
-                    await _fitocracy.GiveProp(achievement.WorkoutId);
+                    await _fitocracy.GiveProp(achievement.WorkoutId, cancel);
                 }
 
                 if (achievement.CommentId != null)
                 {
-                    await _fitocracy.DeleteComment(achievement.CommentId.Value);
+                    await _fitocracy.DeleteComment(achievement.CommentId.Value, cancel);
                 }
 
                 if (achievement.CommentText != null)
                 {
                     try
                     {
-                        await _fitocracy.AddComment(achievement.WorkoutId, achievement.CommentText);
+                        await _fitocracy.AddComment(achievement.WorkoutId, achievement.CommentText, cancel);
                     }
                     catch (Exception ex) when (ex.GetBaseException() is ApplicationException {Message: "Can only comment if member of this group"})
                     {

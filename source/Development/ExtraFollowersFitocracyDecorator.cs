@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Services;
@@ -12,9 +13,9 @@ namespace FitBot.Development
         {
         }
 
-        public override async Task<IList<User>> GetFollowers(int pageNum)
+        public override async Task<IList<User>> GetFollowers(int pageNum, CancellationToken cancel)
         {
-            var users = await base.GetFollowers(pageNum);
+            var users = await base.GetFollowers(pageNum, cancel);
             if (pageNum == 0)
             {
                 //OTHER

@@ -28,7 +28,7 @@ namespace FitBot.Services
             var processedIds = new HashSet<long>();
             while (true)
             {
-                var freshUsers = await _fitocracy.GetFollowers(pageNum);
+                var freshUsers = await _fitocracy.GetFollowers(pageNum, cancel);
                 if (freshUsers.Count == 0)
                 {
                     break;

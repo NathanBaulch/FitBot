@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using FitBot.Model;
 using FitBot.Services;
@@ -14,7 +15,7 @@ namespace FitBot.Development
 
         public IEnumerable<User> Users { get; set; }
 
-        public override Task<IList<User>> GetFollowers(int pageNum)
+        public override Task<IList<User>> GetFollowers(int pageNum, CancellationToken cancel)
         {
             var users = new List<User>();
             if (pageNum == 0)

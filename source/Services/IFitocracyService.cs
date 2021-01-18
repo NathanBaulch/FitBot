@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using FitBot.Model;
 
@@ -6,12 +7,12 @@ namespace FitBot.Services
 {
     public interface IFitocracyService
     {
-        long SelfUserId { get; }
-        Task<IList<User>> GetFollowers(int pageNum = 0);
-        Task<IList<Workout>> GetWorkouts(long userId, int offset = 0);
-        Task<Workout> GetWorkout(long workoutId);
-        Task AddComment(long workoutId, string text);
-        Task DeleteComment(long commentId);
-        Task GiveProp(long workoutId);
+        Task<long> GetSelfUserId(CancellationToken cancel = default);
+        Task<IList<User>> GetFollowers(int pageNum = 0, CancellationToken cancel = default);
+        Task<IList<Workout>> GetWorkouts(long userId, int offset = 0, CancellationToken cancel = default);
+        Task<Workout> GetWorkout(long workoutId, CancellationToken cancel = default);
+        Task AddComment(long workoutId, string text, CancellationToken cancel = default);
+        Task DeleteComment(long commentId, CancellationToken cancel = default);
+        Task GiveProp(long workoutId, CancellationToken cancel = default);
     }
 }

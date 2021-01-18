@@ -16,7 +16,7 @@ namespace FitBot.Test.Services
             var database = new Mock<IDatabaseService>();
 
             var fitocracy = new Mock<IFitocracyService>();
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -35,8 +35,8 @@ namespace FitBot.Test.Services
             database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(new[] {workout});
 
             var fitocracy = new Mock<IFitocracyService>();
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout});
-            fitocracy.Setup(x => x.GetWorkouts(0, 1)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout});
+            fitocracy.Setup(x => x.GetWorkouts(0, 1, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -57,8 +57,8 @@ namespace FitBot.Test.Services
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout});
-            fitocracy.Setup(x => x.GetWorkouts(0, 1)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout});
+            fitocracy.Setup(x => x.GetWorkouts(0, 1, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -80,8 +80,8 @@ namespace FitBot.Test.Services
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout1A = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Points = 2, Activities = Array.Empty<Activity>()};
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout1A});
-            fitocracy.Setup(x => x.GetWorkouts(0, 1)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout1A});
+            fitocracy.Setup(x => x.GetWorkouts(0, 1, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -103,8 +103,8 @@ namespace FitBot.Test.Services
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout1A = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>(), ActivitiesHash = 2};
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout1A});
-            fitocracy.Setup(x => x.GetWorkouts(0, 1)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout1A});
+            fitocracy.Setup(x => x.GetWorkouts(0, 1, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -127,8 +127,8 @@ namespace FitBot.Test.Services
             database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(new[] {workout2, workout1});
 
             var fitocracy = new Mock<IFitocracyService>();
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout1});
-            fitocracy.Setup(x => x.GetWorkouts(0, 1)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout1});
+            fitocracy.Setup(x => x.GetWorkouts(0, 1, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -147,7 +147,7 @@ namespace FitBot.Test.Services
             var database = new Mock<IDatabaseService>();
 
             var fitocracy = new Mock<IFitocracyService>();
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -170,8 +170,8 @@ namespace FitBot.Test.Services
             var fitocracy = new Mock<IFitocracyService>();
             var workout2 = new Workout {Id = 2, Date = new DateTime(2014, 1, 2), Activities = Array.Empty<Activity>()};
             var workout1 = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout2, workout1});
-            fitocracy.Setup(x => x.GetWorkouts(0, 2)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout2, workout1});
+            fitocracy.Setup(x => x.GetWorkouts(0, 2, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -194,9 +194,9 @@ namespace FitBot.Test.Services
             var fitocracy = new Mock<IFitocracyService>();
             var workout2 = new Workout {Id = 2, Date = new DateTime(2014, 1, 2), Activities = Array.Empty<Activity>()};
             var workout1 = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout2});
-            fitocracy.Setup(x => x.GetWorkouts(0, 1)).ReturnsAsync(new[] {workout1});
-            fitocracy.Setup(x => x.GetWorkouts(0, 2)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout2});
+            fitocracy.Setup(x => x.GetWorkouts(0, 1, default)).ReturnsAsync(new[] {workout1});
+            fitocracy.Setup(x => x.GetWorkouts(0, 2, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -218,8 +218,8 @@ namespace FitBot.Test.Services
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout, workout});
-            fitocracy.Setup(x => x.GetWorkouts(0, 2)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout, workout});
+            fitocracy.Setup(x => x.GetWorkouts(0, 2, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -241,9 +241,9 @@ namespace FitBot.Test.Services
             var fitocracy = new Mock<IFitocracyService>();
             var workout2 = new Workout {Id = 2, Date = new DateTime(2014, 1, 2), Activities = Array.Empty<Activity>()};
             var workout1 = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout2});
-            fitocracy.Setup(x => x.GetWorkouts(0, 1)).ReturnsAsync(new[] {workout2, workout1});
-            fitocracy.Setup(x => x.GetWorkouts(0, 3)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout2});
+            fitocracy.Setup(x => x.GetWorkouts(0, 1, default)).ReturnsAsync(new[] {workout2, workout1});
+            fitocracy.Setup(x => x.GetWorkouts(0, 3, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -266,9 +266,9 @@ namespace FitBot.Test.Services
             var fitocracy = new Mock<IFitocracyService>();
             var workout2 = new Workout {Id = 2, Date = new DateTime(2014, 1, 2), Activities = Array.Empty<Activity>()};
             var workout1 = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Activities = Array.Empty<Activity>()};
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout2, workout1});
-            fitocracy.Setup(x => x.GetWorkouts(0, 2)).ReturnsAsync(new[] {workout2, workout1});
-            fitocracy.Setup(x => x.GetWorkouts(0, 4)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout2, workout1});
+            fitocracy.Setup(x => x.GetWorkouts(0, 2, default)).ReturnsAsync(new[] {workout2, workout1});
+            fitocracy.Setup(x => x.GetWorkouts(0, 4, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -294,8 +294,8 @@ namespace FitBot.Test.Services
             database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 1), DateTime.MaxValue)).ReturnsAsync(new[] {workout1, workout2});
 
             var fitocracy = new Mock<IFitocracyService>();
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout4, workout3, workout2, workout1});
-            fitocracy.Setup(x => x.GetWorkouts(0, 4)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout4, workout3, workout2, workout1});
+            fitocracy.Setup(x => x.GetWorkouts(0, 4, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -318,8 +318,8 @@ namespace FitBot.Test.Services
 
             var fitocracy = new Mock<IFitocracyService>();
             var workout1A = new Workout {Id = 1, Date = new DateTime(2014, 1, 1), Points = 2, Activities = Array.Empty<Activity>()};
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout1A});
-            fitocracy.Setup(x => x.GetWorkouts(0, 1)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout1A});
+            fitocracy.Setup(x => x.GetWorkouts(0, 1, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();
@@ -343,9 +343,9 @@ namespace FitBot.Test.Services
             database.Setup(x => x.GetWorkouts(0, new DateTime(2014, 1, 2), new DateTime(2014, 1, 1))).ReturnsAsync(Array.Empty<Workout>());
 
             var fitocracy = new Mock<IFitocracyService>();
-            fitocracy.Setup(x => x.GetWorkouts(0, 0)).ReturnsAsync(new[] {workout1});
-            fitocracy.Setup(x => x.GetWorkouts(0, 1)).ReturnsAsync(new[] {workout2});
-            fitocracy.Setup(x => x.GetWorkouts(0, 2)).ReturnsAsync(Array.Empty<Workout>());
+            fitocracy.Setup(x => x.GetWorkouts(0, 0, default)).ReturnsAsync(new[] {workout1});
+            fitocracy.Setup(x => x.GetWorkouts(0, 1, default)).ReturnsAsync(new[] {workout2});
+            fitocracy.Setup(x => x.GetWorkouts(0, 2, default)).ReturnsAsync(Array.Empty<Workout>());
 
             var activityGrouping = new Mock<IActivityGroupingService>();
             var activityHasher = new Mock<IActivityHashService>();

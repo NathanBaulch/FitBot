@@ -32,7 +32,7 @@ namespace FitBot.Services
             var deletedWorkouts = new List<Workout>();
             while (true)
             {
-                var freshWorkouts = await _fitocracy.GetWorkouts(user.Id, offset);
+                var freshWorkouts = await _fitocracy.GetWorkouts(user.Id, offset, cancel);
                 var freshLookup = freshWorkouts.ToLookup(workout => workout.Id);
 
                 foreach (var workout in deletedWorkouts.Where(workout => !freshLookup[workout.Id].Any()))
@@ -126,7 +126,7 @@ namespace FitBot.Services
 
             foreach (var id in unresolvedIds)
             {
-                var workout = await _fitocracy.GetWorkout(id);
+                var workout = await _fitocracy.GetWorkout(id, cancel);
                 workout.State = WorkoutState.Unresolved;
                 workouts.Add(workout);
             }
