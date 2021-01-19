@@ -12,6 +12,7 @@ using FitBot.Services;
 using FitBot.Tools;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -38,7 +39,8 @@ namespace FitBot
                 .UseHost(_ => CreateHostBuilder()
                     .ConfigureServices(services => services
                         .Configure<InvocationLifetimeOptions>(options => options.SuppressStatusMessages = true)
-                        .AddSingleton<Rehasher>()))
+                        .AddSingleton<Rehasher>())
+                    .ConfigureLogging(builder => builder.Services.RemoveAll<ILoggerProvider>()))
                 .UseDefaults()
                 .UseExceptionHandler((ex, _) =>
                 {
@@ -55,7 +57,13 @@ namespace FitBot
                 .ConfigureServices((context, services) => services
                     .Configure<EmailLoggerOptions>(context.Configuration.GetSection("Email"))
                     .AddHostedService<Worker>())
-                .ConfigureLogging(builder => builder.AddEmailLogger())
+                .ConfigureLogging(builder => builder
+                    .AddEmailLogger()
+                    .AddSimpleConsole(options =>
+                    {
+                        options.SingleLine = true;
+                        options.TimestampFormat = "HH:mm:ss ";
+                    }))
                 .Build()
                 .RunAsync();
 
@@ -75,11 +83,6 @@ namespace FitBot
                     .AddSingleton<IWebRequestService, WebRequestService>()
                     .AddSingleton<IWorkoutPullService, WorkoutPullService>()
                     .Scan(scan => scan.FromEntryAssembly().AddClasses(filter => filter.AssignableTo<IAchievementProvider>()).As<IAchievementProvider>())
-                    .Decorate<IWebRequestService, ThrottledWebRequestDecorator>())
-                .ConfigureLogging(builder => builder.AddSimpleConsole(options =>
-                {
-                    options.SingleLine = true;
-                    options.TimestampFormat = "yyyy-MM-dd'T'HH:mm:ssK ";
-                }));
+                    .Decorate<IWebRequestService, ThrottledWebRequestDecorator>());
     }
 }
