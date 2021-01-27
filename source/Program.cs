@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace FitBot
 {
@@ -63,7 +64,8 @@ namespace FitBot
                     {
                         options.SingleLine = true;
                         options.TimestampFormat = "HH:mm:ss ";
-                    }))
+                    })
+                    .Services.Decorate<ConsoleFormatter>(service => service.Name == ConsoleFormatterNames.Simple ? new CustomConsoleLoggerFormatter(service) : service))
                 .Build()
                 .RunAsync();
 
