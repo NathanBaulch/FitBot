@@ -10,6 +10,7 @@
         <PackageReference Include="HtmlAgilityPack" Version="1.11.29" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="5.0.1" />
+        <PackageReference Include="Microsoft.Win32.SystemEvents" Version="5.0.0" />
         <PackageReference Include="Npgsql" Version="5.0.1.1" />
         <PackageReference Include="Scrutor" Version="3.3.0" />
         <PackageReference Include="ShellProgressBar" Version="5.0.0" />
