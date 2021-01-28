@@ -30,19 +30,24 @@ namespace FitBot.Services
         {
             await Delay(cancel);
 
-            try
+            var attempt = 0;
+
+            while (true)
             {
-                return await _decorated.Get(endpoint, args, expectedContentType, cancel);
-            }
-            catch (Exception ex) when (ex.GetBaseException() is WebException webEx &&
-                                       (webEx.Status == WebExceptionStatus.Timeout ||
-                                        webEx.Status == WebExceptionStatus.KeepAliveFailure ||
-                                        webEx.Status == WebExceptionStatus.NameResolutionFailure ||
-                                        webEx is {Response: HttpWebResponse {StatusCode: HttpStatusCode.GatewayTimeout}}))
-            {
-                _logger.LogWarning(webEx.Message.TrimEnd('.', ',') + ", retrying in 10 seconds");
-                await Task.Delay(TimeSpan.FromSeconds(10), cancel);
-                return await _decorated.Get(endpoint, args, expectedContentType, cancel);
+                try
+                {
+                    return await _decorated.Get(endpoint, args, expectedContentType, cancel);
+                }
+                catch (Exception ex) when (++attempt < 5 &&
+                                           ex.GetBaseException() is WebException webEx &&
+                                           (webEx.Status == WebExceptionStatus.Timeout ||
+                                            webEx.Status == WebExceptionStatus.KeepAliveFailure ||
+                                            webEx.Status == WebExceptionStatus.NameResolutionFailure ||
+                                            webEx is {Response: HttpWebResponse {StatusCode: HttpStatusCode.GatewayTimeout}}))
+                {
+                    _logger.LogWarning("{0} on attempt {1}, retrying in 10 seconds", webEx.Message.TrimEnd('.', ','), attempt);
+                    await Task.Delay(TimeSpan.FromSeconds(10), cancel);
+                }
             }
         }
 
