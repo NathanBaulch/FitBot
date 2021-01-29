@@ -1,5 +1,7 @@
-﻿using System.Collections.Specialized;
+﻿using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
@@ -14,7 +16,7 @@ namespace FitBot.Development
         private readonly string _cacheDir = Path.GetFullPath("WebCache");
         private readonly IWebRequestService _decorated;
         private readonly ILogger<CachedWebRequestDecorator> _logger;
-        private NameValueCollection _headers;
+        private Dictionary<string, string> _headers;
 
         public CachedWebRequestDecorator(IWebRequestService decorated, ILogger<CachedWebRequestDecorator> logger)
         {
@@ -40,7 +42,7 @@ namespace FitBot.Development
                     var formatter = new BinaryFormatter();
 #pragma warning disable 618,SYSLIB0011
                     Cookies = (CookieContainer) formatter.Deserialize(stream);
-                    _headers = (NameValueCollection) formatter.Deserialize(stream);
+                    _headers = (Dictionary<string, string>) formatter.Deserialize(stream);
 #pragma warning restore 618,SYSLIB0011
                     return Stream.Null;
                 }
@@ -67,14 +69,14 @@ namespace FitBot.Development
                     var formatter = new BinaryFormatter();
 #pragma warning disable 618,SYSLIB0011
                     formatter.Serialize(stream, Cookies);
-                    formatter.Serialize(stream, headers);
+                    formatter.Serialize(stream, headers.Cast<string>().ToDictionary(key => key, key => headers[key]));
 #pragma warning restore 618,SYSLIB0011
                 }
                 else if (headers != null)
                 {
-                    foreach (string key in _headers)
+                    foreach (var (key, value) in _headers)
                     {
-                        headers[key] = _headers[key];
+                        headers[key] = value;
                     }
                 }
             }
