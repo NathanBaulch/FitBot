@@ -6,6 +6,7 @@ namespace FitBot.Model
     {
         public long Id { get; set; }
         public string Username { get; set; }
+        public bool IsBlocked { get; set; }
         public DateTime InsertDate { get; set; }
         public DateTime? UpdateDate { get; set; }
 

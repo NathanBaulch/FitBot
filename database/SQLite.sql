@@ -20,6 +20,7 @@ CREATE TABLE [User]
 (
     [Id]         BIGINT        NOT NULL PRIMARY KEY,
     [Username]   NVARCHAR(100) NOT NULL UNIQUE,
+    [IsBlocked]  BIT           NOT NULL,
     [InsertDate] DATETIME      NOT NULL,
     [UpdateDate] DATETIME
 );
@@ -94,6 +95,7 @@ CREATE INDEX [IX_Achievement_WorkoutId] ON [Achievement] ([WorkoutId]);
 CREATE VIEW [WorkoutView] AS
 SELECT u.[Id]         [UserId],
        u.[Username],
+       u.[IsBlocked],
        u.[InsertDate] [UserInsertDate],
        w.[Id]         [WorkoutId],
        w.[Date],
@@ -107,6 +109,7 @@ WHERE u.[Id] = w.[UserId];
 CREATE VIEW [ActivityView] AS
 SELECT u.[Id]         [UserId],
        u.[Username],
+       u.[IsBlocked],
        u.[InsertDate] [UserInsertDate],
        w.[Id]         [WorkoutId],
        w.[Date],
@@ -127,6 +130,7 @@ WHERE u.[Id] = w.[UserId]
 CREATE VIEW [SetView] AS
 SELECT u.[Id]         [UserId],
        u.[Username],
+       u.[IsBlocked],
        u.[InsertDate] [UserInsertDate],
        w.[Id]         [WorkoutId],
        w.[Date],
@@ -161,6 +165,7 @@ WHERE u.[Id] = w.[UserId]
 CREATE VIEW [AchievementView] AS
 SELECT u.[Id]         [UserId],
        u.[Username],
+       u.[IsBlocked],
        u.[InsertDate] [UserInsertDate],
        w.[Id]         [WorkoutId],
        w.[Date],

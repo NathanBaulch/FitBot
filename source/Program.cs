@@ -34,13 +34,19 @@ namespace FitBot
                     new Option<bool>("--dry-run")
                 };
             rehash.Handler = CommandHandler.Create<IHost, bool, bool, CancellationToken>((host, gentle, dryRun, cancel) => host.Services.GetRequiredService<Rehasher>().Run(gentle, dryRun, cancel));
-            var root = new RootCommand {rehash};
+            var block = new Command("block")
+                {
+                    new Option<long>("--user-id"),
+                };
+            block.Handler = CommandHandler.Create<IHost, IConsole, long>((host, console, userId) => host.Services.GetRequiredService<Blocker>().Run(console, userId));
+            var root = new RootCommand {rehash, block};
             root.Handler = CommandHandler.Create(Execute);
             return new CommandLineBuilder(root)
                 .UseHost(_ => CreateHostBuilder()
                     .ConfigureServices(services => services
                         .Configure<InvocationLifetimeOptions>(options => options.SuppressStatusMessages = true)
-                        .AddSingleton<Rehasher>())
+                        .AddSingleton<Rehasher>()
+                        .AddSingleton<Blocker>())
                     .ConfigureLogging(builder => builder.Services.RemoveAll<ILoggerProvider>()))
                 .UseDefaults()
                 .UseExceptionHandler((ex, _) =>

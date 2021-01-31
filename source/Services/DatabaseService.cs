@@ -74,7 +74,7 @@ namespace FitBot.Services
             return con.Query<T>(Prepare(sql, limit, ref parameters), parameters);
         }
 
-        public virtual T Single<T>(string sql, object parameters, bool limit)
+        public virtual T Single<T>(string sql, object parameters, bool limit = false)
         {
             using var con = OpenConnection();
             return con.QuerySingleOrDefault<T>(Prepare(sql, limit ? 1 : 0, ref parameters), parameters);
@@ -85,6 +85,12 @@ namespace FitBot.Services
                 "select * " +
                 "from [User] " +
                 "order by [Id]");
+
+        public User GetUser(long id) =>
+            Single<User>(
+                "select * " +
+                "from [User] " +
+                "where [Id] = @id", new {id});
 
         public void Insert(User user)
         {

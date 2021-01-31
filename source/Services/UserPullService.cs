@@ -35,8 +35,7 @@ namespace FitBot.Services
                 }
                 pageNum++;
 
-                freshUsers = freshUsers.Where(user => processedIds.Add(user.Id)).ToList();
-                foreach (var freshUser in freshUsers)
+                foreach (var freshUser in freshUsers.Where(user => processedIds.Add(user.Id)))
                 {
                     if (!staleUsers.TryGetValue(freshUser.Id, out var staleUser))
                     {
@@ -44,16 +43,20 @@ namespace FitBot.Services
                     }
                     else
                     {
+                        staleUsers.Remove(freshUser.Id);
+                        if (staleUser.IsBlocked)
+                        {
+                            continue;
+                        }
                         if (freshUser.HasChanges(staleUser))
                         {
                             _database.Update(freshUser);
                         }
-                        staleUsers.Remove(freshUser.Id);
                         freshUser.InsertDate = staleUser.InsertDate;
                     }
+                    users.Add(freshUser);
                 }
 
-                users.AddRange(freshUsers);
                 cancel.ThrowIfCancellationRequested();
             }
 

@@ -10,6 +10,7 @@ namespace FitBot.Services
         T Single<T>(string sql, object parameters = null, bool limit = false);
 
         IEnumerable<User> GetUsers();
+        User GetUser(long id);
         void Insert(User user);
         void Update(User user);
         void Delete(User user);

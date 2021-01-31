@@ -20,6 +20,7 @@ CREATE TABLE [User]
 (
     [Id]         BIGINT        NOT NULL PRIMARY KEY,
     [Username]   NVARCHAR(100) NOT NULL UNIQUE,
+    [IsBlocked]  BIT           NOT NULL,
     [InsertDate] DATETIME2     NOT NULL,
     [UpdateDate] DATETIME2
 )
@@ -103,6 +104,7 @@ GO
 CREATE VIEW [WorkoutView] AS
 SELECT u.[Id]         [UserId],
        u.[Username],
+       u.[IsBlocked],
        u.[InsertDate] [UserInsertDate],
        w.[Id]         [WorkoutId],
        w.[Date],
@@ -117,6 +119,7 @@ GO
 CREATE VIEW [ActivityView] AS
 SELECT u.[Id]         [UserId],
        u.[Username],
+       u.[IsBlocked],
        u.[InsertDate] [UserInsertDate],
        w.[Id]         [WorkoutId],
        w.[Date],
@@ -138,6 +141,7 @@ GO
 CREATE VIEW [SetView] AS
 SELECT u.[Id]         [UserId],
        u.[Username],
+       u.[IsBlocked],
        u.[InsertDate] [UserInsertDate],
        w.[Id]         [WorkoutId],
        w.[Date],
@@ -173,6 +177,7 @@ GO
 CREATE VIEW [AchievementView] AS
 SELECT u.[Id]         [UserId],
        u.[Username],
+       u.[IsBlocked],
        u.[InsertDate] [UserInsertDate],
        w.[Id]         [WorkoutId],
        w.[Date],
