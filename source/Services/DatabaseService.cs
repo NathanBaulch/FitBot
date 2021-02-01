@@ -68,16 +68,16 @@ namespace FitBot.Services
             _achievementWorkoutIdProp = GetPropertyMap<Achievement>(x => x.WorkoutId);
         }
 
-        public virtual IEnumerable<T> Query<T>(string sql, object parameters = null)
+        public virtual IEnumerable<T> Query<T>(string sql, object parameters = null, int limit = 0)
         {
             using var con = OpenConnection();
-            return con.Query<T>(Quote(sql), parameters);
+            return con.Query<T>(Prepare(sql, limit, ref parameters), parameters);
         }
 
-        public virtual T Single<T>(string sql, object parameters)
+        public virtual T Single<T>(string sql, object parameters, bool limit)
         {
             using var con = OpenConnection();
-            return con.QuerySingleOrDefault<T>(Quote(sql), parameters);
+            return con.QuerySingleOrDefault<T>(Prepare(sql, limit ? 1 : 0, ref parameters), parameters);
         }
 
         public IEnumerable<User> GetUsers() =>
@@ -317,6 +317,25 @@ namespace FitBot.Services
                     con.Insert(set, trans);
                 }
             }
+        }
+
+        private static string Prepare(string sql, int limit, ref object parameters)
+        {
+            sql = Quote(sql);
+
+            if (limit > 0)
+            {
+                var newParams = new Dictionary<string, object>();
+                sql = DapperExtensions.DapperExtensions.SqlDialect.GetPagingSql(sql, 0, limit, newParams);
+                if (newParams.Count > 0)
+                {
+                    var dynParams = new DynamicParameters(parameters);
+                    dynParams.AddDynamicParams(newParams);
+                    parameters = dynParams;
+                }
+            }
+
+            return sql;
         }
 
         private static string Quote(string sql)

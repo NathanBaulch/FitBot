@@ -6,8 +6,8 @@ namespace FitBot.Services
 {
     public interface IDatabaseService
     {
-        IEnumerable<T> Query<T>(string sql, object parameters = null);
-        T Single<T>(string sql, object parameters = null);
+        IEnumerable<T> Query<T>(string sql, object parameters = null, int limit = 0);
+        T Single<T>(string sql, object parameters = null, bool limit = false);
 
         IEnumerable<User> GetUsers();
         void Insert(User user);

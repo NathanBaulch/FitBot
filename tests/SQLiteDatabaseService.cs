@@ -5,7 +5,6 @@ using System.Data.Common;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Dapper;
 using DapperExtensions.Sql;
 using FitBot.Services;
@@ -50,24 +49,9 @@ namespace FitBot.Test
             cmd.ExecuteNonQuery();
         }
 
-        public override IEnumerable<T> Query<T>(string sql, object parameters = null) => base.Query<T>(TransformSql(sql), TransformParameters(parameters)).Select(TransformResult);
+        public override IEnumerable<T> Query<T>(string sql, object parameters, int limit) => base.Query<T>(sql, TransformParameters(parameters), limit).Select(TransformResult);
 
-        public override T Single<T>(string sql, object parameters) => TransformResult(base.Single<T>(TransformSql(sql), TransformParameters(parameters)));
-
-        private static string TransformSql(string sql)
-        {
-            var match = Regex.Match(sql, @"select top ([@\w]+) (.*)", RegexOptions.Multiline | RegexOptions.IgnoreCase);
-            if (match.Success)
-            {
-                return $"select {match.Groups[2].Value} limit {match.Groups[1].Value}";
-            }
-            match = Regex.Match(sql, @"(.*) offset ([@\w]+) rows fetch next ([@\w]+) rows only", RegexOptions.Multiline | RegexOptions.IgnoreCase);
-            if (match.Success)
-            {
-                return $"{match.Groups[1].Value} limit {match.Groups[3].Value} offset {match.Groups[2].Value}";
-            }
-            return sql;
-        }
+        public override T Single<T>(string sql, object parameters, bool limit) => TransformResult(base.Single<T>(sql, TransformParameters(parameters), limit));
 
         private static object TransformParameters(object parameters) =>
             parameters?.GetType()

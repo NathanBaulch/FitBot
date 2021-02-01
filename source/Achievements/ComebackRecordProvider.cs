@@ -46,14 +46,14 @@ namespace FitBot.Achievements
 
                     var fromDate = workout.Date.AddYears(-1);
                     var lastYearMax = _database.Single<dynamic>(
-                        "select top 1 s.[Weight], s.[Repetitions] " +
+                        "select s.[Weight], s.[Repetitions] " +
                         "from [Workout] w, [Activity] a, [Set] s " +
                         "where w.[Id] = a.[WorkoutId] " +
                         "and a.[Id] = s.[ActivityId] " +
                         "and w.[UserId] = @UserId " +
                         "and w.[Date] < @fromDate " +
                         "and a.[Name] = @Name " +
-                        "order by s.[Weight] desc, s.[Repetitions] desc", new {workout.UserId, fromDate, activity.Name});
+                        "order by s.[Weight] desc, s.[Repetitions] desc", new {workout.UserId, fromDate, activity.Name}, true);
                     if (lastYearMax == null ||
                         max.Weight > lastYearMax.Weight ||
                         (max.Weight == lastYearMax.Weight && max.Repetitions > lastYearMax.Repetitions) ||
@@ -63,7 +63,7 @@ namespace FitBot.Achievements
                     }
 
                     var thisYearMax = _database.Single<dynamic>(
-                        "select top 1 s.[Weight], s.[Repetitions] " +
+                        "select s.[Weight], s.[Repetitions] " +
                         "from [Workout] w, [Activity] a, [Set] s " +
                         "where w.[Id] = a.[WorkoutId] " +
                         "and a.[Id] = s.[ActivityId] " +
@@ -72,7 +72,7 @@ namespace FitBot.Achievements
                         "and w.[Date] < @Date " +
                         "and a.[Name] = @Name " +
                         "and s.[Weight] " + (max.Weight != null ? ">= @Weight" : "is null") + " " +
-                        "order by s.[Weight] desc, s.[Repetitions] desc", new {workout.UserId, fromDate, workout.Date, activity.Name, max.Weight});
+                        "order by s.[Weight] desc, s.[Repetitions] desc", new {workout.UserId, fromDate, workout.Date, activity.Name, max.Weight}, true);
                     if (thisYearMax != null && (max.Weight < thisYearMax.Weight || max.Repetitions <= thisYearMax.Repetitions))
                     {
                         continue;
