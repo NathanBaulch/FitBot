@@ -23,15 +23,12 @@ namespace FitBot.Services
         public IEnumerable<Achievement> Process(User user, IEnumerable<Workout> workouts)
         {
             var achievements = new List<Achievement>();
+            var cutoff = new DateTime(Math.Max(user.InsertDate.AddDays(-7).Ticks, DateTime.UtcNow.AddDays(-30).Ticks));
 
             foreach (var workout in workouts)
             {
-                var latestAchievements = workout.State == WorkoutState.Unresolved
-                    ? _database.GetAchievements(workout.Id)
-                    : ProcessAchievements(workout);
-                latestAchievements = ProcessComments(workout, latestAchievements).ToList();
-
-                if (workout.Date > user.InsertDate.AddDays(-7) && workout.Date > DateTime.UtcNow.AddDays(-30))
+                var latestAchievements = ProcessComments(workout, ProcessAchievements(workout));
+                if (workout.Date > cutoff)
                 {
                     achievements.AddRange(latestAchievements);
                 }
@@ -43,6 +40,11 @@ namespace FitBot.Services
         private IEnumerable<Achievement> ProcessAchievements(Workout workout)
         {
             var staleAchievements = _database.GetAchievements(workout.Id).ToList();
+            if (workout.State == WorkoutState.Unchanged)
+            {
+                return staleAchievements;
+            }
+
             var freshAchievements = _providers.SelectMany(achievement => achievement.Execute(workout)).ToList();
 
             foreach (var achievement in freshAchievements)

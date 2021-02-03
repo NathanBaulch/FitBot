@@ -90,8 +90,11 @@ namespace FitBot.Services
             workouts.Reverse();
             var unresolvedIds = _database.GetUnresolvedWorkoutIds(user.Id, user.InsertDate.AddDays(-7)).ToList();
 
+            var trimming = true;
             foreach (var workout in workouts.ToList())
             {
+                var unresolved = unresolvedIds.Remove(workout.Id);
+
                 switch (workout.State)
                 {
                     case WorkoutState.Added:
@@ -99,36 +102,35 @@ namespace FitBot.Services
                         break;
                     case WorkoutState.UpdatedDeep:
                         _database.Update(workout, true);
-                        unresolvedIds.Remove(workout.Id);
                         break;
                     case WorkoutState.Updated:
                         _database.Update(workout);
-                        unresolvedIds.Remove(workout.Id);
                         break;
                     case WorkoutState.Deleted:
                         _database.Delete(workout);
-                        workouts.Remove(workout);
-                        unresolvedIds.Remove(workout.Id);
-                        break;
-                    case WorkoutState.Unchanged:
-                        if (unresolvedIds.Remove(workout.Id))
-                        {
-                            workout.State = WorkoutState.Unresolved;
-                        }
                         break;
                 }
-            }
 
-            while (workouts.Count > 0 && workouts[0].State == WorkoutState.Unchanged)
-            {
-                workouts.RemoveAt(0);
+                if (workout.State == WorkoutState.Deleted)
+                {
+                    workouts.Remove(workout);
+                }
+                else if (trimming)
+                {
+                    if (workout.State != WorkoutState.Unchanged)
+                    {
+                        trimming = false;
+                    }
+                    else if (!unresolved)
+                    {
+                        workouts.Remove(workout);
+                    }
+                }
             }
 
             foreach (var id in unresolvedIds)
             {
-                var workout = await _fitocracy.GetWorkout(id, cancel);
-                workout.State = WorkoutState.Unresolved;
-                workouts.Add(workout);
+                workouts.Add(await _fitocracy.GetWorkout(id, cancel));
             }
 
             return workouts.OrderBy(workout => workout.Date).ToList();

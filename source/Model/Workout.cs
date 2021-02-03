@@ -28,8 +28,7 @@ namespace FitBot.Model
         Added,
         Updated,
         UpdatedDeep,
-        Deleted,
-        Unresolved
+        Deleted
     }
 
     public class Comment
