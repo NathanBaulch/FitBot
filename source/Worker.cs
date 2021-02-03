@@ -104,7 +104,7 @@ namespace FitBot
                         foreach (var user in await _userPull.Pull(cancel))
                         {
                             var workouts = await _workoutPull.Pull(user, cancel);
-                            var achievements = _achieveService.Process(user, workouts);
+                            var achievements = _achieveService.Process(user, workouts, cancel);
                             await _achievementPush.Push(achievements, cancel);
                             cancel.ThrowIfCancellationRequested();
                         }

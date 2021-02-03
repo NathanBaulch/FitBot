@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using FitBot.Achievements;
 using FitBot.Model;
 using Microsoft.Extensions.Logging;
@@ -20,16 +21,16 @@ namespace FitBot.Services
             _logger = logger;
         }
 
-        public IEnumerable<Achievement> Process(User user, IEnumerable<Workout> workouts)
+        public IEnumerable<Achievement> Process(User user, IEnumerable<Workout> workouts, CancellationToken cancel = default)
         {
             var achievements = new List<Achievement>();
             var cutoff = new DateTime(Math.Max(user.InsertDate.AddDays(-7).Ticks, DateTime.UtcNow.AddDays(-30).Ticks));
-            Process(workouts, cutoff, achievements);
-            Process(_database.GetUnprocessedWorkouts(user.Id), cutoff, achievements);
+            Process(workouts, cutoff, achievements, cancel);
+            Process(_database.GetUnprocessedWorkouts(user.Id), cutoff, achievements, cancel);
             return achievements;
         }
 
-        private void Process(IEnumerable<Workout> workouts, DateTime cutoff, List<Achievement> achievements)
+        private void Process(IEnumerable<Workout> workouts, DateTime cutoff, List<Achievement> achievements, CancellationToken cancel)
         {
             foreach (var workout in workouts)
             {
@@ -38,6 +39,8 @@ namespace FitBot.Services
                 {
                     achievements.AddRange(latestAchievements);
                 }
+
+                cancel.ThrowIfCancellationRequested();
             }
         }
 
