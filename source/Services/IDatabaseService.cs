@@ -16,10 +16,12 @@ namespace FitBot.Services
         void Delete(User user);
 
         IEnumerable<Workout> GetWorkouts(long userId, DateTime? fromDate = null, DateTime? toDate = null);
+        IEnumerable<Workout> GetUnprocessedWorkouts(long userId);
         IEnumerable<long> GetUnresolvedWorkoutIds(long userId, DateTime after);
         void DeleteWorkouts(long userId, DateTime before);
         void Insert(Workout workout);
         void Update(Workout workout, bool deep = false);
+        void UpdateIsProcessed(long workoutId, bool isProcessed);
         void Delete(Workout workout);
 
         IEnumerable<Activity> GetActivities(long workoutId);

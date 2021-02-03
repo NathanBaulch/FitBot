@@ -15,6 +15,7 @@ namespace FitBot.Model
         public IList<Activity> Activities { get; set; }
         public WorkoutState State { get; set; }
         public IList<Comment> Comments { get; set; }
+        public bool IsProcessed { get; set; }
 
         public bool HasChanges(Workout workout) =>
             Date != workout.Date ||

@@ -126,6 +126,19 @@ namespace FitBot.Services
                 (toDate != null ? "and [Date] < @toDate " : "") +
                 "order by [Date], [Id]", new {userId, fromDate, toDate});
 
+        public IEnumerable<Workout> GetUnprocessedWorkouts(long userId) =>
+            Query<Workout>(
+                    "select [Id] " +
+                    "from [Workout] " +
+                    "where [UserId] = @userId " +
+                    "and [IsProcessed] = @processed " +
+                    "order by [Id]", new {userId, processed = false})
+                .Select(workout =>
+                {
+                    workout.Activities = GetActivities(workout.Id).ToList();
+                    return workout;
+                });
+
         public IEnumerable<long> GetUnresolvedWorkoutIds(long userId, DateTime after) =>
             Query<long>(
                 "select [Id] " +
@@ -183,6 +196,16 @@ namespace FitBot.Services
             {
                 con.Update(workout);
             }
+        }
+
+        public void UpdateIsProcessed(long workoutId, bool isProcessed)
+        {
+            _logger.LogDebug("Update is processed on workout {0}", workoutId);
+            using var con = OpenConnection();
+            con.Execute(Quote(
+                "update [Workout] " +
+                "set [IsProcessed] = @isProcessed " +
+                "where [Id] = @workoutId"), new {isProcessed, workoutId});
         }
 
         public void Delete(Workout workout)

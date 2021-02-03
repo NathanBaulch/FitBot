@@ -24,7 +24,13 @@ namespace FitBot.Services
         {
             var achievements = new List<Achievement>();
             var cutoff = new DateTime(Math.Max(user.InsertDate.AddDays(-7).Ticks, DateTime.UtcNow.AddDays(-30).Ticks));
+            Process(workouts, cutoff, achievements);
+            Process(_database.GetUnprocessedWorkouts(user.Id), cutoff, achievements);
+            return achievements;
+        }
 
+        private void Process(IEnumerable<Workout> workouts, DateTime cutoff, List<Achievement> achievements)
+        {
             foreach (var workout in workouts)
             {
                 var latestAchievements = ProcessComments(workout, ProcessAchievements(workout));
@@ -33,14 +39,12 @@ namespace FitBot.Services
                     achievements.AddRange(latestAchievements);
                 }
             }
-
-            return achievements;
         }
 
         private IEnumerable<Achievement> ProcessAchievements(Workout workout)
         {
             var staleAchievements = _database.GetAchievements(workout.Id).ToList();
-            if (workout.State == WorkoutState.Unchanged)
+            if (workout.IsProcessed)
             {
                 return staleAchievements;
             }
@@ -83,6 +87,7 @@ namespace FitBot.Services
                 _database.Delete(staleAchievement);
             }
 
+            _database.UpdateIsProcessed(workout.Id, true);
             return freshAchievements;
         }
 
