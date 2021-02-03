@@ -242,6 +242,18 @@ namespace FitBot.Services
                 "where [WorkoutId] = @workoutId " +
                 "order by [Type], [Group], [Id]", new {workoutId});
 
+        public IEnumerable<Achievement> GetUnpushedAchievements(long userId, DateTime after) =>
+            Query<Achievement>(
+                "select [Id] " +
+                "from [Achievement] " +
+                "where [IsPushed] = @pushed " +
+                "and [WorkoutId] in (" +
+                "  select [Id] " +
+                "  from [Workout] " +
+                "  where [UserId] = @userId " +
+                "  and [Date] > @after)" +
+                "order by [Id]", new {pushed = false, userId, after});
+
         public void Insert(Achievement achievement)
         {
             if (achievement.Group != null)
@@ -284,6 +296,16 @@ namespace FitBot.Services
             _achievementWorkoutIdProp.Ignore();
             achievement.UpdateDate = DateTime.UtcNow;
             con.Update(achievement);
+        }
+
+        public void UpdateIsPushed(long achievementId, bool isPushed)
+        {
+            _logger.LogDebug("Update is pushed on achievement {0}", achievementId);
+            using var con = OpenConnection();
+            con.Execute(Quote(
+                "update [Achievement] " +
+                "set [IsPushed] = @isPushed " +
+                "where [Id] = @achievementId"), new {isPushed, achievementId});
         }
 
         public void UpdateCommentId(long achievementId, long commentId)

@@ -105,7 +105,7 @@ namespace FitBot
                         {
                             var workouts = await _workoutPull.Pull(user, cancel);
                             var achievements = _achieveService.Process(user, workouts, cancel);
-                            await _achievementPush.Push(achievements, cancel);
+                            await _achievementPush.Push(user, achievements, cancel);
                             cancel.ThrowIfCancellationRequested();
                         }
                     }

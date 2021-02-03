@@ -12,6 +12,6 @@ namespace FitBot.Development
         {
         }
 
-        public Task Push(IEnumerable<Achievement> achievements, CancellationToken cancel) => Task.CompletedTask;
+        public Task Push(User user, IEnumerable<Achievement> achievements, CancellationToken cancel) => Task.CompletedTask;
     }
 }

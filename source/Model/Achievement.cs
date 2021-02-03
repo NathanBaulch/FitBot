@@ -19,6 +19,7 @@ namespace FitBot.Model
         public bool IsPropped { get; set; }
         public DateTime InsertDate { get; set; }
         public DateTime? UpdateDate { get; set; }
+        public bool IsPushed { get; set; }
 
         public bool HasChanges(Achievement achievement) =>
             Distance != achievement.Distance ||

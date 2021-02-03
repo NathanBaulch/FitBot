@@ -27,8 +27,10 @@ namespace FitBot.Services
         IEnumerable<Activity> GetActivities(long workoutId);
 
         IEnumerable<Achievement> GetAchievements(long workoutId);
+        IEnumerable<Achievement> GetUnpushedAchievements(long userId, DateTime after);
         void Insert(Achievement achievement);
         void Update(Achievement achievement);
+        void UpdateIsPushed(long achievementId, bool isPushed);
         void UpdateCommentId(long achievementId, long commentId);
         void Delete(Achievement achievement);
     }
